@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.884 2021/11/12 05:05:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.885 2021/11/14 02:56:24 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9060,7 +9060,7 @@ expected-stdout:
 name: utf8opt-2
 description:
 	Check that the utf8-mode flag is set at interactive startup.
-	If your OS is old, try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
+	If your OS is old and fails this, contact the mksh developer.
 need-pass: no
 category: !noutf8
 need-ctty: yes

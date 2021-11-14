@@ -28,14 +28,12 @@
 #define EXTERN
 #include "sh.h"
 
-#if HAVE_LANGINFO_CODESET
+#if HAVE_POSIX_UTF8_LOCALE
+#include <locale.h>
 #include <langinfo.h>
 #endif
-#if HAVE_SETLOCALE_CTYPE
-#include <locale.h>
-#endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.402 2021/11/13 21:22:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.403 2021/11/14 02:56:27 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -45,7 +43,7 @@ __RCSID("$MirOS: src/bin/mksh/main.c,v 1.402 2021/11/13 21:22:37 tg Exp $");
 #define MKSH_DEFAULT_TMPDIR	MKSH_UNIXROOT "/tmp"
 #endif
 
-#if !HAVE_SETLOCALE_CTYPE
+#if !HAVE_POSIX_UTF8_LOCALE
 /* this is the “implementation-defined default locale” */
 #ifdef MKSH_DEFAULT_UTFLOC
 #define MKSH_DEFAULT_LOCALE	"UTF-8"
@@ -54,7 +52,6 @@ __RCSID("$MirOS: src/bin/mksh/main.c,v 1.402 2021/11/13 21:22:37 tg Exp $");
 #endif
 #endif
 
-static kby isuc(const char *);
 static int main_init(int, const char *[], Source **, struct block **);
 void chvt_reinit(void);
 static void reclaim(void);
@@ -223,28 +220,26 @@ static const char *empty_argv[] = {
 	Tmksh, NULL
 };
 
+#ifndef MKSH_EARLY_LOCALE_TRACKING
 static kby
 isuc(const char *cx) {
-	char *cp, *x;
-	kby rv = 0;
+	const char *cp;
 
 	if (!cx || !*cx)
 		return (0);
 
-	/* uppercase a string duplicate */
-	strdupx(x, cx, ATEMP);
-	cp = x;
-	while ((*cp = ksh_toupper(*cp)))
+	if ((cp = cstrchr(cx, '.')))
 		++cp;
-
-	/* check for UTF-8 */
-	if (vstrstr(x, "UTF-8") || vstrstr(x, "UTF8"))
-		rv = 1;
-
-	/* free copy and out */
-	afree(x, ATEMP);
-	return (rv);
+	else
+		cp = cx;
+	if (!ksh_eq(cp[0], 'U', 'u') ||
+	    !ksh_eq(cp[1], 'T', 't') ||
+	    !ksh_eq(cp[2], 'F', 'f'))
+		return (0);
+	cp += ksh_is(cp[3], '-') ? 4 : 3;
+	return (ksh_is(*cp, '8') && (ksh_is(cp[1], '@') || !cp[1]));
 }
+#endif
 
 kby
 kshname_islogin(const char **kshbasenamep)
@@ -663,12 +658,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* auto-detect from locale or environment */
 	case 4:
 #ifndef MKSH_EARLY_LOCALE_TRACKING
-#if HAVE_SETLOCALE_CTYPE
+#if HAVE_POSIX_UTF8_LOCALE
 		ccp = setlocale(LC_CTYPE, "");
-#if HAVE_LANGINFO_CODESET
 		if (!isuc(ccp))
 			ccp = nl_langinfo(CODESET);
-#endif
 		if (!isuc(ccp))
 			ccp = null;
 #endif
@@ -1995,7 +1988,7 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 }
 
 #ifdef MKSH_ENVDIR
-#if HAVE_SETLOCALE_CTYPE
+#if HAVE_POSIX_UTF8_LOCALE
 # error MKSH_ENVDIR has not been adapted to work with POSIX locale!
 #else
 static void
@@ -2072,8 +2065,8 @@ init_environ(void)
 		rndpush(*wp);
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 #ifdef MKSH_EARLY_LOCALE_TRACKING
-		if (ord((*wp)[0]) == ORD('L') && (
-		    (ord((*wp)[1]) == ORD('C') && ord((*wp)[2]) == ORD('_')) ||
+		if (ksh_is((*wp)[0], 'L') && (
+		    (ksh_is((*wp)[1], 'C') && ksh_is((*wp)[2], '_')) ||
 		    !strcmp(*wp, "LANG"))) {
 			const char **P;
 
@@ -2097,30 +2090,59 @@ void
 recheck_ctype(void)
 {
 	const char *ccp;
+#if !HAVE_POSIX_UTF8_LOCALE
+	const char *cdp;
+#endif
 
-	/*XXX OSX has LC_CTYPE=UTF-8 */
+	/* determine active LC_CTYPE value */
 	ccp = str_val(global("LC_ALL"));
-	if (ccp == null)
+	if (!*ccp)
 		ccp = str_val(global("LC_CTYPE"));
-	if (ccp == null)
+	if (!*ccp)
 		ccp = str_val(global("LANG"));
-#if !HAVE_SETLOCALE_CTYPE
-	/*XXX == null? this :- or - ? */
-	if (ccp == null)
+#if !HAVE_POSIX_UTF8_LOCALE
+	if (!*ccp)
 		ccp = MKSH_DEFAULT_LOCALE;
 #endif
-/*XXX check either the parameters directly or setlocale, not both */
-	UTFMODE = isuc(ccp);
-#if HAVE_SETLOCALE_CTYPE
-	ccp = setlocale(LC_CTYPE, ccp);
-#if HAVE_LANGINFO_CODESET
-/*XXX setlocale without nl_langinfo(CODESET) makes no sense for us */
-	if (!isuc(ccp))
-		ccp = nl_langinfo(CODESET);
+
+	/* determine codeset used */
+#if HAVE_POSIX_UTF8_LOCALE
+	errno = EINVAL;
+	if (!setlocale(LC_CTYPE, ccp)) {
+		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, "setlocale");
+		return;
+	}
+	ccp = nl_langinfo(CODESET);
+#else
+	/* tacked on to a locale name or just a codeset? */
+	if ((cdp = cstrchr(ccp, '.')))
+		ccp = cdp + 1;
 #endif
-	if (isuc(ccp))
-		UTFMODE = 1;
+
+	/* see whether it’s UTF-8 */
+	UTFMODE = 0;
+	if (!ksh_eq(ccp[0], 'U', 'u') ||
+	    !ksh_eq(ccp[1], 'T', 't') ||
+	    !ksh_eq(ccp[2], 'F', 'f'))
+		return;
+	ccp += ksh_is(ccp[3], '-') ? 4 : 3;
+	if (!ksh_is(*ccp, '8'))
+		return;
+	++ccp;
+	/* verify nothing untoward trails the string */
+#if !HAVE_POSIX_UTF8_LOCALE
+	if (cdp) {
+		/* tacked onto a locale name */
+		if (*ccp && !ksh_is(*ccp, '@'))
+			return;
+	} else
+	  /* OSX has a "UTF-8" locale… */
 #endif
+	/* just a codeset so require EOS */
+	  if (*ccp != '\0')
+		return;
+	/* positively identified as UTF-8 */
+	UTFMODE = 1;
 }
 #endif
 

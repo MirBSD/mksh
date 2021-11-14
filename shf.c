@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.124 2021/11/13 22:09:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.125 2021/11/14 02:56:31 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1327,7 +1327,7 @@ set_ifs(const char *s)
 }
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
-#if !HAVE_SETLOCALE_CTYPE && !(defined(__MirBSD__) && defined(MKSH_FAUX_EBCDIC))
+#if !HAVE_SETLOCALE_LCALL && !defined(MKSH_FAUX_EBCDIC)
 # error EBCDIC support requires use of the system locale
 #endif
 #include <locale.h>

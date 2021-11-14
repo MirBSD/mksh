@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.959 2021/11/13 22:09:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.960 2021/11/14 02:56:29 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -342,10 +342,6 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 # endif
 # if __CHARSET_LIB && defined(MKSH_EBCDIC)
 #  error "Please compile without -E argument to Build.sh for ASCII!"
-# endif
-# if __CHARSET_LIB && !defined(_ENHANCED_ASCII_EXT)
-   /* go all-out on ASCII */
-#  define _ENHANCED_ASCII_EXT 0xFFFFFFFF
 # endif
 #endif
 

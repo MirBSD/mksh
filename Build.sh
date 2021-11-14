@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.812 2021/11/11 02:44:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.813 2021/11/14 02:56:22 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -828,7 +828,6 @@ A/UX)
 	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
-	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 BeOS)
 	: "${CC=gcc}"
@@ -865,7 +864,7 @@ BeOS)
 	: "${HAVE_SETRESUGID=0}"
 	;;
 BSD/OS)
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 Coherent)
 	oswarn="; it has major issues"
@@ -876,7 +875,7 @@ Coherent)
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	;;
 CYGWIN*)
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 Darwin)
 	add_cppflags -D_DARWIN_C_SOURCE
@@ -888,7 +887,7 @@ FreeBSD)
 FreeMiNT)
 	oswarn="; it has minor issues"
 	add_cppflags -D_GNU_SOURCE
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 GNU)
 	case $CC in
@@ -910,7 +909,6 @@ Haiku)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Harvey)
 	add_cppflags -D_POSIX_SOURCE
@@ -921,7 +919,7 @@ Harvey)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
@@ -944,16 +942,15 @@ Interix)
 	ccpl='-Y '
 	add_cppflags -D_ALL_SOURCE
 	: "${LIBS=-lcrypt}"
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 IRIX*)
-	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Jehanne)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
@@ -988,13 +985,14 @@ Minix-vmd)
 	: "${HAVE_SETRESUGID=0}"
 	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 Minix3)
 	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
 	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
-	: "${HAVE_SETLOCALE_CTYPE=0}${MKSH_UNLIMITED=1}" #XXX recheck ulimit
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
+	: "${MKSH_UNLIMITED=1}"		#XXX recheck ulimit
 	;;
 Minoca)
 	: "${CC=gcc}"
@@ -1008,7 +1006,7 @@ MSYS_*)
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	# almost same as CYGWIN* (from RT|Chatzilla)
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	# broken on this OE (from ir0nh34d)
 	: "${HAVE_STDINT_H=0}"
 	;;
@@ -1032,18 +1030,17 @@ NEXTSTEP)
 Ninix3)
 	# similar to Minix3
 	cpp_define MKSH_UNEMPLOYED 1
-	: "${MKSH_UNLIMITED=1}" #XXX recheck ulimit
+	: "${MKSH_UNLIMITED=1}"		#XXX recheck ulimit
 	# but no idea what else could be needed
 	oswarn="; it has unknown issues"
 	;;
 OpenBSD)
-	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 OS/2)
 	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
 	check_categories="$check_categories nosymlink"
@@ -1080,11 +1077,12 @@ OS/390)
 	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	: "${CC=xlc}"
 	: "${SIZE=: size}"
 	cpp_define MKSH_FOR_Z_OS 1
 	add_cppflags -D_ALL_SOURCE
+	$ebcdic || add_cppflags -D_ENHANCED_ASCII_EXT=0xFFFFFFFF
 	oswarn='; EBCDIC support is incomplete'
 	;;
 OSF1)
@@ -1093,7 +1091,7 @@ OSF1)
 	add_cppflags -D_POSIX_C_SOURCE=200112L
 	add_cppflags -D_XOPEN_SOURCE=600
 	add_cppflags -D_XOPEN_SOURCE_EXTENDED
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 Plan9)
 	add_cppflags -D_POSIX_SOURCE
@@ -1103,7 +1101,7 @@ Plan9)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
@@ -1117,7 +1115,7 @@ Plan9)
 PW32*)
 	HAVE_SIG_T=0	# incompatible
 	oswarn=' and will currently not work'
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 QNX)
 	add_cppflags -D__NO_EXT_QNX
@@ -1127,7 +1125,7 @@ QNX)
 		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
 		;;
 	esac
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
@@ -1136,7 +1134,7 @@ scosysv)
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	cpp_define MKSH_UNEMPLOYED 1
-	: "${HAVE_SETLOCALE_CTYPE=0}${HAVE_TERMIOS_H=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}${HAVE_TERMIOS_H=0}"
 	;;
 SCO_SV)
 	case $TARGET_OSREV in
@@ -1181,7 +1179,7 @@ syllable)
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
@@ -1193,7 +1191,7 @@ UWIN*)
 	tsts=" 3<>/dev/tty"
 	oswarn="; it will compile, but the target"
 	oswarn="$oswarn${nl}platform itself is very flakey/unreliable"
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 XENIX)
 	# mostly when crosscompiling from scosysv
@@ -1213,7 +1211,7 @@ XENIX)
 	cpp_define MKSH_NOPROSPECTOFWORK 1
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	# these are broken
 	HAVE_TERMIOS_H=0
 	;;
@@ -2018,7 +2016,7 @@ ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     "if mksh will be built without job signals" && \
     check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
-    'if the default UTF-8 mode is specified' && : "${HAVE_SETLOCALE_CTYPE=0}"
+    'if the default UTF-8 mode is specified' && : "${HAVE_POSIX_UTF8_LOCALE=0}"
 ac_ifcpp 'if !MKSH_ASSUME_UTF8' isoff_MKSH_ASSUME_UTF8 \
     isset_MKSH_ASSUME_UTF8 0 \
     'if the default UTF-8 mode is disabled' && \
@@ -2387,16 +2385,15 @@ ac_test revoke <<-'EOF'
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
 EOF
 
-ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
+ac_test posix_utf8_locale '' 'for setlocale(LC_CTYPE, "") and nl_langinfo(CODESET)' <<-'EOF'
 	#include <locale.h>
-	#include <stddef.h>
-	int main(void) { return ((int)(size_t)(void *)setlocale(LC_CTYPE, "")); }
+	#include <langinfo.h>
+	int main(void) { return (!setlocale(LC_CTYPE, "") || !nl_langinfo(CODESET)); }
 EOF
 
-ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
-	#include <langinfo.h>
-	#include <stddef.h>
-	int main(void) { return ((int)(size_t)(void *)nl_langinfo(CODESET)); }
+$ebcdic && ac_test setlocale_lcall <<-'EOF'
+	#include <locale.h>
+	int main(void) { return (!setlocale(LC_ALL, "")); }
 EOF
 
 ac_test select <<-'EOF'
