@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.136 2021/11/14 04:33:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.137 2021/11/16 01:04:33 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1447,16 +1447,3 @@ bi_unwind(int rc)
 		unwind(LERROR);
 	}
 }
-
-/*XXX replace:
-bi_errorf(fmt, ...)	kwarnf0(KWF_BIERR | KWF_NOERRNO, fmt, ...)
-			kwarnf0(KWF_BIERR, fmt, ...)
-			kwarnf1(KWF_VERRNO | KWF_BIERR, errno, fmt, ...)
-bi_errorf("%s", s)	 kwarnf(KWF_BIERR | KWF_ONEMSG [| KWF_NOERRNO], s)
-bi_errorf("%s: %s", a,b) kwarnf(KWF_BIERR | KWF_TWOMSG [| KWF_NOERRNO], a, b)
- * etc.
-
-errorf(fmt, ...)	kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE [| KWF_NOERRNO], fmt, ...)
-errorf("%s: %s", a,b)	 kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG [| KWF_NOERRNO], a, b)
- * etc.
- */
