@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.146 2021/11/12 05:05:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.147 2021/11/16 00:59:04 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1612,7 +1612,7 @@ j_print(Job *j, int how, struct shf *shf)
 				msg = "Done";
 			else {
 				shf_snprintf(msgbuf, sizeof(msgbuf),
-				    "Done (%d)", status);
+				    TDone, status);
 				msg = msgbuf;
 			}
 			break;

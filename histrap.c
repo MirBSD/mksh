@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.178 2021/11/13 21:31:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.179 2021/11/16 00:59:04 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1047,12 +1047,6 @@ static const struct mksh_sigpair {
 };
 #endif
 
-#if HAVE_SYS_SIGLIST
-#if !HAVE_SYS_SIGLIST_DECL
-extern const char * const sys_siglist[];
-#endif
-#endif
-
 void
 inittraps(void)
 {
@@ -1105,15 +1099,8 @@ inittraps(void)
 		}
 		if (sigtraps[i].name == null)
 			sigtraps[i].name = shf_smprintf(Tf_d, i);
-#if HAVE_SYS_SIGLIST
-		sigtraps[i].mess = sys_siglist[i];
-#elif HAVE_STRSIGNAL
-		sigtraps[i].mess = strsignal(i);
-#else
-		sigtraps[i].mess = NULL;
-#endif
-		if ((sigtraps[i].mess == NULL) ||
-		    (sigtraps[i].mess[0] == '\0'))
+		sigtraps[i].mess = ksh_sigmess(i);
+		if (ksh_sigmessf(sigtraps[i].mess))
 			sigtraps[i].mess = shf_smprintf(Tf_sd,
 			    "Signal", i);
 	}

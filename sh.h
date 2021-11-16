@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.964 2021/11/14 05:03:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.965 2021/11/16 00:59:06 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -492,6 +492,18 @@ typedef sig_t ksh_sigsaved;
 #define ksh_sighandler(saved) (saved)
 #define ksh_sigrestore(s,svp) ksh_sigset((s), *(svp), NULL)
 #endif
+
+#if HAVE_SYS_SIGLIST
+#if !HAVE_SYS_SIGLIST_DECL
+extern const char * const sys_siglist[];
+#endif
+#define ksh_sigmess(nr) sys_siglist[nr]
+#elif HAVE_STRSIGNAL
+#define ksh_sigmess(nr) strsignal(nr)
+#else
+#define ksh_sigmess(nr) NULL
+#endif
+#define ksh_sigmessf(mess) (!(mess) || !*(mess))
 
 /* contract: masks the signal, may restart, not oneshot */
 void ksh_sigset(int, sig_t, ksh_sigsaved *);
@@ -1091,6 +1103,8 @@ EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for 
 EXTERN const char Tsgcontinue[] E_INIT("*=continue");
 #define Tcontinue (Tsgcontinue + 2)
 EXTERN const char Tcreate[] E_INIT("create");
+EXTERN const char TchvtDone[] E_INIT("chvt: Done (%d)");
+#define TDone (TchvtDone + 6)
 EXTERN const char TELIF_unexpected[] E_INIT("TELIF unexpected");
 EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
 EXTERN const char TENV[] E_INIT("ENV");
@@ -1241,6 +1255,8 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tsgcontinue "*=continue"
 #define Tcontinue "continue"
 #define Tcreate "create"
+#define TchvtDone "chvt: Done (%d)"
+#define TDone "Done (%d)"
 #define TELIF_unexpected "TELIF unexpected"
 #define TEXECSHELL "EXECSHELL"
 #define TENV "ENV"

@@ -33,16 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.333 2021/11/13 22:09:03 tg Exp $");
-
-#define KSH_CHVT_FLAG
-#ifdef MKSH_SMALL
-#undef KSH_CHVT_FLAG
-#endif
-#ifdef TIOCSCTTY
-#define KSH_CHVT_CODE
-#define KSH_CHVT_FLAG
-#endif
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.334 2021/11/16 00:59:05 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -51,9 +42,7 @@ static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *) MKSH_A_PURE;
 static const unsigned char *gmatch_cclass(const unsigned char *, unsigned char)
     MKSH_A_PURE;
-#ifdef KSH_CHVT_CODE
 static void chvt(const Getopt *);
-#endif
 static unsigned int dollarqU(struct shf *, const unsigned char *);
 #ifndef MKSH_SMALL
 static void dollarq8(struct shf *, const unsigned char *);
@@ -472,18 +461,11 @@ parse_args(const char **argv,
 			}
 			break;
 
-#ifdef KSH_CHVT_FLAG
 		case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
-#ifndef KSH_CHVT_CODE
-			errorf("no TIOCSCTTY ioctl");
-#else
-			change_flag(FTALKING, OF_CMDLINE, true);
 			chvt(&go);
 			break;
-#endif
-#endif
 
 		case '?':
 			return (-1);
@@ -2529,91 +2511,164 @@ c_cd(const char **wp)
 	return (rv);
 }
 
-#ifdef KSH_CHVT_CODE
 extern void chvt_reinit(void);
 
 static void
 chvt(const Getopt *go)
 {
+	char buf[99], ch;
 	const char *dv = go->optarg;
-	char *cp = NULL;
-	int fd;
+	int fd, pfd[2];
+	pid_t cpid;
+	bool isdaemon = false, dowait = false;
+#ifndef MKSH_DISABLE_REVOKE_WARNING
+	int revwarn = 0;
+#if !HAVE_REVOKE
+#define ifrevwarn
+#else
+#define ifrevwarn if (revwarn)
+#endif
+#endif
 
-	switch (*dv) {
-	case '-':
+	switch (ord(*dv)) {
+	case ORD('-'):
+		isdaemon = true;
 		dv = "/dev/null";
 		break;
-	case '!':
+	case ORD('!'):
+		dowait = true;
 		++dv;
 		/* FALLTHROUGH */
 	default: {
 		struct stat sb;
 
 		if (stat(dv, &sb)) {
-			cp = shf_smprintf("/dev/ttyC%s", dv);
-			dv = cp;
-			if (stat(dv, &sb)) {
-				memmove(cp + 1, cp, /* /dev/tty */ 8);
-				dv = cp + 1;
-				if (stat(dv, &sb)) {
-					errorf("chvt: %s: %s",
-					    "can't find tty", go->optarg);
-				}
+			int E = errno;
+
+			memcpy(buf, "/dev/ttyC", 9U);
+			strlcpy(buf + 9U, dv, sizeof(buf) - 9U);
+			if (stat(buf, &sb)) {
+				strlcpy(buf + 8U, dv, sizeof(buf) - 8U);
+				if (stat(buf, &sb))
+					kerrf(KWF_VERRNO | KWF_ERR(1) |
+					    KWF_PREFIX | KWF_TWOMSG, E,
+					    "chvt", dv);
 			}
+			dv = buf;
 		}
 		if (!S_ISCHR(sb.st_mode))
 			kerrf(KWF_VERRNO | KWF_ERR(1) | KWF_PREFIX |
-			    KWF_FILELINE | KWF_TWOMSG, (int)(ENOTTY),
-			    "chvt", dv);
+			    KWF_TWOMSG, (int)(ENOTTY), "chvt", dv);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
-#if HAVE_REVOKE
-		if (revoke(dv))
-#else
+#if !HAVE_REVOKE
 #ifdef ENOSYS
-		errno = ENOSYS;
+		revwarn = ENOSYS;
 #else
-		errno = EINVAL;
+		revwarn = EINVAL;
 #endif
+#else
+		revwarn = revoke(dv) ? errno : 0;
 #endif
-			kwarnf(KWF_PREFIX | KWF_THREEMSG, "chvt", dv,
-			    "can't revoke; new shell is potentially insecure");
+		ifrevwarn kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_THREEMSG,
+		    revwarn, "chvt", dv,
+		    "can't revoke; new shell is potentially insecure");
 #endif
 	    }
 	}
-	if ((fd = binopen2(dv, O_RDWR)) < 0) {
-		sleep(1);
-		if ((fd = binopen2(dv, O_RDWR)) < 0) {
-			errorf("chvt: %s: %s", Topen, dv);
+	if (pipe(pfd))
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG, "chvt", "pipe");
+	switch ((cpid = fork())) {
+	case -1:
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG, "chvt", "fork");
+	case 0:
+		close(pfd[0]);
+		break;
+	default:
+		close(pfd[1]);
+		if (read(pfd[0], &ch, 1) != 1 || !isch(ch, '.'))
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_THREEMSG |
+			    KWF_NOERRNO, "chvt", dv,
+			    "child process initialisation failure");
+		close(pfd[0]);
+		if (dowait) {
+			pid_t corpse;
+			int status;
+
+			while (/* CONSTCOND */ 1) {
+#ifndef MKSH_NOPROSPECTOFWORK
+				corpse = waitpid(cpid, &status, 0);
+#else
+				corpse = wait(&status);
+#endif
+				if (corpse == -1) {
+					status = errno;
+					if (status == ECHILD)
+						break;
+					if (status == EINTR)
+						continue;
+					kerrf(KWF_ERR(1) | KWF_PREFIX |
+					    KWF_TWOMSG, "chvt", "wait");
+				}
+#ifdef MKSH_NOPROSPECTOFWORK
+				/* should not happen but… */
+				if (corpse != cpid)
+					continue;
+#endif
+				if (WIFSIGNALED(status)) {
+					status = WTERMSIG(status);
+					dv = status > 0 && status < ksh_NSIG ?
+					    ksh_sigmess(status) : NULL;
+					if (ksh_sigmessf(dv))
+						dv = "Signalled";
+					kwarnf(KWF_PREFIX | KWF_TWOMSG |
+					    KWF_NOERRNO, "chvt", dv);
+				} else if (WIFEXITED(status)) {
+					status = (WEXITSTATUS(status)) & 255;
+					if (!status)
+						break;
+					kwarnf0(KWF_PREFIX | KWF_NOERRNO,
+					    TchvtDone, status);
+				} else
+					continue;
+			}
 		}
-	}
-	afree(cp, ATEMP);
-	if (go->optarg[0] != '!') {
-		switch (fork()) {
-		case -1:
-			errorf(Tchvt_failed, "fork");
-		case 0:
-			break;
-		default:
-			exit(0);
-		}
+		exit(0);
 	}
 	if (setsid() == -1)
-		errorf(Tchvt_failed, "setsid");
-	if (go->optarg[0] != '-') {
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG, "chvt", "setsid");
+	if ((fd = binopen2(dv, O_RDWR)) < 0) {
+		sleep(1);
+		if ((fd = binopen2(dv, O_RDWR)) < 0)
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_THREEMSG,
+			    "chvt", dv, Topen);
+	}
+	if (!isdaemon) {
+#ifdef TIOCSCTTY
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
 			errorf(Tchvt_failed, "TIOCSCTTY");
+#endif
 		if (tcflush(fd, TCIOFLUSH))
 			errorf(Tchvt_failed, "TCIOFLUSH");
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);
 	ksh_dup2(fd, 2, false);
+#ifndef MKSH_DISABLE_REVOKE_WARNING
+	if (!isdaemon) {
+		ifrevwarn kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_THREEMSG,
+		    revwarn, "chvt", dv,
+		    "can't revoke; new shell is potentially insecure");
+	}
+#endif
 	if (fd > 2)
 		close(fd);
 	rndset((unsigned long)chvt_rndsetup(go, sizeof(Getopt)));
 	chvt_reinit();
+	/* signal parent the all OK */
+	if (write(pfd[1], Tdot, 1) != 1)
+		kwarnf(KWF_PREFIX | KWF_TWOMSG, "chvt", "write");
+	close(pfd[1]);
 }
-#endif
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 char *
