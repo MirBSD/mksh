@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.259 2021/11/14 03:36:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.260 2021/11/16 01:10:15 tg Exp $");
 
 /*-
  * Variables
@@ -579,7 +579,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 	}
 
 	if (c == '0' && arith) {
-		if (ksh_eq(s[0], 'X', 'x')) {
+		if (isCh(s[0], 'X', 'x')) {
 			/* interpret as hexadecimal */
 			base = 16;
 			++s;

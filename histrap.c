@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.179 2021/11/16 00:59:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.180 2021/11/16 01:10:12 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1076,9 +1076,9 @@ inittraps(void)
 			char *s;
 
 			/* this is not optimal, what about SIGSIG1? */
-			if (ksh_eq(cs[0], 'S', 's') &&
-			    ksh_eq(cs[1], 'I', 'i') &&
-			    ksh_eq(cs[2], 'G', 'g') &&
+			if (isCh(cs[0], 'S', 's') &&
+			    isCh(cs[1], 'I', 'i') &&
+			    isCh(cs[2], 'G', 'g') &&
 			    cs[3] != '\0') {
 				/* skip leading "SIG" */
 				cs += 3;
@@ -1168,9 +1168,9 @@ gettrap(const char *cs, bool igncase, bool allsigs)
 	/* do a lookup by name then */
 
 	/* this breaks SIGSIG1, but we do that above anyway */
-	if (ksh_eq(cs[0], 'S', 's') &&
-	    ksh_eq(cs[1], 'I', 'i') &&
-	    ksh_eq(cs[2], 'G', 'g') &&
+	if (isCh(cs[0], 'S', 's') &&
+	    isCh(cs[1], 'I', 'i') &&
+	    isCh(cs[2], 'G', 'g') &&
 	    cs[3] != '\0') {
 		/* skip leading "SIG" */
 		cs += 3;

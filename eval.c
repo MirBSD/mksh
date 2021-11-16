@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.245 2021/11/13 21:22:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.246 2021/11/16 01:10:10 tg Exp $");
 
 /*
  * string expansion
@@ -1853,11 +1853,11 @@ globit(XString *xs,	/* dest string */
 		while ((d = readdir(dirp)) != NULL) {
 			size_t len;
 
-			if (ksh_is(d->d_name[0], '.') && (!d->d_name[1] ||
-			    (ksh_is(d->d_name[1], '.') && !d->d_name[2])))
+			if (isch(d->d_name[0], '.') && (!d->d_name[1] ||
+			    (isch(d->d_name[1], '.') && !d->d_name[2])))
 				/* always ignore . and .. */
 				continue;
-			if ((ksh_is(d->d_name[0], '.') && !ksh_is(*sp, '.')) ||
+			if ((isch(d->d_name[0], '.') && !isch(*sp, '.')) ||
 			    !gmatchx(d->d_name, sp, true))
 				continue;
 

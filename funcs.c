@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.396 2021/11/14 04:02:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.397 2021/11/16 01:10:10 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1070,7 +1070,7 @@ c_kill(const char **wp)
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
-	if ((p = wp[1]) && ksh_is(*p, '-') && ctype(p[1], C_DIGIT | C_UPPER)) {
+	if ((p = wp[1]) && isch(*p, '-') && ctype(p[1], C_DIGIT | C_UPPER)) {
 		++p;
 		if (!(t = gettrap(p, false, false))) {
 			kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,

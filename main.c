@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.404 2021/11/14 04:02:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.405 2021/11/16 01:10:12 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -236,12 +236,12 @@ isuc(const char *cx) {
 		++cp;
 	else
 		cp = cx;
-	if (!ksh_eq(cp[0], 'U', 'u') ||
-	    !ksh_eq(cp[1], 'T', 't') ||
-	    !ksh_eq(cp[2], 'F', 'f'))
+	if (!isCh(cp[0], 'U', 'u') ||
+	    !isCh(cp[1], 'T', 't') ||
+	    !isCh(cp[2], 'F', 'f'))
 		return (0);
-	cp += ksh_is(cp[3], '-') ? 4 : 3;
-	return (ksh_is(*cp, '8') && (ksh_is(cp[1], '@') || !cp[1]));
+	cp += isch(cp[3], '-') ? 4 : 3;
+	return (isch(*cp, '8') && (isch(cp[1], '@') || !cp[1]));
 }
 #endif
 
@@ -261,8 +261,8 @@ kshname_islogin(const char **kshbasenamep)
 			o = 0;
 		}
 	}
-	rv = ksh_is(*cp, '-') || ksh_is(*kshname, '-');
-	if (ksh_is(*cp, '-'))
+	rv = isch(*cp, '-') || isch(*kshname, '-');
+	if (isch(*cp, '-'))
 		++cp;
 	if (!*cp)
 		cp = empty_argv[0];
@@ -365,14 +365,14 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (argi < 0)
 			return (1);
 		/* called as rsh, rmksh, -rsh, RKSH.EXE, etc.? */
-		if (ksh_eq(*ccp, 'R', 'r')) {
+		if (isCh(*ccp, 'R', 'r')) {
 			++ccp;
 			++restricted_shell;
 		}
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
 		/* are we called as -rsh or /bin/sh or SH.EXE or so? */
-		if (ksh_eq(ccp[0], 'S', 's') &&
-		    ksh_eq(ccp[1], 'H', 'h')) {
+		if (isCh(ccp[0], 'S', 's') &&
+		    isCh(ccp[1], 'H', 'h')) {
 			/* either also turns off braceexpand */
 #ifdef MKSH_BINSHPOSIX
 			/* enable better POSIX conformance */
@@ -2069,8 +2069,8 @@ init_environ(void)
 		rndpush(*wp);
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 #ifdef MKSH_EARLY_LOCALE_TRACKING
-		if (ksh_is((*wp)[0], 'L') && (
-		    (ksh_is((*wp)[1], 'C') && ksh_is((*wp)[2], '_')) ||
+		if (isch((*wp)[0], 'L') && (
+		    (isch((*wp)[1], 'C') && isch((*wp)[2], '_')) ||
 		    !strcmp(*wp, "LANG"))) {
 			const char **P;
 
@@ -2125,19 +2125,19 @@ recheck_ctype(void)
 
 	/* see whether it’s UTF-8 */
 	UTFMODE = 0;
-	if (!ksh_eq(ccp[0], 'U', 'u') ||
-	    !ksh_eq(ccp[1], 'T', 't') ||
-	    !ksh_eq(ccp[2], 'F', 'f'))
+	if (!isCh(ccp[0], 'U', 'u') ||
+	    !isCh(ccp[1], 'T', 't') ||
+	    !isCh(ccp[2], 'F', 'f'))
 		return;
-	ccp += ksh_is(ccp[3], '-') ? 4 : 3;
-	if (!ksh_is(*ccp, '8'))
+	ccp += isch(ccp[3], '-') ? 4 : 3;
+	if (!isch(*ccp, '8'))
 		return;
 	++ccp;
 	/* verify nothing untoward trails the string */
 #if !HAVE_POSIX_UTF8_LOCALE
 	if (cdp) {
 		/* tacked onto a locale name */
-		if (*ccp && !ksh_is(*ccp, '@'))
+		if (*ccp && !isch(*ccp, '@'))
 			return;
 	} else
 	  /* OSX has a "UTF-8" locale… */

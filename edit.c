@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.394 2021/11/12 05:05:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.395 2021/11/16 01:10:08 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4077,7 +4077,7 @@ vi_hook(int ch)
 		case 0:
 			if (insert != 0) {
 				if (lastcmd[0] == 's' ||
-				    ksh_eq(lastcmd[0], 'C', 'c')) {
+				    isCh(lastcmd[0], 'C', 'c')) {
 					if (redo_insert(1) != 0)
 						vi_error();
 				} else {
@@ -4206,7 +4206,7 @@ vi_insert(int ch)
 			lastcmd[0] = 'a';
 			lastac = 1;
 		}
-		if (lastcmd[0] == 's' || ksh_eq(lastcmd[0], 'C', 'c'))
+		if (lastcmd[0] == 's' || isCh(lastcmd[0], 'C', 'c'))
 			return (redo_insert(0));
 		else
 			return (redo_insert(lastac - 1));
@@ -4366,7 +4366,7 @@ vi_cmd(int argcnt, const char *cmd)
 			else {
 				if ((ncursor = domove(argcnt, &cmd[1], 1)) < 0)
 					return (-1);
-				if (*cmd == 'c' && ksh_eq(cmd[1], 'W', 'w') &&
+				if (*cmd == 'c' && isCh(cmd[1], 'W', 'w') &&
 				    !ctype(vs->cbuf[vs->cursor], C_SPACE)) {
 					do {
 						--ncursor;
@@ -4797,7 +4797,7 @@ domove(int argcnt, const char *cmd, int sub)
 	case ORD(';'):
 		if (fsavecmd == ORD(' '))
 			return (-1);
-		i = ksh_eq(fsavecmd, 'F', 'f');
+		i = isCh(fsavecmd, 'F', 'f');
 		t = rtt2asc(fsavecmd) > rtt2asc('a');
 		if (*cmd == ',')
 			t = !t;

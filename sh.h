@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.965 2021/11/16 00:59:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.966 2021/11/16 01:10:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -1646,14 +1646,18 @@ extern void ebcdic_init(void);
 #define rtt2asc(c)	ebcdic_rtt_toascii[KBY(c)]
 #define asc2rtt(c)	ebcdic_rtt_fromascii[KBY(c)]
 /* case-independent char comparison */
-#define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
+#define isCh(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
+/* POSIX locale ordering */
 #define asciibetical(c)	ord(c)
+/* if inspecting numerical values (mapping on EBCDIC) */
 #define rtt2asc(c)	KBY(c)
 #define asc2rtt(c)	KBY(c)
-#define ksh_eq(c,u,l)	((ord(c) | 0x20U) == ord(l))
+/* case-independent char comparison */
+#define isCh(c,u,l)	((ord(c) | 0x20U) == ord(l))
 #endif
-#define ksh_is(c,t)	(ord(c) == ORD(t))
+/* vs case-sensitive char comparison */
+#define isch(c,t)	(ord(c) == ORD(t))
 /* control character foo */
 #ifdef MKSH_EBCDIC
 #define ksh_isctrl(c)	(ord(c) < 0x40U || ord(c) == 0xFFU)
