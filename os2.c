@@ -29,7 +29,7 @@
 #include <klibc/startup.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.14 2021/11/11 02:45:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.15 2021/11/21 04:15:05 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -148,7 +148,7 @@ response(int *argcp, const char ***argvp)
 
 			if (ferror(f)) {
 				SHIKATANAI write(2,
-				    SC("mksh: cannot read response file\n"));
+				    SC("mksh: can't read response file\n"));
 				exit(255);
 			}
 

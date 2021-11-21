@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.397 2021/11/16 01:10:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.398 2021/11/21 04:15:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1653,7 +1653,9 @@ c_read(const char **wp)
 		if (!builtin_opt.optarg[0])
 			fd = 0;
 		else if ((fd = check_fd(builtin_opt.optarg, R_OK, &ccp)) < 0) {
-			bi_errorf(Tf_sD_sD_s, Tdu, builtin_opt.optarg, ccp);
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_BIUNWIND | KWF_THREEMSG,
+			    Tdu, builtin_opt.optarg, ccp);
 			return (2);
 		}
 		break;
@@ -1853,7 +1855,8 @@ c_read(const char **wp)
 		subarray = last_lookup_was_array;
 		if (vp->flag & RDONLY) {
  c_read_splitro:
-			bi_errorf(Tread_only ": %s", *wp);
+			kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
+			    Tread_only, *wp);
  c_read_spliterr:
 			rv = 2;
 			afree(cp, ATEMP);

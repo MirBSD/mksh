@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.180 2021/11/16 01:10:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.181 2021/11/21 04:15:03 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -294,14 +294,14 @@ c_fc(const char **wp)
 
 	tf = maketemp(ATEMP, TT_HIST_EDIT, &e->temps);
 	if (!(shf = tf->shf)) {
-		bi_errorf(Tf_temp ": %s", Tcreate, tf->tffn, cstrerror(errno));
+		kwarnf0(KWF_BIERR, Tf_temp, Tcreate, tf->tffn);
 		return (1);
 	}
 	for (hp = rflag ? hlast : hfirst;
 	    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1)
 		shf_fprintf(shf, Tf_sN, *hp);
 	if (shf_close(shf) == -1) {
-		bi_errorf(Tf_temp ": %s", Twrite, tf->tffn, cstrerror(errno));
+		kwarnf0(KWF_BIERR, Tf_temp, Twrite, tf->tffn);
 		return (1);
 	}
 
@@ -318,7 +318,7 @@ c_fc(const char **wp)
 		ssize_t n;
 
 		if (!(shf = shf_open(tf->tffn, O_RDONLY, 0, 0))) {
-			bi_errorf(Tf_temp ": %s", Topen, tf->tffn, cstrerror(errno));
+			kwarnf0(KWF_BIERR, Tf_temp, Topen, tf->tffn);
 			return (1);
 		}
 
@@ -337,8 +337,8 @@ c_fc(const char **wp)
 				XcheckN(xs, xp, Xlength(xs, xp));
 		}
 		if (n < 0) {
-			bi_errorf(Tf_temp ": %s", Tread, tf->tffn,
-			    cstrerror(shf_errno(shf)));
+			kwarnf1(KWF_VERRNO | KWF_BIERR, shf_errno(shf),
+			    Tf_temp, Tread, tf->tffn);
  errout:
 			shf_close(shf);
 			return (1);

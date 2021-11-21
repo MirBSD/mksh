@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.138 2021/11/16 01:10:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.139 2021/11/21 04:15:07 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1446,4 +1446,16 @@ bi_unwind(int rc)
 		/* may not want to use LERROR here */
 		unwind(LERROR);
 	}
+}
+
+/*XXX old */
+void
+bi_errorf(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vwarnf0(/*XXX*/ KWF_BIERR | KWF_NOERRNO, /*XXX*/ 0, fmt, ap);
+	va_end(ap);
+	bi_unwind(0);
 }

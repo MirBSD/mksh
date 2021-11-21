@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.334 2021/11/16 00:59:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.335 2021/11/21 04:15:04 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -57,8 +57,9 @@ static int make_path(const char *, const char *, char **, XString *, int *);
 /* we don't need to check for other codes, EPERM won't happen */
 #define DO_SETUID(func,argvec) do {					\
 	if ((func argvec) && errno == EAGAIN)				\
-		errorf("%s failed with EAGAIN, probably due to a"	\
-		    " too low process limit; aborting", #func);		\
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |		\
+		    KWF_TWOMSG, #func, "failed, probably due to a"	\
+		    " too low process limit; aborting");		\
 } while (/* CONSTCOND */ 0)
 #else
 #define DO_SETUID(func,argvec) func argvec
@@ -2645,10 +2646,12 @@ chvt(const Getopt *go)
 	if (!isdaemon) {
 #ifdef TIOCSCTTY
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-			errorf(Tchvt_failed, "TIOCSCTTY");
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG,
+			    "chvt", "TIOCSCTTY");
 #endif
 		if (tcflush(fd, TCIOFLUSH))
-			errorf(Tchvt_failed, "TCIOFLUSH");
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG,
+			    "chvt", "TCIOFLUSH");
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);

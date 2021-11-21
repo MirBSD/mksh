@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.235 2021/11/12 05:05:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.236 2021/11/21 04:15:01 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -151,7 +151,9 @@ execute(struct op * volatile t,
 				 */
 				if (tp && tp->type == CSHELL &&
 				    (tp->flag & SPEC_BI))
-					errorf("redirection failure");
+					kerrf(KWF_ERR(1) | KWF_PREFIX |
+					    KWF_FILELINE | KWF_ONEMSG |
+					    KWF_NOERRNO, "redirection failure");
 				/* Deal with FERREXIT, quitenv(), etc. */
 				goto Break;
 			}
@@ -226,7 +228,9 @@ execute(struct op * volatile t,
 #endif
 		/* Already have a (live) co-process? */
 		if (coproc.job && coproc.write >= 0)
-			errorf("coprocess already exists");
+			kerrf(KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_ONEMSG |
+			    KWF_NOERRNO, "coprocess already exists");
 
 		/* Can we re-use the existing co-process pipe? */
 		coproc_cleanup(true);
@@ -536,7 +540,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
-				errorf(Tf_sD_sD_s, Tbuiltin, cp, Tnot_found);
+				kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+				    KWF_THREEMSG | KWF_NOERRNO, Tbuiltin, cp,
+				    Tnot_found);
 			if (tp->type == CSHELL && (tp->flag & LOW_BI))
 				break;
 			continue;
@@ -976,8 +982,9 @@ scriptexec(struct op *tp, const char **ap)
 #ifndef MKSH_EBCDIC
 		m = buf[0] << 8 | buf[1];
 		if (m == 0x7F45 && buf[2] == 'L' && buf[3] == 'F')
-			errorf("%s: not executable: %d-bit ELF file", tp->str,
-			    32 * buf[4]);
+			kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_NOERRNO, "%s: not executable: %d-bit ELF file",
+			    tp->str, 32 * buf[4]);
 		if ((m == /* OMAGIC */ 0407) ||
 		    (m == /* NMAGIC */ 0410) ||
 		    (m == /* ZMAGIC */ 0413) ||
@@ -994,7 +1001,9 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* UTF-8 BOM */ 0xEFBB && buf[2] == 0xBF) ||
 		    (m == /* UCS-4, may also be general binary */ 0x0000) ||
 		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
-			errorf("%s: not executable: magic %04X", tp->str, m);
+			kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_NOERRNO, "%s: not executable: magic %04X",
+			    tp->str, m);
 #endif
 #ifdef __OS2__
 		cp = _getext(tp->str);
@@ -1020,7 +1029,7 @@ scriptexec(struct op *tp, const char **ap)
 	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the program that was run and the bogus interpreter */
-	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
+	kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
 }
 
 /* actual 'builtin' built-in utility call is handled in comexec() */

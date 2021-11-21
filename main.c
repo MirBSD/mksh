@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.405 2021/11/16 01:10:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.406 2021/11/21 04:15:04 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -320,7 +320,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* set up global l->vars and l->funs */
 	newblock();
 
-	/* Do this first so output routines (eg, errorf, shellf) can work */
+	/* Do this first so output routines (eg. kwarnf, shellf) can work */
 	initio();
 
 	/* check kshname: leading dash, determine basename */
@@ -539,7 +539,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf("%s: %s", Tdc, Treq_arg);
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_TWOMSG | KWF_NOERRNO, Tdc, Treq_arg);
 		while (*s->str) {
 			if (ctype(*s->str, C_QUOTE))
 				break;
@@ -1321,67 +1322,6 @@ tty_init_fd(void)
 	return (rv);
 }
 
-/* A shell error occurred (eg, syntax error, etc.) */
-
-#define VWARNINGF_ERRORPREFIX	1
-#define VWARNINGF_FILELINE	2
-#define VWARNINGF_BUILTIN	4
-#define VWARNINGF_INTERNAL	8
-
-static void vwarningf(unsigned int, const char *, va_list)
-    MKSH_A_FORMAT(__printf__, 2, 0);
-
-static void
-vwarningf(unsigned int flags, const char *fmt, va_list ap)
-{
-	if (fmt) {
-		if (flags & VWARNINGF_INTERNAL)
-			shf_fprintf(shl_out, "%s: ", "internal error");
-		if (flags & VWARNINGF_ERRORPREFIX)
-			error_prefix(tobool(flags & VWARNINGF_FILELINE));
-		if ((flags & VWARNINGF_BUILTIN) &&
-		    /* not set when main() calls parse_args() */
-		    builtin_argv0 && builtin_argv0 != kshname)
-			shf_fprintf(shl_out, "%s: ", builtin_argv0);
-		shf_vfprintf(shl_out, fmt, ap);
-		shf_putc('\n', shl_out);
-	}
-	shf_flush(shl_out);
-}
-
-void
-errorf(const char *fmt, ...)
-{
-	va_list va;
-
-	exstat = 1;
-
-	/* debugging: note that stdout not valid */
-	shl_stdout_ok = false;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE, fmt, va);
-	va_end(va);
-	unwind(LERROR);
-}
-
-/*
- * Used by built-in utilities to prefix shell and utility name to message
- * (also unwinds environments for special builtins).
- */
-void
-bi_errorf(const char *fmt, ...)
-{
-	va_list va;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE |
-	    VWARNINGF_BUILTIN, fmt, va);
-	va_end(va);
-
-	bi_unwind(1);
-}
-
 /* printf to shl_out (stderr) with flush */
 void
 shellf(const char *fmt, ...)
@@ -1442,19 +1382,22 @@ initio(void)
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
-			errorf("can't get home directory");
+			kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG |
+			    KWF_NOERRNO, "can't get home directory");
 		strpathx(lfp, lfp, "mksh-dbg.txt", 1);
 	}
 
 	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
-		errorf("can't open debug output file %s", lfp);
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG,
+		    lfp, "can't open debug output file");
 	if (shl_dbg_fd < FDBASE) {
 		int nfd;
 
-		nfd = fcntl(shl_dbg_fd, F_DUPFD, FDBASE);
+		if ((nfd = fcntl(shl_dbg_fd, F_DUPFD, FDBASE)) == -1)
+			kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG,
+			    "can't dup debug output file");
 		close(shl_dbg_fd);
-		if ((shl_dbg_fd = nfd) == -1)
-			errorf("can't dup debug output file");
+		shl_dbg_fd = nfd;
 	}
 	fcntl(shl_dbg_fd, F_SETFD, FD_CLOEXEC);
 	shf_fdopen(shl_dbg_fd, SHF_WR, shl_dbg);
@@ -1470,7 +1413,8 @@ ksh_dup2(int ofd, int nfd, bool errok)
 	int rv;
 
 	if (((rv = dup2(ofd, nfd)) < 0) && !errok && (errno != EBADF))
-		errorf(Ttoo_many_files, ofd, nfd, cstrerror(errno));
+		kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE,
+		    Ttoo_many_files, ofd, nfd);
 
 #ifdef __ultrix
 	/*XXX imake style */
@@ -1495,7 +1439,8 @@ savefd(int fd)
 	    (errno == EBADF || errno == EPERM))
 		return (-1);
 	if (nfd < FDBASE || nfd > (int)(kui)FDMAXNUM)
-		errorf(Ttoo_many_files, fd, nfd, cstrerror(errno));
+		kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE,
+		    Ttoo_many_files, fd, nfd);
 	if (fcntl(nfd, F_SETFD, FD_CLOEXEC) == -1)
 		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed,
 		    "set", nfd);
@@ -1523,7 +1468,8 @@ openpipe(int *pv)
 	int lpv[2];
 
 	if (pipe(lpv) < 0)
-		errorf("can't create pipe - try again");
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG,
+		    "pipe");
 	pv[0] = savefd(lpv[0]);
 	if (pv[0] != lpv[0])
 		close(lpv[0]);
@@ -1560,6 +1506,7 @@ check_fd(const char *name, int mode, const char **emsgp)
  illegal_fd_name:
 		if (emsgp)
 			*emsgp = "illegal file descriptor name";
+		errno = EINVAL;
 		return (-1);
 	}
 
@@ -1581,6 +1528,11 @@ check_fd(const char *name, int mode, const char **emsgp)
 			*emsgp = (fl == O_WRONLY) ?
 			    "fd not open for reading" :
 			    "fd not open for writing";
+#ifdef ENXIO
+		errno = ENXIO;
+#else
+		errno = EBADF;
+#endif
 		return (-1);
 	}
 	return (fd);
@@ -1645,6 +1597,7 @@ coproc_getfd(int mode, const char **emsgp)
 		return (fd);
 	if (emsgp)
 		*emsgp = "no coprocess";
+	errno = EBADF;
 	return (-1);
 }
 
@@ -2007,7 +1960,7 @@ init_environ(void)
 
 	if ((dirp = opendir(MKSH_ENVDIR)) == NULL) {
 		kwarnf(KWF_PREFIX | KWF_TWOMSG, MKSH_ENVDIR,
-		    "cannot read environment");
+		    "can't read environment");
 		return;
 	}
 	XinitN(xs, 256, ATEMP);
@@ -2018,7 +1971,7 @@ init_environ(void)
 			strpathx(xp, MKSH_ENVDIR, dent->d_name, 1);
 			if (!(shf = shf_open(xp, O_RDONLY, 0, 0))) {
 				kwarnf(KWF_PREFIX | KWF_THREEMSG, MKSH_ENVDIR,
-				    dent->d_name, "cannot read environment");
+				    dent->d_name, "can't read environment");
 				goto read_envfile;
 			}
 			afree(xp, ATEMP);
@@ -2036,7 +1989,7 @@ init_environ(void)
 			if (n < 0) {
 				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_THREEMSG,
 				    shf_errno(shf), MKSH_ENVDIR,
-				    dent->d_name, "cannot read environment");
+				    dent->d_name, "can't read environment");
 			} else {
 				*xp = '\0';
 				xp = Xstring(xs, xp);
@@ -2048,7 +2001,7 @@ init_environ(void)
 		goto read_envfile;
 	} else if (errno)
 		kwarnf(KWF_PREFIX | KWF_TWOMSG, MKSH_ENVDIR,
-		    "cannot read environment");
+		    "can't read environment");
 	closedir(dirp);
 	Xfree(xs, xp);
 }

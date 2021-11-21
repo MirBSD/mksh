@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.885 2021/11/14 02:56:24 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.886 2021/11/21 04:14:56 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/11/11
+	KSH R59 2021/11/20
 description:
 	Check base version of full shell
 stdin:
@@ -7547,19 +7547,26 @@ name: xxx-param-subst-qmark-namespec
 description:
 	Check special names are output correctly
 stdin:
+	prgsub() {
+		sed \
+		    -e "s^${__progname%.exe}\.*e*x*e*: PROG: " \
+		    -e "s^[EW]: ${__progname%.exe}\.*e*x*e*: PROG: " \
+		    -e 's/^qmark_foo: /E: &/' \
+		    -e "s/^/$1: /g"
+	}
 	doit() {
 		"$__progname" -c "$@" >o1 2>o2
 		rv=$?
 		echo RETVAL: $rv
-		sed -e "s^${__progname%.exe}\.*e*x*e*: PROG: " -e 's/^/STDOUT: /g' <o1
-		sed -e "s^${__progname%.exe}\.*e*x*e*: PROG: " -e 's/^/STDERR: /g' <o2
+		prgsub STDOUT <o1
+		prgsub STDERR <o2
 	}
 	doit 'echo ${1x}'
 	doit 'echo "${1x}"'
 	doit 'echo ${1?}'
 	doit 'echo ${19?}'
 	doit 'echo ${!:?}'
-	doit -u 'echo ${*:?}' foo ""
+	doit -u 'echo ${*:?}' qmark_foo ""
 expected-stdout:
 	RETVAL: 1
 	STDERR: PROG: ${1x}: bad substitution
@@ -7572,7 +7579,7 @@ expected-stdout:
 	RETVAL: 1
 	STDERR: PROG: !: parameter null or not set
 	RETVAL: 1
-	STDERR: foo: ${*:?}: bad substitution
+	STDERR: E: qmark_foo: ${*:?}: bad substitution
 ---
 name: xxx-param-_-1
 # fails due to weirdness of execv stuff
@@ -8060,7 +8067,7 @@ description:
 	Check that ERR and EXIT traps are run just like GNU bash does.
 	ksh93 runs ERtrap after “parameter null or not set” (which mksh
 	used to do) but (bug) continues “and out”, exit 0, in +e eval-undef.
-file-setup: file 644 "x"
+file-setup: file 644 "xe"
 	v=; unset v
 	trap 'echo EXtrap' EXIT
 	trap 'echo ERtrap' ERR
@@ -8101,15 +8108,16 @@ stdin:
 		) 2>&1 | sed \
 		    -e 's/parameter not set/parameter null or not set/' \
 		    -e 's/[[]6]//' -e 's/: eval: line 1//' -e 's/: line 6//' \
+		    -e 's/^x[etfu]: /E: &/' \
 		    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
 	}
 	xe=-e
 	echo : $xe
-	runtest x $xe true
+	runtest xe $xe true
 	echo = eval-true $(<rc) .
-	runtest x $xe false
+	runtest xe $xe false
 	echo = eval-false $(<rc) .
-	runtest x $xe '${v?}'
+	runtest xe $xe '${v?}'
 	echo = eval-undef $(<rc) .
 	runtest xt $xe
 	echo = noeval-true $(<rc) .
@@ -8119,11 +8127,11 @@ stdin:
 	echo = noeval-undef $(<rc) .
 	xe=+e
 	echo : $xe
-	runtest x $xe true
+	runtest xe $xe true
 	echo = eval-true $(<rc) .
-	runtest x $xe false
+	runtest xe $xe false
 	echo = eval-false $(<rc) .
-	runtest x $xe '${v?}'
+	runtest xe $xe '${v?}'
 	echo = eval-undef $(<rc) .
 	runtest xt $xe
 	echo = noeval-true $(<rc) .
@@ -8142,7 +8150,7 @@ expected-stdout:
 	EXtrap
 	= eval-false 1 .
 	and run ${v?}
-	x: v: parameter null or not set
+	E: xe: v: parameter null or not set
 	EXtrap
 	= eval-undef 1 .
 	and run true
@@ -8154,7 +8162,7 @@ expected-stdout:
 	EXtrap
 	= noeval-false 1 .
 	and run ${v?}
-	xu: v: parameter null or not set
+	E: xu: v: parameter null or not set
 	EXtrap
 	= noeval-undef 1 .
 	: +e
@@ -8169,7 +8177,7 @@ expected-stdout:
 	EXtrap
 	= eval-false 0 .
 	and run ${v?}
-	x: v: parameter null or not set
+	E: xe: v: parameter null or not set
 	EXtrap
 	= eval-undef 1 .
 	and run true
@@ -8182,7 +8190,7 @@ expected-stdout:
 	EXtrap
 	= noeval-false 0 .
 	and run ${v?}
-	xu: v: parameter null or not set
+	E: xu: v: parameter null or not set
 	EXtrap
 	= noeval-undef 1 .
 ---

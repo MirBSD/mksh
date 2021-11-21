@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.147 2021/11/16 00:59:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.148 2021/11/21 04:15:03 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -452,6 +452,7 @@ exchild(struct op *t, int flags,
 	static Proc *last_proc;
 
 	int rv = 0, forksleep, jwflags = JW_NONE;
+	int eno = /* stupid GCC */ 0;
 #ifndef MKSH_NOPROSPECTOFWORK
 	sigset_t omask;
 #endif
@@ -519,7 +520,8 @@ exchild(struct op *t, int flags,
 
 	/* create child process */
 	forksleep = 1;
-	while ((cldpid = fork()) < 0 && errno == EAGAIN && forksleep < 32) {
+	while ((cldpid = fork()) < 0 && (eno = errno) == EAGAIN &&
+	    forksleep < 32) {
 		if (intrsig)
 			/* allow user to ^C out... */
 			break;
@@ -535,7 +537,8 @@ exchild(struct op *t, int flags,
 #ifndef MKSH_NOPROSPECTOFWORK
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
-		errorf("can't fork - try again");
+		kerrf(KWF_VERRNO | KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_ONEMSG, eno, "can't fork - try again");
 	}
 	p->pid = cldpid ? cldpid : (procpid = getpid());
 
@@ -886,11 +889,10 @@ j_resume(const char *cp, int bg)
 				if (j->flags & JF_SAVEDTTY)
 					mksh_tcset(tty_fd, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask, NULL);
-				bi_errorf(Tf_ldfailed ": %s",
-				    "fg: 1st", "tcsetpgrp", tty_fd,
+				kwarnf1(KWF_VERRNO | KWF_BIERR, rv,
+				    Tf_ldfailed, Tfirst, tty_fd,
 				    (long)((j->flags & JF_SAVEDTTYPGRP) ?
-				    j->saved_ttypgrp : j->pgrp),
-				    cstrerror(rv));
+				    j->saved_ttypgrp : j->pgrp));
 				return (1);
 			}
 		}
@@ -909,8 +911,8 @@ j_resume(const char *cp, int bg)
 				mksh_tcset(tty_fd, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
 				kwarnf0(KWF_PREFIX | KWF_FILELINE,
-				    Tf_ldfailed, "fg: 2nd", "tcsetpgrp",
-				    tty_fd, (long)kshpgrp);
+				    Tf_ldfailed, "second", tty_fd,
+				    (long)kshpgrp);
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf(Tf_s_sD_s, "can't continue job",
@@ -1211,8 +1213,8 @@ j_waitj(Job *j,
 				j->flags |= JF_SAVEDTTYPGRP;
 			if (tcsetpgrp(tty_fd, kshpgrp) < 0)
 				kwarnf0(KWF_PREFIX | KWF_FILELINE,
-				    Tf_ldfailed, "j_waitj:", "tcsetpgrp",
-				    tty_fd, (long)kshpgrp);
+				    Tf_ldfailed, "wait", tty_fd,
+				    (long)kshpgrp);
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
 				mksh_tcget(tty_fd, &j->ttystat);

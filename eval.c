@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.246 2021/11/16 01:10:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.247 2021/11/21 04:15:00 tg Exp $");
 
 /*
  * string expansion
@@ -408,7 +408,9 @@ expand(
 						*end = EOS;
 					str = snptreef(NULL, 64, Tf_S, beg);
 					afree(beg, ATEMP);
-					errorf(Tf_sD_s, str, Tbadsubst);
+					kerrf(KWF_ERR(1) | KWF_PREFIX |
+					    KWF_FILELINE | KWF_TWOMSG |
+					    KWF_NOERRNO, str, Tbadsubst);
 				}
 				if (f & DOBLANK)
 					doblank++;
@@ -707,8 +709,10 @@ expand(
 						break;
 					case ORD('?'):
 						if (*sp == CSUBST)
-							errorf("%s: parameter null or not set",
-							    st->var->name);
+							kerrf(KWF_ERR(1) | KWF_PREFIX |
+							    KWF_FILELINE | KWF_TWOMSG |
+							    KWF_NOERRNO, st->var->name,
+							    "parameter null or not set");
 						f &= ~DOBLANK;
 						f |= DOTEMP;
 						/* FALLTHROUGH */
@@ -807,7 +811,9 @@ expand(
 				case ORD('?'):
 					dp = Xrestpos(ds, dp, st->base);
 
-					errorf(Tf_sD_s, st->var->name,
+					kerrf(KWF_ERR(1) | KWF_PREFIX |
+					    KWF_FILELINE | KWF_TWOMSG |
+					    KWF_NOERRNO, st->var->name,
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
 				case ORD('#') | STYPE_AT:
@@ -1374,7 +1380,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 			/* ${%var} also here */
 			if (Flag(FNOUNSET) && sc == 0 && !zero_ok)
-				errorf(Tf_parm, sp);
+				kerrf(KWF_ERR(1) | KWF_PREFIX |
+				    KWF_FILELINE | KWF_TWOMSG |
+				    KWF_NOERRNO, sp, Tf_parm);
 			xp->str = shf_smprintf(Tf_d, sc);
 			break;
 		}
@@ -1517,7 +1525,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUB2) || (state != XBASE && c != ORD('+'))))
-		errorf(Tf_parm, sp);
+		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+		    KWF_NOERRNO, sp, Tf_parm);
 	*stypep = stype;
 	*slenp = slen;
 	return (state);
@@ -1588,7 +1597,8 @@ comsub(Expand *xp, const char *cp, int fn)
 			shf = NULL;
 			break;
 		default:
-			errorf(Tf_sD_s, T_funny_command,
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_TWOMSG | KWF_NOERRNO, T_funny_command,
 			    snptreef(NULL, 32, Tft_R, io));
 		}
 	} else if (fn == FUNSUB) {

@@ -200,9 +200,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.966 2021/11/16 01:10:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.967 2021/11/21 04:15:06 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/11/11"
+#define MKSH_VERSION "R59 2021/11/20"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1000,7 +1000,7 @@ extern struct env {
 /* note that i MUST NOT be zero */
 #define LRETURN	1	/* return statement */
 #define LEXIT	2	/* exit statement */
-#define LERROR	3	/* errorf() called */
+#define LERROR	3	/* kerrf() called */
 #define LERREXT 4	/* set -e caused */
 #define LINTR	5	/* ^C noticed */
 #define LBREAK	6	/* break statement */
@@ -1096,7 +1096,6 @@ EXTERN const char T__builtin[] E_INIT("-\\builtin");
 EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
 EXTERN const char Tcant_filesub[] E_INIT("can't open $(<...) file");
 #define Tcd (Tcant_cd + 25)
-EXTERN const char Tchvt_failed[] E_INIT("chvt: %s failed");
 EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for fd#%d");
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
@@ -1114,6 +1113,8 @@ EXTERN const char Tfalse[] E_INIT("false");
 EXTERN const char Tfg[] E_INIT("fg");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
 #define Tfile (Tcant_filesub + 19)
+EXTERN const char Tyankfirst[] E_INIT("\nyank something first");
+#define Tfirst (Tyankfirst + 16)
 EXTERN const char TFPATH[] E_INIT("FPATH");
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction (T_function + 1)
@@ -1158,7 +1159,7 @@ EXTERN const char Treal_sp2[] E_INIT(" real ");
 EXTERN const char TREPLY[] E_INIT("REPLY");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
-#define Tset (Tf_parm + 18)
+#define Tset (Tf_parm + 14)
 #define Tset_po (T_set_po + 1)
 EXTERN const char T_set_po[] E_INIT(" set +o");
 EXTERN const char Tsghset[] E_INIT("*=#set");
@@ -1174,7 +1175,7 @@ EXTERN const char Tj_suspend[] E_INIT("j_suspend");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 EXTERN const char Ttime[] E_INIT("time");
 EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
-EXTERN const char Ttoo_many_files[] E_INIT("too many open files (%d -> %d): %s");
+EXTERN const char Ttoo_many_files[] E_INIT("too many open files (%d -> %d)");
 EXTERN const char Ttrue[] E_INIT("true");
 EXTERN const char Tdgtypeset[] E_INIT("^=typeset");
 #define Ttypeset (Tdgtypeset + 2)
@@ -1198,7 +1199,7 @@ EXTERN const char Tf_s_[] E_INIT("%s ");
 EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
 #define Tf__s_s (Tf_sD_s_s + 3)
 EXTERN const char Tf_s_sD_s[] E_INIT("%s %s: %s");
-EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
+EXTERN const char Tf_parm[] E_INIT("parameter not set");
 EXTERN const char Tf_cant_s[] E_INIT("%s: can't %s");
 EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed");
 EXTERN const char Tf_S_[] E_INIT("%S ");
@@ -1207,10 +1208,10 @@ EXTERN const char Tf_sSQlu[] E_INIT("%s[%lu]");
 #define Tf_SQlu (Tf_sSQlu + 2)
 #define Tf_lu (Tf_toolarge + 14)
 EXTERN const char Tf_toolarge[] E_INIT("%s too large: %lu");
-EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed");
+EXTERN const char Tf_ldfailed[] E_INIT("%s tcsetpgrp(%d, %ld)");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
-#define Tf_s (Ttoo_many_files + 32)
+#define Tf_s (Tf_temp + 24)
 EXTERN const char Tft_end[] E_INIT("%;");
 #define Tft_R (Tft_s_R + 3)
 EXTERN const char Tft_s_R[] E_INIT("%s %R");
@@ -1218,11 +1219,10 @@ EXTERN const char Tft_s_R[] E_INIT("%s %R");
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
 EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s");
 EXTERN const char Tf_ssfailed[] E_INIT("%s: %s failed");
-EXTERN const char Tf_sD_sD_s[] E_INIT("%s: %s: %s");
 EXTERN const char Tf__c_[] E_INIT("-%c ");
 EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sN (Tf_s_s_sN + 6)
-#define Tf_sD_s (Tf_sD_sD_s + 4)
+#define Tf_sD_s (Tf_s_sD_s + 3)
 #else /* helpers for string pooling */
 #define T1space " "
 #define TC_IFSWS " \t\n"
@@ -1248,7 +1248,6 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tcant_cd "restricted shell - can't cd"
 #define Tcant_filesub "can't open $(<...) file"
 #define Tcd "cd"
-#define Tchvt_failed "chvt: %s failed"
 #define Tcloexec_failed "failed to %s close-on-exec flag for fd#%d"
 #define T_command "-command"
 #define Tcommand "command"
@@ -1266,6 +1265,8 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tfg "fg"
 #define Tfg_badsubst "fileglob: bad substitution"
 #define Tfile "file"
+#define Tyankfirst "\nyank something first"
+#define Tfirst "first"
 #define TFPATH "FPATH"
 #define T_function " function"
 #define Tfunction "function"
@@ -1326,7 +1327,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tsynerr "syntax error"
 #define Ttime "time"
 #define Ttoo_many_args "too many arguments"
-#define Ttoo_many_files "too many open files (%d -> %d): %s"
+#define Ttoo_many_files "too many open files (%d -> %d)"
 #define Ttrue "true"
 #define Tdgtypeset "^=typeset"
 #define Ttypeset "typeset"
@@ -1350,7 +1351,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_s_s_sN "%s %s %s\n"
 #define Tf__s_s " %s %s"
 #define Tf_s_sD_s "%s %s: %s"
-#define Tf_parm "%s: parameter not set"
+#define Tf_parm "parameter not set"
 #define Tf_cant_s "%s: can't %s"
 #define Tf_heredoc "here document '%s' unclosed"
 #define Tf_S_ "%S "
@@ -1359,7 +1360,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_SQlu "[%lu]"
 #define Tf_lu "%lu"
 #define Tf_toolarge "%s too large: %lu"
-#define Tf_ldfailed "%s %s(%d, %ld) failed"
+#define Tf_ldfailed "%s tcsetpgrp(%d, %ld)"
 #define Tf_toomany "too many %ss"
 #define Tf_sd "%s %d"
 #define Tf_s "%s"
@@ -1370,7 +1371,6 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sD_s_qs "%s: %s '%s'"
 #define Tf_temp "can't %s temporary file %s"
 #define Tf_ssfailed "%s: %s failed"
-#define Tf_sD_sD_s "%s: %s: %s"
 #define Tf__c_ "-%c "
 #define Tf_sD_s_s "%s: %s %s"
 #define Tf_sN "%s\n"
@@ -1690,7 +1690,7 @@ extern void ebcdic_init(void);
 /* Argument parsing for built-in commands and getopts command */
 
 /* Values for Getopt.flags */
-#define GF_ERROR	BIT(0)	/* call bi_errorf() if there is an error */
+#define GF_ERROR	BIT(0)	/* KWF_BIERR if there is an error */
 #define GF_PLUSOPT	BIT(1)	/* allow +c as an option */
 #define GF_NONAME	BIT(2)	/* don't print argv[0] in errors */
 
@@ -2681,9 +2681,6 @@ void quitenv(struct shf *);
 void cleanup_parents_env(void);
 void cleanup_proc_env(void);
 /* old {{{ */
-void errorf(const char *, ...)
-    MKSH_A_NORETURN
-    MKSH_A_FORMAT(__printf__, 1, 2);
 void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 /* old }}} */
