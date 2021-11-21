@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.967 2021/11/21 04:15:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.968 2021/11/21 04:18:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/20"
 
@@ -1718,8 +1718,8 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 
 /* This for co-processes */
 
-/* something that won't (realisticly) wrap */
-typedef int Coproc_id;
+/* something that won't (realistically) wrap */
+typedef unsigned int Coproc_id;
 
 struct coproc {
 	void *job;	/* 0 or job of co-process using input pipe */
