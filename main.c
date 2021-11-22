@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.406 2021/11/21 04:15:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.407 2021/11/22 04:26:55 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -445,7 +445,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 * by the environment or the user. Also, we want tab completion
 	 * on in vi by default.
 	 */
-	change_flag(FEMACS, OF_SPECIAL, true);
+	change_flag(FEMACS, OF_INTERNAL, true);
 #if !MKSH_S_NOVI
 	Flag(FVITABCOMPLETE) = 1;
 #endif

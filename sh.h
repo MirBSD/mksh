@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.968 2021/11/21 04:18:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.969 2021/11/22 04:26:58 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/20"
 
@@ -1043,12 +1043,11 @@ EXTERN struct {
 #define kshppid		rndsetupstate.kshppid_v
 
 /* option processing */
-#define OF_CMDLINE	0x01	/* command line */
-#define OF_SET		0x02	/* set builtin */
-#define OF_SPECIAL	0x04	/* a special variable changing */
-#define OF_INTERNAL	0x08	/* set internally by shell */
-#define OF_FIRSTTIME	0x10	/* as early as possible, once */
-#define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
+#define OF_CMDLINE	0x01U	/* command line */
+#define OF_SET		0x02U	/* set builtin */
+#define OF_INTERNAL	0x04U	/* set internally by shell */
+#define OF_FIRSTTIME	0x08U	/* as early as possible, once */
+#define OF_ANY		(OF_CMDLINE | OF_SET | OF_INTERNAL)
 
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");
@@ -2720,9 +2719,9 @@ void DF(const char *, ...)
 /* misc.c */
 size_t option(const char *) MKSH_A_PURE;
 char *getoptions(void);
-void change_flag(enum sh_flag, int, bool);
+void change_flag(enum sh_flag, unsigned int, bool);
 void change_xtrace(unsigned char, bool);
-int parse_args(const char **, int, bool *);
+int parse_args(const char **, unsigned int, bool *);
 int getn(const char *, int *);
 int getpn(const char **, int *);
 int gmatchx(const char *, const char *, bool);

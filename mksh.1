@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.526 2021/11/14 02:56:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.527 2021/11/22 04:26:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 14 2021 $
+.Dd $Mdocdate: November 22 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -198,21 +198,30 @@
 .Nd MirBSD Korn shell
 .Sh SYNOPSIS
 .Nm
-.Bk -words
 .Op Fl +abCefhiklmnprUuvXx
-.Oo
-.Fl T Oo Ar \&! Oc Ns Ar tty
-\*(Ba
-.Ar \&\-
-.Oc
 .Op Fl +o Ar option
-.Oo
-.Fl c Ar string \*(Ba
-.Fl s \*(Ba
-.Ar file
-.Op Ar argument ...
+.Oo Fl T Oo Ar !\&
+.Oc Ns Ar tty Ns \*(Ba Ns Ar \-\&
 .Oc
-.Ek
+.Ar file
+.Op Ar arg1 ...
+.Nm
+.Op Fl +abCefhiklmnprUuvXx
+.Op Fl +o Ar option
+.Oo Fl T Oo Ar !\&
+.Oc Ns Ar tty Ns \*(Ba Ns Ar \-\&
+.Oc
+.Fl c
+.Ar cmd
+.Op Ar arg0 ...
+.Nm
+.Op Fl +abCefhiklmnprUuvXx
+.Op Fl +o Ar option
+.Oo Fl T Oo Ar !\&
+.Oc Ns Ar tty Ns \*(Ba Ns Ar \-\&
+.Oc
+.Fl s
+.Op Ar arg1 ...
 .Nm builtin-name
 .Op Ar argument ...
 .Sh DESCRIPTION
@@ -4427,12 +4436,17 @@ scripts.
 ROT13-encrypts/-decrypts stdin to stdout.
 .Pp
 .It Xo
-.Ic set Op Fl +abCefhiklmnprsUuvXx
+.Ic set Op Fl +abCefhkmnpsUuvXx
 .Op Fl +o Ar option
 .Op Fl +A Ar name
 .Op Fl \-
-.Op Ar arg ...
+.Op Ar argument ...
 .Xc
+.It Xo
+.Ic set Fl \-
+.Op Ar argument ...
+.Xc
+.It Ic set Fl +o
 .Pq keeps assignments , special
 The
 .Ic set
@@ -4452,15 +4466,16 @@ is the long name of an option, or using the
 .Fl + Ns Ar letter
 syntax, where
 .Ar letter
-is the option's single letter name (not all options have a single letter name).
-The following table lists short (if extant) and long names
+is the option's single letter name (not all options have both names).
+The following table lists short and long names
+.Pq if extant
 along with a description of what each option does:
 .Bl -tag -width 3n
 .It Fl A Ar name
 Sets the elements of the array parameter
 .Ar name
 to
-.Ar arg ...
+.Ar argument ...
 .Pp
 If
 .Fl A
@@ -4493,8 +4508,9 @@ prompt.
 Only used with job control
 .Pq Fl m .
 .It Fl C \*(Ba Fl o Ic noclobber
-Prevent \*(Gt redirection from overwriting existing files.
-Instead, \*(Gt\*(Ba must be used to force an overwrite.
+Prevent \*(Gt redirection from overwriting existing files;
+.Ql \*(Gt\*(Ba
+must be used to force overwriting instead.
 .Em Note:
 This is not safe to use for creation of temporary files or
 lockfiles due to a TOCTOU in a check allowing one to redirect output to
@@ -4502,6 +4518,9 @@ lockfiles due to a TOCTOU in a check allowing one to redirect output to
 or other device files even in
 .Ic noclobber
 mode.
+.It Fl c
+Commands are read from an argument string.
+Can only be used when the shell is invoked.
 .It Fl e \*(Ba Fl o Ic errexit
 Exit (after executing the
 .Dv ERR
@@ -4652,14 +4671,7 @@ upon entering functions (default).
 Do not kill running jobs with a
 .Dv SIGHUP
 signal when a login shell exits.
-Currently set by default, but this may
-change in the future to be compatible with
-.At
-.Nm ksh ,
-which
-doesn't have this option, but does send the
-.Dv SIGHUP
-signal.
+Currently enabled by default.
 .It Fl o Ic nolog
 No effect.
 In the original Korn shell, this prevented function definitions from
@@ -4760,7 +4772,7 @@ is always in viraw mode.
 .Pp
 These options can also be used upon invocation of the shell.
 The current set of
-options (with single letter names) can be found in the parameter
+options with single letter names can be found in the parameter
 .Dq Li $\- .
 .Ic set Fl o
 with no option name will list all the options and whether each is on or off;
@@ -4770,18 +4782,29 @@ prints a command to restore the current option set, using the internal
 construct, which is an implementation detail; these commands are transient
 .Pq only valid within the current shell session .
 .Pp
-Remaining arguments, if any, are positional parameters and are assigned, in
-order, to the positional parameters (i.e. $1, $2, etc.).
-If options end with
-.Dq Li \-\-
-and there are no remaining arguments, all positional parameters are cleared.
-For unknown historical reasons, a lone
+A lone
 .Dq Li \-
-option is treated specially\*(EMit clears both the
+clears both the
 .Fl v
 and
 .Fl x
-options.
+options (obsolete); it
+.Pq or a lone Dq Li +\&
+terminates option processing and is otherwise ignored.
+.Pp
+.No Remaining Ar argument Ns s ,
+if any, are assigned (in order, unless
+.Fl s
+is given) to
+.Ar name
+.Pq with Fl A
+or the positional parameters
+.Pq i.e.,\& $1, $2, etc .
+.No Use Fl \-
+if the first argument begins with plus or dash.
+If options end with
+.Dq Li \-\-
+and there are no remaining arguments, all positional parameters are cleared.
 If no options or arguments are given, the values of all parameters are printed
 .Pq suitably quoted .
 .Pp

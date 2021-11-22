@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.335 2021/11/21 04:15:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.336 2021/11/22 04:26:55 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -81,18 +81,25 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 }
 
 #define SHFLAGS_DEFNS
-#define FN(sname,cname,flags,ochar)		\
-	static const struct {			\
-		/* character flag (if any) */	\
-		char c;				\
-		/* OF_* */			\
-		unsigned char optflags;		\
-		/* long name of option */	\
-		char name[sizeof(sname)];	\
-	} shoptione_ ## cname = {		\
-		ochar, flags, sname		\
+#define FN(sname,cname,flags,ochar)			\
+	static const struct shoptionS_ ## cname {	\
+		/* character flag (if any) */		\
+		char c;					\
+		/* OF_* */				\
+		unsigned char optflags;			\
+		/* long name of option */		\
+		char name[sizeof(sname)];		\
+	} shoptione_ ## cname = {			\
+		ochar, flags, sname			\
 	};
 #include "sh_flags.gen"
+
+struct ctasserts_shopts {
+#define FN(sname,cname,flags,ochar) cta(cta_ ## cname, \
+	offsetof(struct shoptionS_ ## cname, optflags) == 1 && \
+	offsetof(struct shoptionS_ ## cname, name[0]) == 2);
+#include "sh_flags.gen"
+};
 
 #define OFC(i) (options[i][-2])
 #define OFF(i) (((const unsigned char *)options[i])[-1])
@@ -233,7 +240,10 @@ getoptions(void)
 
 /* change a Flag(*) value; takes care of special actions */
 void
-change_flag(enum sh_flag f, int what, bool newset)
+change_flag(enum sh_flag f,
+    /* OF_INTERNAL, OF_FIRSTTIME, OF_CMDLINE, or OF_SET */
+    unsigned int what,
+    bool newset)
 {
 	unsigned char oldval = Flag(f);
 	unsigned char newval = (newset ? 1 : 0);
@@ -303,7 +313,7 @@ change_flag(enum sh_flag f, int what, bool newset)
 
 	if (f == FTALKING) {
 		/* Changing interactive flag? */
-		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
+		if (what == OF_CMDLINE && procpid == kshpid)
 			Flag(FTALKING_I) = newval;
 #ifndef MKSH_UNEMPLOYED
 	} else if (f == FMONITOR) {
@@ -361,7 +371,7 @@ change_xtrace(unsigned char newval, bool dosnapshot)
 int
 parse_args(const char **argv,
     /* OF_FIRSTTIME, OF_CMDLINE, or OF_SET */
-    int what,
+    unsigned int what,
     bool *setargsp)
 {
 	static const char cmd_opts[] =
@@ -377,8 +387,7 @@ parse_args(const char **argv,
 #undef SHFLAGS_NOT_CMD
 	    ;
 	bool set;
-	const char *opts = what == OF_CMDLINE || what == OF_FIRSTTIME ?
-	    cmd_opts : set_opts;
+	const char * const opts = what == OF_SET ? set_opts : cmd_opts;
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
@@ -405,8 +414,8 @@ parse_args(const char **argv,
 				 * lone -o: print options
 				 *
 				 * Note that on the command line, -o requires
-				 * an option (ie, can't get here if what is
-				 * OF_CMDLINE).
+				 * an option (i.e. can't get here if what is
+				 * not OF_SET).
 				 */
 #if !defined(MKSH_SMALL) || defined(DEBUG)
 				if (!set && !baseline_flags[(int)FNFLAGS]) {
@@ -474,8 +483,8 @@ parse_args(const char **argv,
 		default:
 			if (what == OF_FIRSTTIME)
 				break;
-			/* -s: sort positional params (AT&T ksh stupidity) */
-			if (what == OF_SET && optc == 's') {
+			/* -s: sort positional params (via AT&T ksh) */
+			if (what == OF_SET && isch(optc, 's')) {
 				sortargs = true;
 				break;
 			}
@@ -490,15 +499,17 @@ parse_args(const char **argv,
 				    "parse_args: '%c'", optc);
 		}
 	}
-	if (!(go.info & GI_MINUSMINUS) && argv[go.optind] &&
+	/* lone ‘-’ (or ‘+’)? */
+	if (argv[go.optind] && argv[go.optind][1] == '\0' &&
 	    ctype(argv[go.optind][0], C_MINUS | C_PLUS) &&
-	    argv[go.optind][1] == '\0') {
-		/* lone - clears -v and -x flags */
-		if (argv[go.optind][0] == '-') {
+	    !(go.info & GI_MINUSMINUS)) {
+		/* POSIX: lone hyphen-minus sh first arg ignored */
+		if (what == OF_SET && isch(argv[go.optind][0], '-')) {
+			/* set; lone dash clears -v and -x flags (obsolete) */
 			Flag(FVERBOSE) = 0;
 			change_xtrace(0, false);
 		}
-		/* set skips lone - or + option */
+		/* either way, skip it (POSIX only dash but… meh) */
 		go.optind++;
 	}
 	if (setargsp)
@@ -1282,7 +1293,7 @@ ksh_getopt_reset(Getopt *go, int flags)
  *
  * Non-standard features:
  *	- ';' is like ':' in options, except the argument is optional
- *	  (if it isn't present, optarg is set to 0).
+ *	  (if it isn't present, optarg is set to NULL).
  *	  Used for 'set -o'.
  *	- ',' is like ':' in options, except the argument always immediately
  *	  follows the option character (optarg is set to the null string if
