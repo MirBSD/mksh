@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.139 2021/11/21 04:15:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.140 2021/11/22 03:50:31 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1392,6 +1392,7 @@ kerrf0(unsigned int flags, const char *fmt, ...)
 	unwind(LERROR);
 }
 
+#if 0 /* not used */
 void
 kerrf1(unsigned int flags, int verrno, const char *fmt, ...)
 {
@@ -1402,6 +1403,7 @@ kerrf1(unsigned int flags, int verrno, const char *fmt, ...)
 	va_end(ap);
 	unwind(LERROR);
 }
+#endif
 #endif
 
 /* maybe error, maybe builtin error; use merrf() macro */
