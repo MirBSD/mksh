@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.336 2021/11/22 04:26:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.337 2021/11/22 04:33:54 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -1412,7 +1412,7 @@ ksh_getopt_opterr(int ch, const char *name, const char *msg)
 	static char buf[3] = { '-', KSH_BEL, '\0' };
 
 	buf[1] = ch;
-	if (name == null)
+	if (name == null || name == kshname)
 		kwarnf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
 		    KWF_TWOMSG | KWF_NOERRNO, buf, msg);
 	else
