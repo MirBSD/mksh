@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.337 2021/11/22 04:33:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.338 2021/12/11 22:41:43 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -2591,6 +2591,8 @@ chvt(const Getopt *go)
 		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG, "chvt", "pipe");
 	switch ((cpid = fork())) {
 	case -1:
+		close(pfd[0]);
+		close(pfd[1]);
 		kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG, "chvt", "fork");
 	case 0:
 		close(pfd[0]);
