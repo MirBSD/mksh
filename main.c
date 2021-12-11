@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.407 2021/11/22 04:26:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.408 2021/12/11 21:49:37 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -600,7 +600,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* this bizarreness is mandated by POSIX */
 	if (Flag(FTALKING) && fstat(0, &s_stdin) >= 0 &&
-	    S_ISCHR(s_stdin.st_mode))
+	    (S_ISCHR(s_stdin.st_mode) || S_ISFIFO(s_stdin.st_mode)))
 		reset_nonblock(0);
 
 	/* initialise job control */

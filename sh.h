@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.969 2021/11/22 04:26:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.970 2021/12/11 21:49:38 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/20"
 
@@ -421,6 +421,9 @@ extern int ksh_getrusage(int, struct rusage *);
 #define KSH_ISVDIS(x,d)	((x) == _POSIX_VDISABLE ? (d) : KBI(x))
 #define KSH_DOVDIS(x)	(x) = _POSIX_VDISABLE
 
+#ifndef S_ISFIFO
+#define S_ISFIFO(m)	((m & 0170000) == 0010000)
+#endif
 #ifndef S_ISCHR
 #define S_ISCHR(m)	((m & 0170000) == 0020000)
 #endif
