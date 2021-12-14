@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.886 2021/11/21 04:14:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.887 2021/12/14 13:23:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -13120,22 +13120,26 @@ stdin:
 	echo =14
 	(mypid=$$; try mypid)
 	echo =15
-	) 2>&1 | sed -e 's/^[A-Za-z]://' -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+	) 2>&1 | sed \
+	    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROGl" \
+	    -e "s^[EW]: ${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROGl" \
+	    -e "s^${__progname%.exe}\.*e*x*e*: PROGn: " \
+	    -e "s^[EW]: ${__progname%.exe}\.*e*x*e*: PROGn: "
 	exit ${PIPESTATUS[0]}
 expected-stdout:
 	y
 	=1
-	y: parameter not set
+	PROGl: y: parameter not set
 	=2
 	x=nz
 	=3
-	y: parameter not set
+	PROGn: y: parameter not set
 	=4
 	0=nz
 	=5
-	2: parameter not set
+	PROGn: 2: parameter not set
 	=6
-	1: parameter not set
+	PROGl: 1: parameter not set
 	=7
 	at=
 	=8
@@ -13143,7 +13147,7 @@ expected-stdout:
 	=9
 	0
 	=10
-	!: parameter not set
+	PROGl: !: parameter not set
 	=11
 	ush
 	=12
