@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.338 2021/12/11 22:41:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.339 2021/12/15 14:23:36 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -2662,9 +2662,15 @@ chvt(const Getopt *go)
 			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG,
 			    "chvt", "TIOCSCTTY");
 #endif
+#if HAVE_TERMIOS_H
 		if (tcflush(fd, TCIOFLUSH))
 			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG,
 			    "chvt", "TCIOFLUSH");
+#else
+		if (ioctl(fd, TCFLSH, 2) == -1)
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_TWOMSG,
+			    "chvt", "TCFLSH");
+#endif
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);
