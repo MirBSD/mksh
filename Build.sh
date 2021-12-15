@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.815 2021/11/14 04:59:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.816 2021/12/15 14:23:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1044,6 +1044,7 @@ OS/2)
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}"
+	# cf. https://github.com/komh/pdksh-os2/commit/590f2b19b0ff92a9a373295bce914654f9f5bf22
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
 	check_categories="$check_categories nosymlink"
