@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.28 2021/10/03 23:38:13 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.29 2022/01/03 00:36:02 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -474,7 +474,7 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
  the PUA; however, there is ambiguity if encountering those UTF-8-encoded, so
  it changed for R60.) The <tt>Arithmetic expressions</tt> and <tt>CAVEATS</tt>
  sections in mksh(1) contain more details about encoding and mapping.</p>
-<p>As of R60, <tt>utf8-mode</tt> maps “raw octets” to U-00200080‥U-002000FF,
+<p>As of R60, <tt>utf8-mode</tt> maps “raw octets” to U-10000080‥U-100000FF,
  which is outside the UCS and therefore collision-free. There’s work underway
  to make the shell support the full 21-bit UCS range for R60.</p>
 <p class="boxhead">The following POSIX sh-compatible code toggles the

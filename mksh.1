@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.527 2021/11/22 04:26:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.528 2022/01/03 00:36:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 22 2021 $
+.Dd $Mdocdate: January 3 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -7278,7 +7278,7 @@ and wraparound defined, even (defying POSIX) on 36-bit and 64-bit systems.
 .Nm mksh
 currently uses OPTU-16 internally, which is the same as UTF-8 and CESU-8
 with 0000..FFFD being valid codepoints; raw octets map to U+EF80..U+EFFF
-for releases before R60, U-00200080..U-002000FF for R60 onwards.
+for releases before R60, U-10000080..U-100000FF for R60 onwards.
 .Em Future compatibility note :
 there's work underway to use full 21-bit UTF-8 in mksh R60 or so.
 .Sh BUGS
