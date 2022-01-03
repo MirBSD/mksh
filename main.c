@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.408 2021/12/11 21:49:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.409 2022/01/03 00:49:26 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -108,35 +108,59 @@ struct env *e = &env;
 /* compile-time assertions */
 struct ctasserts_main {
 
-/* this one should be defined by the standard */
-cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
-    (sizeof(unsigned char) == 1));
-cta(char_is_8_bits, ((CHAR_BIT) == 8) && (CHAR_MAX) < 1024 &&
+/* sanity and range checks for macros */
+cta(basic_char, sizeof(char) == 1 && (CHAR_BIT) >= 7 &&
+    sizeof(signed char) == 1 && ICHKBITS(SCHAR_MAX) &&
+    sizeof(unsigned char) == 1 && ICHKBITS(UCHAR_MAX) &&
+    UMAX_TYPE(unsigned char) == (UCHAR_MAX) &&
+    UMAX_TYPE(unsigned short) == (USHRT_MAX) &&
+    UMAX_TYPE(unsigned int) == (UINT_MAX) &&
+    UMAX_TYPE(unsigned long) == (ULONG_MAX));
+/* require char to be 8 bit long */
+cta(char_8bit, (CHAR_BIT) == 8 &&
     (((unsigned int)(unsigned char)255U) == 255U) &&
     (((unsigned int)(unsigned char)256U) == 0U) &&
-    UMAX_BITS(unsigned char) == 8U && IMAX_BITS(CHAR_MAX) == 7U &&
-    UMAX_BITS(unsigned char) == IMAX_BITS(UCHAR_MAX));
-/* so IMAX_BITS does not explode */
-cta(long_sane_enough, sizeof(long) < 255);
+    UMAX_BITS(unsigned char) == 8U && IMAX_BITS(SCHAR_MAX) == 7U);
+
+/* 255*8=2040, needed for IMAX_BITS, ICHKBITS currently does ~72 bits */
+cta(basic_short,
+    sizeof(short) < 255 && ICHKBITS(SHRT_MAX) &&
+    sizeof(unsigned short) < 255 && ICHKBITS(USHRT_MAX) &&
+    sizeof(short) >= sizeof(signed char) &&
+    sizeof(unsigned short) >= sizeof(unsigned char));
+cta(basic_int,
+    sizeof(int) < 255 && ICHKBITS(INT_MAX) &&
+    sizeof(unsigned int) < 255 && ICHKBITS(UINT_MAX) &&
+    sizeof(int) >= sizeof(short) &&
+    sizeof(unsigned int) >= sizeof(unsigned short));
+cta(basic_long,
+    sizeof(long) < 255 && ICHKBITS(LONG_MAX) &&
+    sizeof(unsigned long) < 255 && ICHKBITS(ULONG_MAX) &&
+    sizeof(long) >= sizeof(int) &&
+    sizeof(unsigned long) >= sizeof(unsigned int));
+
+/* require signed and unsigned types to have the same size */
+cta(size_signedness_independent, /* char done above */
+    sizeof(short) == sizeof(unsigned short) &&
+    sizeof(int) == sizeof(unsigned int) &&
+    sizeof(long) == sizeof(unsigned long));
+
+/* C99 §6.2.6.2(1, 2, 6) permits M ≤ N but M < N is usually required */
+/* here require signed/unsigned types to have same the width (M=N-1) */
+/* (char done above where we require 8 bits) */
+cta(vbits_short, UMAX_BITS(unsigned short) == IMAX_BITS(SHRT_MAX) + 1U);
+cta(vbits_int, UMAX_BITS(unsigned int) == IMAX_BITS(INT_MAX) + 1U);
+/* only this one is really required for arith, M<N should work for others */
+cta(vbits_long, UMAX_BITS(unsigned long) == IMAX_BITS(LONG_MAX) + 1U);
+
+/* POSIX guarantees a 32-bit int */
+cta(int_32bit, UMAX_BITS(unsigned int) >= 32U && IMAX_BITS(INT_MAX) >= 31U);
+/* which implies unsigned long has at least 32 bit width, too */
+
 /* the next assertion is probably not really needed */
 cta(short_is_2_char, sizeof(short) == 2);
-cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
 /* the next assertion is probably not really needed */
 cta(int_is_4_char, sizeof(int) == 4);
-cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
-
-cta(long_ge_int, sizeof(long) >= sizeof(int));
-cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
-
-/* C99 §6.2.6.2(1, 2, 6); ensure width independent of signedness (M < N) */
-cta(short_value_bits_sane, UMAX_BITS(unsigned short) > IMAX_BITS(SHRT_MAX) &&
-    UMAX_TYPE(unsigned short) == (USHRT_MAX));
-cta(int_value_bits_sane, UMAX_BITS(unsigned int) > IMAX_BITS(INT_MAX) &&
-    UMAX_TYPE(unsigned int) == (UINT_MAX));
-cta(long_value_bits_sane, UMAX_BITS(unsigned long) > IMAX_BITS(LONG_MAX) &&
-    UMAX_TYPE(unsigned long) == (ULONG_MAX));
-/* assert minimum 32-bit size for guaranteed calculations */
-cta(ulong_min32bits, UMAX_BITS(unsigned long) >= 32U);
 
 #ifndef MKSH_LEGACY_MODE
 /* the next assertion is probably not really needed */

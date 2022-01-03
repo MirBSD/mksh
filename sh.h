@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *	       2019, 2020, 2021
+ *	       2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -200,7 +200,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.970 2021/12/11 21:49:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.971 2022/01/03 00:49:26 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/20"
 
@@ -225,6 +225,22 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
 
 /* arithmetic types: shell arithmetics */
+
+/* ensure v is a positive (2ⁿ-1) number (n>0) */
+#define ICHKBITS(v) ((v) > 0 ? ICHKBIT0(v) : 0)
+#define ICHKBIT0(v) ICHKBITM(v, 0xFF, ICHKBIT1((v) >> 8), ICHKBITL(v))
+#define ICHKBIT1(v) ICHKBITM(v, 0xFF, ICHKBIT2((v) >> 8), ICHKBITL(v))
+#define ICHKBIT2(v) ICHKBITM(v, 0xFF, ICHKBIT3((v) >> 8), ICHKBITL(v))
+#define ICHKBIT3(v) ICHKBITM(v, 0xFF, ICHKBIT4((v) >> 8), ICHKBITL(v))
+#define ICHKBIT4(v) ICHKBITM(v, 0xFF, ICHKBIT5((v) >> 8), ICHKBITL(v))
+#define ICHKBIT5(v) ICHKBITM(v, 0xFF, ICHKBIT6((v) >> 8), ICHKBITL(v))
+#define ICHKBIT6(v) ICHKBITM(v, 0xFF, ICHKBIT7((v) >> 8), ICHKBITL(v))
+#define ICHKBIT7(v) ICHKBITM(v, 0xFF, ICHKBIT8((v) >> 8), ICHKBITL(v))
+#define ICHKBIT8(v) ICHKBITM(v, 0xFF, ICHKBITN(v), ICHKBITL(v))
+#define ICHKBITL(v) (ICHKBITN(v) && ICHKBITM(v, 0x0F, ICHKBITH((v) >> 4), ICHKBITH(v)))
+#define ICHKBITH(v) (!(v) || (v) == 1 || (v) == 3 || (v) == 7 || (v) == 0x0F)
+#define ICHKBITM(v,m,t,f) ((((v) & m) == m) ? t : f)
+#define ICHKBITN(v) (!((v) >> 8))
 
 /* counts the value bits when given inttype_MAX as argument */
 #define IMAX_BITS(m) ((unsigned int)((m) / ((m) % 255 + 1) / 255 % 255 * 8 + \
