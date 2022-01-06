@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.116 2021/11/13 22:17:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.117 2022/01/06 22:34:55 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -679,7 +679,8 @@ tempvar(const char *vname)
 	struct tbl *vp;
 	size_t vsize;
 
-	vsize = strlen(vname) + 1;
+	/* vname is either "" or vtemp->name which maxes at 12 */
+	vsize = strlen(vname) + 1U;
 	vp = alloc(offsetof(struct tbl, name[0]) + vsize, ATEMP);
 	memcpy(vp->name, vname, vsize);
 	vp->flag = ISSET|INTEGER;

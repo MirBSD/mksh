@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2021
+ *		 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.262 2021/11/12 05:05:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.263 2022/01/06 22:34:58 tg Exp $");
 
 /*
  * states while lexing word
@@ -1042,7 +1042,7 @@ yylex(int cf)
 
 	if (*ident != '\0' && (cf & (KEYWORD | ALIAS))) {
 		struct tbl *p;
-		uint32_t h = hash(ident);
+		k32 h = hash(ident);
 
 		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC ||
@@ -1099,7 +1099,7 @@ yylex(int cf)
 	} else if (*ident == '\0') {
 		/* retain typeset et al. even when quoted */
 		struct tbl *tt = get_builtin((dp = wdstrip(yylval.cp, 0)));
-		uint32_t flag = tt ? tt->flag : 0;
+		kui flag = tt ? tt->flag : 0U;
 
 		if (flag & (DECL_UTIL | DECL_FWDR))
 			strlcpy(ident, dp, sizeof(ident));
@@ -1411,7 +1411,6 @@ getsc_line(Source *s)
 		alarm(0);
 	}
 	cp = Xstring(s->xs, xp);
-	rndpush(cp);
 	s->start = s->str = cp;
 	strip_nuls(Xstring(s->xs, xp), Xlength(s->xs, xp));
 	/* Note: if input is all nulls, this is not eof */

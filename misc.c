@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
- *		 2020, 2021
+ *		 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.339 2021/12/15 14:23:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.340 2022/01/06 22:34:59 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -1000,7 +1000,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 /*XXX this is a prime example for bsearch or a const hashtable */
 static const struct cclass {
 	const char *name;
-	uint32_t value;
+	kui value;
 } cclasses[] = {
 	/* POSIX */
 	{ "alnum",	C_ALNUM	},
@@ -1778,6 +1778,7 @@ strip_nuls(char *buf, size_t len)
 {
 	char *cp, *dp, *ep;
 
+	rndpush(buf, len);
 	if (!len || !(dp = memchr(buf, '\0', len)))
 		return;
 
@@ -1988,11 +1989,11 @@ do_realpath(const char *upath)
 			if (pathcnd) {
 #ifdef MKSH__NO_PATH_MAX
 				/* same as notoktoadd(pathlen, 1) but adapted */
-				if ((uintmax_t)sb.st_size >= (uintmax_t)SIZE_MAX) {
+				if ((uintmax_t)sb.st_size >= (uintmax_t)mksh_MAXSZ) {
 					errno = ENAMETOOLONG;
 					goto notfound;
 				}
-				ldestlen = sb.st_size + 1; /* <= SIZE_MAX */
+				ldestlen = sb.st_size + 1; /* <= mksh_MAXSZ */
 #endif
 				/* ldestsz == pathlen + 1 */
 				ldest = aresize(ldest, ldestsz, ATEMP);

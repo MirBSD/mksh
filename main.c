@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.409 2022/01/03 00:49:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.410 2022/01/06 22:34:58 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -196,10 +196,10 @@ cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 static mksh_uari_t
 rndsetup(void)
 {
-	register uint32_t h;
+	register k32 h;
 	struct {
 		ALLOC_ITEM alloc_INT;
-		void *dataptr, *stkptr, *mallocptr;
+		void *bssptr, *dataptr, *stkptr, *mallocptr;
 #if defined(__GLIBC__) && (__GLIBC__ >= 2)
 		sigjmp_buf jbuf;
 #endif
@@ -213,7 +213,8 @@ rndsetup(void)
 	/* undo what alloc() did to the malloc result address */
 	bufptr = (void *)(cp - sizeof(ALLOC_ITEM));
 	/* PIE or something similar provides us with deltas here */
-	bufptr->dataptr = &rndsetupstate;
+	bufptr->bssptr = &rndsetupstate;
+	bufptr->dataptr = &e;
 	/* ASLR in at least Windows, Linux, some BSDs */
 	bufptr->stkptr = &bufptr;
 	/* randomised malloc in BSD (and possibly others) */
@@ -222,7 +223,7 @@ rndsetup(void)
 	/* glibc pointer guard */
 	sigsetjmp(bufptr->jbuf, 1);
 #endif
-	/* introduce variation (and yes, second arg MBZ for portability) */
+	/* introduce variation (cannot use gettimeofday *tzp portably) */
 	mksh_TIME(bufptr->tv);
 
 #ifdef MKSH_ALLOC_CATCH_UNDERRUNS
@@ -336,7 +337,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* initialise permanent Area */
 	ainit(&aperm);
 	/* max. name length: -2147483648 = 11 (+ NUL) */
-	vtemp = alloc(offsetof(struct tbl, name[0]) + 12, APERM);
+	vtemp = alloc(offsetof(struct tbl, name[0]) + 12U, APERM);
 
 	/* set up base environment */
 	env.type = E_NONE;
@@ -1792,7 +1793,7 @@ ktinit(Area *ap, struct table *tp, kby initshift)
 
 /* table, name (key) to search for, hash(name), rv pointer to tbl ptr */
 struct tbl *
-ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
+ktscan(struct table *tp, const char *name, k32 h, struct tbl ***ppp)
 {
 	size_t j, perturb, mask;
 	struct tbl **pp, *p;
@@ -1817,7 +1818,7 @@ ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 
 /* table, name (key) to enter, hash(n) */
 struct tbl *
-ktenter(struct table *tp, const char *n, uint32_t h)
+ktenter(struct table *tp, const char *n, k32 h)
 {
 	struct tbl **pp, *p;
 	size_t len;
@@ -1834,7 +1835,7 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 
 	/* create new tbl entry */
 	len = strlen(n);
-	checkoktoadd(len, offsetof(struct tbl, name[0]) + 1);
+	checkoktoadd(len, offsetof(struct tbl, name[0]) + 1U);
 	p = alloc(offsetof(struct tbl, name[0]) + ++len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
@@ -2016,8 +2017,8 @@ init_environ(void)
 				    dent->d_name, "can't read environment");
 			} else {
 				*xp = '\0';
+				rndpush(Xstring(xs, xp), Xlength(xs, xp));
 				xp = Xstring(xs, xp);
-				rndpush(xp);
 				typeset(xp, IMPORT | EXPORT, 0, 0, 0);
 			}
 			shf_close(shf);
@@ -2043,7 +2044,7 @@ init_environ(void)
 
 	wp = (const char **)environ;
 	while (*wp != NULL) {
-		rndpush(*wp);
+		rndpush(*wp, strlen(*wp));
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 #ifdef MKSH_EARLY_LOCALE_TRACKING
 		if (isch((*wp)[0], 'L') && (

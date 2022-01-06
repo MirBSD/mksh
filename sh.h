@@ -200,9 +200,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.971 2022/01/03 00:49:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.972 2022/01/06 22:35:02 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/11/20"
+#define MKSH_VERSION "R59 2022/01/06"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -216,13 +216,17 @@ typedef u_int32_t uint32_t;
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
-typedef unsigned int kui;		/* wchar; kby or EOF; etc. */
+typedef unsigned int kui;		/* wchar; kby or EOF; ⊇k32; etc. */
+/* main.c cta:int_32bit guaranteed */
+typedef unsigned int k32;		/* 32-bit arithmetic (hashes etc.) */
+/* for use with/without 32-bit masking */
 typedef unsigned long kul;		/* long, arithmetic */
 typedef signed long ksl;		/* signed long, arithmetic */
 
-#define KBY(c)	((kby)(c))		/* byte, truncated if necessary */
-#define KBI(c)	((kui)(kby)(c))		/* byte as u_int, truncated */
+#define KBY(c)	((kby)(KUI(c) & 0xFFU))	/* byte, truncated if necessary */
+#define KBI(c)	((kui)(KUI(c) & 0xFFU))	/* byte as u_int, truncated */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
+#define K32(u)	((k32)(KUI(u) & 0xFFFFFFFFU))
 
 /* arithmetic types: shell arithmetics */
 
@@ -284,6 +288,14 @@ typedef unsigned long mksh_uari_t;
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 #endif
+
+/* new arithmetics in preparation */
+
+/*
+ * mksh_uari_t for now, already checked to be replaced
+ * later by kul with POSIX mode-dependent masking
+ */
+typedef mksh_uari_t kul_ari;
 
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
@@ -427,6 +439,19 @@ extern int ksh_getrusage(int, struct rusage *);
 #else
 #define SIZE_MAX	((size_t)-1)
 #endif
+#endif
+
+#ifndef PTRDIFF_MAX
+#if (sizeof(size_t) == sizeof(ptrdiff_t)) && ((SIZE_MAX) == ((size_t)-1))
+#define PTRDIFF_MAX	((ptrdiff_t)(SIZE_MAX >> 1))
+#endif
+#endif
+
+/* limit maximum object size so we can express pointer differences w/o UB */
+#if SIZE_MAX <= PTRDIFF_MAX
+#define mksh_MAXSZ	SIZE_MAX
+#else
+#define mksh_MAXSZ	((size_t)PTRDIFF_MAX)
 #endif
 
 /* if this breaks, see sh.h,v 1.954 commit message and diff */
@@ -1539,9 +1564,9 @@ EXTERN bool really_exit;
 /* out of space, but one for *@ would make sense, possibly others */
 
 /* compile-time initialised, ASCII only */
-extern const uint32_t tpl_ctypes[128];
+extern const kui tpl_ctypes[128];
 /* run-time, contains C_IFS as well, full 2⁸ octet range */
-EXTERN uint32_t ksh_ctypes[256];
+EXTERN kui ksh_ctypes[256];
 /* first octet of $IFS, for concatenating "$*" */
 EXTERN char ifs0;
 
@@ -1881,20 +1906,20 @@ struct tbl {
 		const char *fpath;	/* temporary path to undef function */
 	} u;
 	union {
+		k32 hval;		/* hash(name) */
+		kul_ari index;		/* index for an array */
+	} ua;
+	union {
 		int field;		/* field with for -L/-R/-Z */
 		int errnov;		/* CEXEC/CTALIAS */
 	} u2;
-	union {
-		uint32_t hval;		/* hash(name) */
-		uint32_t index;		/* index for an array */
-	} ua;
 	/*
 	 * command type (see below), base (if INTEGER),
 	 * offset from val.s of value (if EXPORT)
 	 */
 	int type;
 	/* flags (see below) */
-	uint32_t flag;
+	kui flag;
 
 	/* actually longer: name (variable length) */
 	char name[4];
@@ -2492,8 +2517,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notok2mul(max,val,c)	(((val) != 0) && ((c) != 0) && \
 				    (((max) / (c)) < (val)))
 #define notok2add(max,val,c)	((val) > ((max) - (c)))
-#define notoktomul(val,cnst)	notok2mul(SIZE_MAX, (val), (cnst))
-#define notoktoadd(val,cnst)	notok2add(SIZE_MAX, (val), (cnst))
+#define notoktomul(val,cnst)	notok2mul(mksh_MAXSZ, (val), (cnst))
+#define notoktoadd(val,cnst)	notok2add(mksh_MAXSZ, (val), (cnst))
 #define checkoktoadd(val,cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
@@ -2539,7 +2564,7 @@ char *do_tilde(char *);
 int execute(struct op * volatile, volatile int, volatile int * volatile);
 int c_builtin(const char **);
 struct tbl *get_builtin(const char *);
-struct tbl *findfunc(const char *, uint32_t, bool);
+struct tbl *findfunc(const char *, k32, bool);
 int define(const char *, struct op *);
 const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
@@ -2723,10 +2748,10 @@ int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 void ktinit(Area *, struct table *, kby);
-struct tbl *ktscan(struct table *, const char *, uint32_t, struct tbl ***);
+struct tbl *ktscan(struct table *, const char *, k32, struct tbl ***);
 /* table, name (key) to search for, hash(n) */
 #define ktsearch(tp,s,h) ktscan((tp), (s), (h), NULL)
-struct tbl *ktenter(struct table *, const char *, uint32_t);
+struct tbl *ktenter(struct table *, const char *, k32);
 #define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
@@ -2943,7 +2968,7 @@ void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 void newblock(void);
 void popblock(void);
 void initvar(void);
-struct block *varsearch(struct block *, struct tbl **, const char *, uint32_t);
+struct block *varsearch(struct block *, struct tbl **, const char *, k32);
 struct tbl *global(const char *);
 struct tbl *isglobal(const char *, bool);
 struct tbl *local(const char *, bool);
@@ -2952,23 +2977,23 @@ int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t, int);
-struct tbl *typeset(const char *, uint32_t, uint32_t, int, int);
+struct tbl *typeset(const char *, kui, kui, int, int);
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, bool) MKSH_A_PURE;
 const char *skip_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarassign(const char *) MKSH_A_PURE;
-struct tbl *arraysearch(struct tbl *, uint32_t);
+struct tbl *arraysearch(struct tbl *, kul_ari);
 char **makenv(void);
 void change_winsz(void);
 size_t array_ref_len(const char *) MKSH_A_PURE;
 struct tbl *arraybase(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
-uint32_t hash(const void *) MKSH_A_PURE;
-uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
-mksh_ari_t rndget(void);
+k32 hash(const void *) MKSH_A_PURE;
+k32 chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
+k32 rndget(void);
 void rndset(unsigned long);
-void rndpush(const void *);
+void rndpush(const void *, size_t);
 void record_match(const char *);
 
 enum Test_op {

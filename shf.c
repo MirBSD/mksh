@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015, 2016, 2017, 2018, 2019, 2021
+ *		 2012, 2013, 2015, 2016, 2017, 2018, 2019, 2021,
+ *		 2022
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -27,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.127 2021/11/16 01:10:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.128 2022/01/06 22:35:04 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1251,7 +1252,7 @@ cstrerror(int errnum)
 #endif
 
 /* fast character classes */
-const uint32_t tpl_ctypes[128] = {
+const kui tpl_ctypes[128] = {
 	/* 0x00 */
 	CiNUL,		CiCNTRL,	CiCNTRL,	CiCNTRL,
 	CiCNTRL,	CiCNTRL,	CiCNTRL,	CiCNTRL,
@@ -1659,8 +1660,8 @@ static char vert[40][40];
 
 static struct ciname {
 	const char *name;
-	uint32_t val;
-	uint32_t bit;
+	kui val;
+	kui bit;
 } ci[32], *cibit[32];
 
 /* pre-initio() */
@@ -1817,8 +1818,8 @@ debug_ccls(void)
 		z += strlen(#x); \
 	} \
 } while (/* CONSTCOND */ 0)
-	printf("// shf.c {{{ begin\n/* fast character classes */\n");
-	printf("const uint32_t tpl_ctypes[128] = {\n");
+	printf("// shf.c begin {{{\n/* fast character classes */\n");
+	printf("const kui tpl_ctypes[128] = {\n");
 	x = 0, y = 0; /* fsck GCC */
 	for (i = 0; i <= 0x7F; ++i) {
 		if (!(i & 0x0F)) {
@@ -1850,7 +1851,7 @@ debug_ccls(void)
 		}
 	}
 #undef D
-	printf("};\n// shf.c }}} end\n\n");
+	printf("};\n// shf.c end }}}\n\n");
 
 #define putrangef(len,cond,count) do {			\
 	for (count = 0; count <= 0xFF; ++count)		\
@@ -1955,7 +1956,7 @@ debug_ccls(void)
 } while (/* CONSTCOND */ 0)
 	DD("??IFS", CiIFS, CiCNTRL);
 
-	printf("// sh.h {{{ begin\n/*\n * fast character classes\n */\n\n");
+	printf("// sh.h begin {{{\n/*\n * fast character classes\n */\n\n");
 	printf("/* internal types, do not reference */\n\n");
 
 #define D(x) DD(#x, x, CiIFS)
@@ -1966,9 +1967,9 @@ debug_ccls(void)
 	printf("/* out of space, but one for *@ would make sense, possibly others */\n\n");
 
 	printf("/* compile-time initialised, ASCII only */\n"
-		"extern const uint32_t tpl_ctypes[128];\n"
+		"extern const kui tpl_ctypes[128];\n"
 		"/* run-time, contains C_IFS as well, full 2⁸ octet range */\n"
-		"EXTERN uint32_t ksh_ctypes[256];\n"
+		"EXTERN kui ksh_ctypes[256];\n"
 		"/* first octet of $IFS, for concatenating \"$*\" */\n"
 		"EXTERN char ifs0;\n"
 		"\n");
@@ -2087,7 +2088,7 @@ debug_ccls(void)
 	D(C_TAB, "ASCII horizontal tabulator");
 	D(C_UNDER, "underscore");
 
-	printf("// sh.h }}} end\n");
+	printf("// sh.h end }}}\n");
 	return (ksh_ctypes[0] == CiNUL);
 }
 #endif

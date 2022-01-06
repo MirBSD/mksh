@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.396 2021/11/21 04:14:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.397 2022/01/06 22:34:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1060,8 +1060,8 @@ static int x_col;		/* current column on line */
 
 static int x_ins(const void *);
 static void x_delete(size_t, bool);
-static void x_bword(uint32_t, bool);
-static void x_fword(uint32_t, bool);
+static void x_bword(kui, bool);
+static void x_fword(kui, bool);
 static void x_goto(char *);
 static void x_bs3(char **);
 static void x_uescs(char *);
@@ -1080,7 +1080,7 @@ static int x_e_getc(void);
 static void x_e_putb(int);
 static void x_e_puts(const char *);
 #ifndef MKSH_SMALL
-static int x_fold_case(int, uint32_t);
+static int x_fold_case(int, kui);
 #endif
 static char *x_lastcp(void);
 static void x_lastpos(void);
@@ -1666,7 +1666,7 @@ x_del_fbigword(int c MKSH_A_UNUSED)
 #endif
 
 static void
-x_bword(uint32_t separator, bool erase)
+x_bword(kui separator, bool erase)
 {
 	size_t nb = 0;
 	char *cp = xcp;
@@ -1691,7 +1691,7 @@ x_bword(uint32_t separator, bool erase)
 }
 
 static void
-x_fword(uint32_t separator, bool erase)
+x_fword(kui separator, bool erase)
 {
 	char *cp = xcp;
 
@@ -3372,7 +3372,7 @@ x_foldb_capitalise(int c MKSH_A_UNUSED)
  *	None
  */
 static int
-x_fold_case(int c, uint32_t separator)
+x_fold_case(int c, kui separator)
 {
 	char *cp = xcp;
 

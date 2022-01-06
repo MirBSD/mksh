@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.148 2021/11/21 04:15:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.149 2022/01/06 22:34:57 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1278,7 +1278,7 @@ j_waitj(Job *j,
 	if (!(p = j->proc_list)) {
 		;	/* nothing */
 	} else if (flags & JW_PIPEST) {
-		uint32_t num = 0;
+		kul_ari num = 0;
 		struct tbl *vp;
 		kby *vt;
 

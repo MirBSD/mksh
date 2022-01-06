@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.236 2021/11/21 04:15:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.237 2022/01/06 22:34:55 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -704,7 +704,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* function call */
 	case CFUNC: {
-		volatile uint32_t old_inuse;
+		volatile kui old_inuse;
 		const char * volatile old_kshname;
 		volatile kby old_flags[FNFLAGS];
 
@@ -1050,7 +1050,7 @@ get_builtin(const char *s)
  * is created if none is found.
  */
 struct tbl *
-findfunc(const char *name, uint32_t h, bool create)
+findfunc(const char *name, k32 h, bool create)
 {
 	struct block *l;
 	struct tbl *tp = NULL;
@@ -1077,7 +1077,7 @@ findfunc(const char *name, uint32_t h, bool create)
 int
 define(const char *name, struct op *t)
 {
-	uint32_t nhash;
+	k32 nhash;
 	struct tbl *tp;
 	bool was_set = false;
 
@@ -1127,7 +1127,7 @@ const char *
 builtin(const char *name, int (*func) (const char **))
 {
 	struct tbl *tp;
-	uint32_t flag = DEFINED;
+	kui flag = DEFINED;
 
 	/* see if any flags should be set for this builtin */
  flags_loop:
@@ -1185,7 +1185,7 @@ struct tbl *
 findcom(const char *name, int flags)
 {
 	static struct tbl temp;
-	uint32_t h = hash(name);
+	k32 h = hash(name);
 	struct tbl *tp = NULL, *tbi;
 	/* insert if not found */
 	unsigned char insert = Flag(FTRACKALL);

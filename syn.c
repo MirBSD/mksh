@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.140 2021/11/22 03:50:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.141 2022/01/06 22:35:04 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -327,7 +327,7 @@ get_command(int cf, int sALIAS)
 			ACCEPT;
 			if (check_decl_utility) {
 				struct tbl *tt = get_builtin(ident);
-				uint32_t flag;
+				kui flag;
 
 				flag = tt ? tt->flag : 0;
 				if (flag & DECL_UTIL)

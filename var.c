@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2021
+ *		 2019, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.260 2021/11/16 01:10:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.261 2022/01/06 22:35:04 tg Exp $");
 
 /*-
  * Variables
@@ -49,7 +49,7 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.260 2021/11/16 01:10:15 tg Exp $");
  */
 
 static struct table specials;
-static uint32_t lcg_state = 5381, qh_state = 4711;
+static k32 lcg_state = 5381U, qh_state = 4711U;
 /* may only be set by typeset() just before call to array_index_calc() */
 static enum namerefflag innermost_refflag = SRF_NOP;
 
@@ -61,8 +61,8 @@ typedef union {
 	mksh_uari_t u;
 } mksh_ari_u;
 
-static void c_typeset_vardump(struct tbl *, uint32_t, int, int, bool, bool);
-static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
+static void c_typeset_vardump(struct tbl *, kui, int, int, bool, bool);
+static void c_typeset_vardump_recursive(struct block *, kui, int, bool,
     bool);
 static char *formatstr(struct tbl *, const char *);
 static void exportprep(struct tbl *, const char *, size_t);
@@ -73,8 +73,8 @@ static void setspec(struct tbl *);
 static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
 static int getnum(const char *, mksh_ari_u *, bool, bool);
-static const char *array_index_calc(const char *, bool *, uint32_t *);
-static struct tbl *vtypeset(int *, const char *, uint32_t, uint32_t, int, int);
+static const char *array_index_calc(const char *, bool *, kul_ari *);
+static struct tbl *vtypeset(int *, const char *, kui, kui, int, int);
 
 /*
  * create a new block for function calls and simple commands
@@ -167,7 +167,7 @@ initvar(void)
 
 /* common code for several functions below and c_typeset() */
 struct block *
-varsearch(struct block *l, struct tbl **vpp, const char *vn, uint32_t h)
+varsearch(struct block *l, struct tbl **vpp, const char *vn, k32 h)
 {
 	register struct tbl *vp;
 
@@ -193,7 +193,7 @@ varsearch(struct block *l, struct tbl **vpp, const char *vn, uint32_t h)
  * and must be their first callee.
  */
 static const char *
-array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
+array_index_calc(const char *n, bool *arrayp, kul_ari *valp)
 {
 	const char *p;
 	size_t len;
@@ -202,6 +202,9 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	*arrayp = false;
  redo_from_ref:
 	p = skip_varname(n, false);
+	if ((size_t)(p - n) > (size_t)(INT_MAX - X_EXTRA))
+		kerrf(KWF_ERR(255) | KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG |
+		    KWF_NOERRNO, "parameter name too long");
 	if (innermost_refflag == SRF_NOP && (p != n) && ctype(n[0], C_ALPHX)) {
 		struct tbl *vp;
 		char *vn;
@@ -225,7 +228,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 
 	if (p != n && ord(*p) == ORD('[') && (len = array_ref_len(p))) {
 		char *sub, *tmp;
-		mksh_ari_t rval;
+		mksh_ari_u rval;
 		size_t tmplen = p - n;
 
 		/* calculate the value of the subscript */
@@ -235,8 +238,9 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		memcpy(tmp, p + 1, len);
 		tmp[len] = '\0';
 		sub = substitute(tmp, 0);
-		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
-		*valp = (uint32_t)rval;
+		evaluate(sub, &rval.i, KSH_UNWIND_ERROR, true);
+		/*XXX kul with mode-dependent mask */
+		*valp = rval.u;
 		afree(sub, ATEMP);
 		memcpy(tmp, n, tmplen);
 		tmp[tmplen] = '\0';
@@ -264,7 +268,8 @@ isglobal(const char *n, bool docreate)
 	struct block *l = e->loc;
 	int c;
 	bool array;
-	uint32_t h, val;
+	k32 h;
+	kul_ari val;
 
 	/*
 	 * check to see if this is an array;
@@ -356,7 +361,8 @@ local(const char *n, bool copy)
 	union mksh_cchack vname;
 	struct block *l = e->loc;
 	bool array;
-	uint32_t h, val;
+	k32 h;
+	kul_ari val;
 
 	/*
 	 * check to see if this is an array;
@@ -782,12 +788,12 @@ exportprep(struct tbl *vp, const char *val, size_t cursz)
  * UCASEV_AL), and optionally set its value if an assignment.
  */
 struct tbl *
-typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
+typeset(const char *var, kui set, kui clr, int field, int base)
 {
 	return (vtypeset(NULL, var, set, clr, field, base));
 }
 static struct tbl *
-vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
+vtypeset(int *ep, const char *var, kui set, kui clr,
     int field, int base)
 {
 	struct tbl *vp;
@@ -1248,7 +1254,7 @@ makenv(void)
 			    (vp->flag&(ISSET|EXPORT)) == (ISSET|EXPORT)) {
 				struct block *l2;
 				struct tbl *vp2;
-				uint32_t h = hash(vp->name);
+				k32 h = hash(vp->name);
 
 				/* unexport any redefined instances */
 				for (l2 = l->next; l2 != NULL; l2 = l2->next) {
@@ -1619,7 +1625,7 @@ unsetspec(struct tbl *vp, bool dounset)
  * vp, indexed by val.
  */
 struct tbl *
-arraysearch(struct tbl *vp, uint32_t val)
+arraysearch(struct tbl *vp, kul_ari val)
 {
 	struct tbl *prev, *curr, *news;
 	size_t len;
@@ -1642,7 +1648,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 		news = NULL;
 	if (!news) {
 		len = strlen(vp->name);
-		checkoktoadd(len, 1 + offsetof(struct tbl, name[0]));
+		/* no need to checkoktoadd, it comes from a vp->name */
 		news = alloc(offsetof(struct tbl, name[0]) + ++len, vp->areap);
 		memcpy(news->name, vp->name, len);
 	}
@@ -1791,21 +1797,29 @@ set_array(const char *var, bool reset, const char **vals)
 void
 change_winsz(void)
 {
-	struct timeval tv;
+	struct {
+		struct timeval tv;
+#ifdef TIOCGWINSZ
+		struct winsize ws;
+		int tif;
+		int ioc;
+		int eno;
+#endif
+	} z;
 
-	mksh_TIME(tv);
-	BAFHUpdateMem_mem(qh_state, &tv, sizeof(tv));
+	memset(&z, 0, sizeof(z));
+	mksh_TIME(z.tv);
 
 #ifdef TIOCGWINSZ
-	/* check if window size has changed */
-	if (tty_init_fd() < 2) {
-		struct winsize ws;
-
-		if (ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
-			if (ws.ws_col)
-				x_cols = ws.ws_col;
-			if (ws.ws_row)
-				x_lins = ws.ws_row;
+	if ((z.tif = tty_init_fd()) < 2) {
+		/* check if window size has changed */
+		z.ioc = ioctl(tty_fd, TIOCGWINSZ, &z.ws);
+		z.eno = errno;
+		if (z.ioc >= 0) {
+			if (z.ws.ws_col)
+				x_cols = z.ws.ws_col;
+			if (z.ws.ws_row)
+				x_lins = z.ws.ws_row;
 		}
 	}
 #endif
@@ -1816,15 +1830,16 @@ change_winsz(void)
 	if (x_lins < MIN_LINS)
 		x_lins = 24;
 
+	rndpush(&z, sizeof(z));
 #ifdef SIGWINCH
 	got_winch = 0;
 #endif
 }
 
-uint32_t
+k32
 hash(const void *s)
 {
-	register uint32_t h;
+	register k32 h;
 
 	BAFHInit(h);
 	BAFHUpdateStr_reg(h, s);
@@ -1832,10 +1847,10 @@ hash(const void *s)
 	return (h);
 }
 
-uint32_t
+k32
 chvt_rndsetup(const void *bp, size_t sz)
 {
-	register uint32_t h;
+	register k32 h;
 
 	/* use LCG as seed but try to get them to deviate immediately */
 	h = lcg_state;
@@ -1851,29 +1866,33 @@ chvt_rndsetup(const void *bp, size_t sz)
 	return (h);
 }
 
-mksh_ari_t
+k32
 rndget(void)
 {
+	register k32 v = lcg_state;
+
 	/*
 	 * this is the same Linear Congruential PRNG as Borland
 	 * C/C++ allegedly uses in its built-in rand() function
 	 */
-	return (((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF);
+	v = K32(22695477U * v + 1U);
+	lcg_state = v;
+	return ((k32)(v >> 16) & 0x7FFFU);
 }
 
 void
 rndset(unsigned long v)
 {
-	register uint32_t h;
+	register k32 h;
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
-	register uint32_t t;
+	register k32 t;
 #endif
 	struct {
 		struct timeval tv;
 		void *sp;
-		uint32_t qh;
+		k32 qh;
 		pid_t pp;
-		short r;
+		unsigned short r;
 	} z;
 
 	/* clear the allocated space, for valgrind and to avoid UB */
@@ -1884,15 +1903,13 @@ rndset(unsigned long v)
 	BAFHUpdateMem_reg(h, &v, sizeof(v));
 
 	mksh_TIME(z.tv);
-	z.sp = &lcg_state;
+	z.sp = &z;
 	z.pp = procpid;
-	z.r = (short)rndget();
+	z.r = rndget();
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
-	t = qh_state;
-	BAFHFinish_reg(t);
-	z.qh = (t & 0xFFFF8000) | rndget();
-	lcg_state = (t << 15) | rndget();
+	z.qh = (qh_state & 0xFFFF8000U) | rndget();
+	lcg_state = K32(qh_state << 15) | rndget();
 	/*
 	 * either we have very chap entropy get and push available,
 	 * with malloc() pulling in this code already anyway, or the
@@ -1919,12 +1936,12 @@ rndset(unsigned long v)
 }
 
 void
-rndpush(const void *s)
+rndpush(const void *s, size_t n)
 {
-	register uint32_t h = qh_state;
+	register k32 h = qh_state;
 
-	BAFHUpdateStr_reg(h, s);
-	BAFHUpdateOctet_reg(h, 0);
+	BAFHUpdateMem_reg(h, s, n);
+	BAFHFinish_reg(h);
 	qh_state = h;
 }
 
@@ -1945,7 +1962,7 @@ int
 c_typeset(const char **wp)
 {
 	struct tbl *vp, **p;
-	uint32_t fset = 0, fclr = 0, flag;
+	kui fset = 0, fclr = 0, flag;
 	int thing = 0, field = 0, base = 0, i;
 	struct block *l;
 	const char *opts;
@@ -2204,7 +2221,7 @@ c_typeset(const char **wp)
 }
 
 static void
-c_typeset_vardump_recursive(struct block *l, uint32_t flag, int thing,
+c_typeset_vardump_recursive(struct block *l, kui flag, int thing,
     bool pflag, bool istset)
 {
 	struct tbl **blockvars, *vp;
@@ -2218,7 +2235,7 @@ c_typeset_vardump_recursive(struct block *l, uint32_t flag, int thing,
 }
 
 static void
-c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
+c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
     bool pflag, bool istset)
 {
 	struct tbl *tvp;

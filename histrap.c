@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019,
- *		 2021
+ *		 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,11 +24,12 @@
  */
 
 #include "sh.h"
+#include "mirhash.h"
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.181 2021/11/21 04:15:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.182 2022/01/06 22:34:57 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1207,15 +1208,47 @@ gettrap(const char *cs, bool igncase, bool allsigs)
 	return (p);
 }
 
+static k32
+traphash(int signo, int extra)
+{
+	register k32 h;
+	static volatile k32 state;
+	k32 o;
+	struct {
+		struct timeval tv;
+		void *sp;
+		int i;
+		int j;
+	} z;
+
+	memset(&z, 0, sizeof(z));
+	mksh_TIME(z.tv);
+	z.sp = &z;
+	z.i = signo;
+	z.j = extra;
+
+	o = h = state;
+	BAFHUpdateMem_reg(h, &z, sizeof(z));
+	while (state != o) {
+		o = state;
+		BAFHUpdateMem_reg(h, &o, sizeof(o));
+	}
+	state = h;
+	return (h);
+}
+
 /*
  * trap signal handler
  */
 void
 trapsig(int i)
 {
-	Trap *p = &sigtraps[i];
-	int eno = errno;
+	Trap *p;
+	int eno;
 
+	eno = errno;
+	traphash(i, eno);
+	p = &sigtraps[i];
 	trap = p->set = 1;
 	if (p->flags & TF_DFL_INTR)
 		intrsig = 1;
@@ -1288,6 +1321,10 @@ runtraps(int flag)
 {
 	Trap *p = sigtraps;
 	int i = ksh_NSIG + 1;
+	k32 h;
+
+	h = traphash(-666, (int)ksh_tmout_state);
+	rndpush(&h, sizeof(h));
 
 	if (ksh_tmout_state == TMOUT_LEAVING) {
 		ksh_tmout_state = TMOUT_EXECUTING;

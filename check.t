@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.887 2021/12/14 13:23:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.888 2022/01/06 22:34:51 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/11/20
+	KSH R59 2022/01/06
 description:
 	Check base version of full shell
 stdin:
@@ -9304,6 +9304,7 @@ expected-stdout:
 name: arrays-3
 description:
 	Check if array bounds are uint32_t
+	XXX changing to arithmetic type later
 stdin:
 	set -A foo a b c
 	foo[4097]=d

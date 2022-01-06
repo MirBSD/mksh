@@ -1,9 +1,9 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.528 2022/01/03 00:36:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.529 2022/01/06 22:35:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-.\"		2018, 2019, 2020, 2021
+.\"		2018, 2019, 2020, 2021, 2022
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -64,7 +64,7 @@
 .	ds en \(em
 .\}
 .ie n \{\
-.	ds EM \ \*(en\ \&
+.	ds EM \ \(em\ \&
 .\}
 .el \{\
 .	ds EM \f(TR\^\(em\^\fP
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 3 2022 $
+.Dd $Mdocdate: January 6 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1420,8 +1420,7 @@ where
 is an arithmetic expression.
 Array indices in
 .Nm
-are limited to the range 0 through 4294967295, inclusive.
-That is, they are a 32-bit unsigned integer.
+are of the unsigned arithmetic type.
 .Pp
 Parameter substitutions take the form
 .Pf $ Ns Ar name ,

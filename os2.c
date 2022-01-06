@@ -29,7 +29,7 @@
 #include <klibc/startup.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.15 2021/11/21 04:15:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.16 2022/01/06 22:35:02 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -516,9 +516,11 @@ static void
 add_temp(const char *name)
 {
 	struct temp *tp;
+	size_t len;
 
-	tp = alloc(offsetof(struct temp, tffn[0]) + strlen(name) + 1, APERM);
-	memcpy(tp->tffn, name, strlen(name) + 1);
+	len = strlen(name);
+	tp = alloc(offsetof(struct temp, tffn[0]) + ++len, APERM);
+	memcpy(tp->tffn, name, len);
 	tp->next = templist;
 	templist = tp;
 }

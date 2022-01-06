@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.398 2021/11/21 04:15:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.399 2022/01/06 22:34:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -621,7 +621,7 @@ c_command(const char **wp)
 static int
 do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 {
-	uint32_t h;
+	k32 h;
 	int rv = 0;
 	struct tbl *tp;
 	const char *id;
@@ -762,7 +762,7 @@ c_alias(const char **wp)
 	struct table *t = &aliases;
 	int rv = 0, prefix = 0;
 	bool rflag = false, tflag, Uflag = false, pflag = false, chkalias;
-	uint32_t xflag = 0;
+	kui xflag = 0;
 	int optc;
 
 	builtin_opt.flags |= GF_PLUSOPT;
@@ -849,7 +849,7 @@ c_alias(const char **wp)
 		const char *alias = *wp, *val, *newval;
 		char *xalias = NULL;
 		struct tbl *ap;
-		uint32_t h;
+		k32 h;
 
 		if ((val = cstrchr(alias, '='))) {
 			strndupx(xalias, alias, val++ - alias, ATEMP);

@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2011, 2014, 2015, 2021
+ * Copyright © 2011, 2014, 2015, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -18,8 +18,8 @@
  * of said person’s immediate fault when using the work as intended.
  *-
  * This file provides BAFH (Better Avalanche for the Jenkins Hash) as
- * inline macro bodies that operate on “register uint32_t” variables,
- * with variants that use their local intermediate registers.
+ * inline macro bodies that operate on “register k32” variables (from
+ * mksh/sh.h), with variants that use their local intermediate regs.
  *
  * Usage note for BAFH with entropy distribution: input up to 4 bytes
  * is best combined into a 32-bit unsigned integer, which is then run
@@ -38,13 +38,12 @@
  *		-- Rasmus Lerdorf
  */
 
-#ifndef SYSKERN_MIRHASH_H
-#define SYSKERN_MIRHASH_H 1
-#define SYSKERN_MIRHASH_BAFH
+#ifndef MKSH_MIRHASH_H
+#define MKSH_MIRHASH_H
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.10 2022/01/06 22:34:59 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:
@@ -62,7 +61,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
  *
  * • BAFHror(eax,cl) evaluates to the unsigned 32-bit integer “eax”,
  *   rotated right by “cl” ∈ [1; 31] (no casting, be careful!) where
- *   “eax” must be uint32_t and “cl” an in-range integer.
+ *   “eax” is K32()d and “cl” must be within range.
  *
  * • BAFHFinish(ctx) avalanches the context around so every sub-byte
  *   depends on all input octets; afterwards, the context variable’s
@@ -96,47 +95,41 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateOctet_reg(h,b) do {				\
-	(h) += (unsigned char)(b);				\
-	++(h);							\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
+	(h) = K32(K32(h) + KBI(b) + 1U);			\
+	(h) = K32((h) + K32((h) << 10));			\
+	(h) = K32((h) ^ K32((h) >> 6));				\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateOctet_mem(m,b) do {				\
-	register uint32_t BAFH_h = (m);				\
+	register k32 BAFH_h = K32(m);				\
 								\
 	BAFHUpdateOctet_reg(BAFH_h, (b));			\
 	(m) = BAFH_h;						\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHror(eax,cl) (((eax) >> (cl)) | ((eax) << (32 - (cl))))
+#define BAFHror(eax,cl) K32(K32(K32(eax) >> (cl)) | K32(K32(eax) << (32 - (cl))))
+
+#define BAFHFinish__impl(h,v,d)					\
+	v = K32(K32(h) >> 7) & 0x01010101U;			\
+	v = K32(v + K32(v << 1));				\
+	v = K32(v + K32(v << 3));				\
+	v = K32(v ^ (K32(K32(h) << 1) & 0xFEFEFEFEU));		\
+								\
+	v = K32(v ^ BAFHror(v, 8));				\
+	v = K32(v ^ (h = BAFHror(h, 8)));			\
+	v = K32(v ^ (h = BAFHror(h, 8)));			\
+	d = K32(v ^ BAFHror(h, 8));
 
 #define BAFHFinish_reg(h) do {					\
-	register uint32_t BAFHFinish_v;				\
+	register k32 BAFHFinish_v;				\
 								\
-	BAFHFinish_v = ((h) >> 7) & 0x01010101U;		\
-	BAFHFinish_v += BAFHFinish_v << 1;			\
-	BAFHFinish_v += BAFHFinish_v << 3;			\
-	BAFHFinish_v ^= ((h) << 1) & 0xFEFEFEFEU;		\
-								\
-	BAFHFinish_v ^= BAFHror(BAFHFinish_v, 8);		\
-	BAFHFinish_v ^= ((h) = BAFHror((h), 8));		\
-	BAFHFinish_v ^= ((h) = BAFHror((h), 8));		\
-	(h) = BAFHror((h), 8) ^ BAFHFinish_v;			\
+	BAFHFinish__impl((h), BAFHFinish_v, (h))		\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHFinish_mem(m) do {					\
-	register uint32_t BAFHFinish_v, BAFH_h = (m);		\
+	register k32 BAFHFinish_v, BAFH_h = (m);		\
 								\
-	BAFHFinish_v = (BAFH_h >> 7) & 0x01010101U;		\
-	BAFHFinish_v += BAFHFinish_v << 1;			\
-	BAFHFinish_v += BAFHFinish_v << 3;			\
-	BAFHFinish_v ^= (BAFH_h << 1) & 0xFEFEFEFEU;		\
-								\
-	BAFHFinish_v ^= BAFHror(BAFHFinish_v, 8);		\
-	BAFHFinish_v ^= (BAFH_h = BAFHror(BAFH_h, 8));		\
-	BAFHFinish_v ^= (BAFH_h = BAFHror(BAFH_h, 8));		\
-	(m) = BAFHror(BAFH_h, 8) ^ BAFHFinish_v;		\
+	BAFHFinish__impl(BAFH_h, BAFHFinish_v, (m))		\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateMem_reg(h,p,z) do {				\
@@ -150,7 +143,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
 
 /* meh should have named them _r/m but that’s not valid C */
 #define BAFHUpdateMem_mem(m,p,z) do {				\
-	register uint32_t BAFH_h = (m);				\
+	register k32 BAFH_h = (m);				\
 								\
 	BAFHUpdateMem_reg(BAFH_h, (p), (z));			\
 	(m) = BAFH_h;						\
@@ -166,7 +159,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateStr_mem(m,s) do {				\
-	register uint32_t BAFH_h = (m);				\
+	register k32 BAFH_h = (m);				\
 								\
 	BAFHUpdateStr_reg(BAFH_h, (s));				\
 	(m) = BAFH_h;						\
