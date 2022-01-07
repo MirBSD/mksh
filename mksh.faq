@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.30 2022/01/07 01:18:41 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.31 2022/01/07 01:19:13 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -585,7 +585,7 @@ Title: ${@?}: bad substitution
 ToC: extensions-to-avoid
 Title: Are there any extensions to avoid?
 
-<p>GNU <tt>bash</tt> supports “<tt>&amp;&gt;</tt>” (and “|&amp;”)
+<p>GNU <tt>bash</tt> supports “<tt>&amp;&gt;</tt>” (and “<tt>|&amp;</tt>”)
  to redirect both stdout and stderr in one go, but this breaks POSIX
  and Korn Shell syntax; use POSIX redirections instead:</p>
 <table border="1" cellpadding="3">
