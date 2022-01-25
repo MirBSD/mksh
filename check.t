@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.888 2022/01/06 22:34:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.889 2022/01/25 06:24:45 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -14062,7 +14062,7 @@ stdin:
 		[[ -o utf8-mode ]]; local u=$?
 		set +U
 		local c s="$*" t=
-		[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
+		[[ -n $s ]] || { s=$(cat;print .); s=${s%.}; }
 		local -i i=0 n=${#s} p=0 v x
 		local -i16 o
 	
