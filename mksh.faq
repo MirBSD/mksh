@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.31 2022/01/07 01:19:13 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.32 2022/01/25 06:07:32 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -484,7 +484,7 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
 <div class="boxtext">
  <pre>
 	case ${KSH_VERSION:-} in
-	*MIRBSD KSH*|*LEGACY KSH*)
+	*MIRBSD\ KSH*|*LEGACY\ KSH*)
 		case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 		*[Uu][Tt][Ff]8*|*[Uu][Tt][Ff]-8*) set -U ;;
 		*) set +U ;;
