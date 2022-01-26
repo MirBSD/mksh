@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.529 2022/01/06 22:35:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.530 2022/01/26 01:05:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 6 2022 $
+.Dd $Mdocdate: January 26 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -203,8 +203,7 @@
 .Oo Fl T Oo Ar !\&
 .Oc Ns Ar tty Ns \*(Ba Ns Ar \-\&
 .Oc
-.Ar file
-.Op Ar arg1 ...
+.Op Ar file Op Ar arg1 ...
 .Nm
 .Op Fl +abCefhiklmnprUuvXx
 .Op Fl +o Ar option
@@ -228,8 +227,10 @@
 .Nm
 is a command interpreter intended for both interactive and shell
 script use.
-Its command language is a superset of the
+Its command language is a superset of both
 .Xr sh C
+and
+.Tn POSIX
 shell language and largely compatible to the original Korn shell.
 At times, this manual page may give scripting advice; while it
 sometimes does take portable shell scripting or various standards
@@ -240,15 +241,40 @@ in mind and should be taken as such.
 Please refer to:
 .Pa http://www.mirbsd.org/mksh\-faq.htm#sowhatismksh
 .Ss Invocation
-Most builtins can be called directly, for example if a link points from its
-name to the shell; not all make sense, have been tested or work at all though.
+Most builtins can be called directly, for example if a link or
+.Xr symlink 7
+points to
+.Nm ,
+or if
+.Va argv[0]
+is set correspondingly;
+this does not make sense for, or works properly with, all built-in utilities though.
 .Pp
 The options are as follows:
-.Bl -tag -width XcXstring
-.It Fl c Ar string
+.Bl -tag -width 2n
+.It Fl c
 .Nm
 will execute the command(s) contained in
-.Ar string .
+.Ar cmd ,
+setting
+.Li $0
+to
+.Ar arg0
+.Pq if present ,
+.Li $1
+to the next argument, etc.
+If compiled with
+.Dv \-DMKSH_MIDNIGHTBSD01ASH_COMPAT
+and in
+.Fl o Ic sh
+mode, a
+.Dq Li \-\-
+argument directly following
+.Ar cmd
+is ignored for compatibility with the legacy
+.Fx
+.Nm sh ;
+this is deprecated and may go away in the future.
 .It Fl i
 Interactive shell.
 A shell that reads commands from standard input is
@@ -279,36 +305,42 @@ option is on by default (see the
 command below).
 .It Fl l
 Login shell.
-If the name or basename the shell is called with (i.e. argv[0])
-starts with
+If the name the shell is called as
+.Pq i.e.\& Va argv[0]
+or its basename begins with a dash
+.Pq hyphen-minus
 .Ql \-
-or if this option is used,
-the shell is assumed to be a login shell; see
+or if this option is given,
+the shell is a
+.Dq login shell ;
+see
 .Sx Startup files
 below.
 .It Fl p
 Privileged shell.
 A shell is
 .Dq privileged
-if the real user ID or group ID does not match the
-effective user ID or group ID (see
+if the real user ID from
 .Xr getuid 2
-and
-.Xr getgid 2 ) .
+or group ID from
+.Xr getgid 2
+does not match the effective user ID or group ID.
 Clearing the privileged option causes the shell to set
-its effective user ID (group ID) to its initial real user ID (group ID).
+its effective user ID and group ID to its initial real user ID
+and group ID, respectively.
 For further implications, see
+.Ic set Fl p
+and
 .Sx Startup files .
-If the shell is privileged and this flag is not explicitly set, the
+If the shell is privileged and this flag is not set explicitly on invocation,
+nor during processing the startup files, the
 .Dq privileged
-option is cleared automatically after processing the startup files.
+flag is cleared automatically afterwards.
 .It Fl r
 Restricted shell.
 A shell is
 .Dq restricted
-if the basename the shell is called with, after
-.Ql \-
-processing, starts with
+if the basename the shell is called with, after dash removal, begins with
 .Ql r
 or if this option is used.
 The following restrictions come into effect after the shell processes any
@@ -318,12 +350,13 @@ files:
 .Pp
 .Bl -bullet -compact
 .It
-Command names cannot be specified with pathnames, absolute or relative,
-nor using the
+Command names cannot be specified with pathnames, either absolute or relative;
+the
 .Fl p
-option of the
+flag of the
 .Ic command
-built-in utility; the
+built-in utility is not usable.
+The
 .Ev ENV ,
 .Ev PATH
 and
@@ -332,23 +365,28 @@ parameters cannot be changed.
 .It
 The current location is fixed: the
 .Ic cd
-command and its alias
-.Ic chdir
-is disabled.
+builtin is disabled.
 .It
-Redirections that create files can't be used (i.e.\&
+Redirections that create files, i.e.\&
 .Dq Li \*(Gt ,
 .Dq Li \*(Gt\*(Ba ,
-.Dq Li \*(Gt\*(Gt ,
-.Dq Li \*(Lt\*(Gt ) ,
-and the
+.Dq Li \*(Gt\*(Gt
+and
+.Dq Li \*(Lt\*(Gt ,
+cannot be used, and the
 .Ev HISTFILE
 parameter cannot be changed.
 .El
 .It Fl s
-The shell reads commands from standard input; all non-option arguments
-are positional parameters.
-.It Fl T Ar name
+.Nm
+will read and execute commands from standard input; all non-option arguments
+are assigned to the positional parameters.
+.It Fl T Ar \-
+Detach from the controlling terminal, return immediately
+.Pq daemonise .
+.It Xo
+.Fl T Oo Ar !\& Oc Ns Ar name
+.Xc
 Spawn
 .Nm
 on the
@@ -356,52 +394,53 @@ on the
 device given.
 The paths
 .Ar name ,
-.Pa /dev/ttyC Ns Ar name
+.Li /dev/ttyC Ns Ar name
 and
-.Pa /dev/tty Ns Ar name
+.Li /dev/tty Ns Ar name
 are attempted in order.
-Unless
-.Ar name
-begins with an exclamation mark
-.Pq Ql \&! ,
-this is done in a subshell and returns immediately.
 If
 .Ar name
-is a dash
-.Pq Ql \&\- ,
-detach from controlling terminal (daemonise) instead.
+is prefixed with an exclamation mark
+.Pq Ql \&! ,
+wait for the spawned shell to return,
+report its exit status or terminating signal visually.
+Exit 0 if spawned.
 .El
 .Pp
-In addition to the above, the options described in the
-.Ic set
-built-in command can also be used on the command line:
-both
-.Op Fl +abCefhkmnuvXx
+In addition to the above, the flags
+.Op Fl +abCefhkmnUuvXx
 and
-.Op Fl +o Ar option
-can be used for single letter or long options, respectively.
+.Op Fl +o Ar option ,
+respectively for single-letter and long options,
+as described for the
+.Ic set
+built-in utility, can be used on the command line.
 .Pp
 If neither the
 .Fl c
 nor the
 .Fl s
-option is specified, the first non-option argument specifies the name
-of a file the shell reads commands from.
-If there are no non-option
-arguments, the shell reads commands from the standard input.
-The name of the shell (i.e. the contents of $0)
-is determined as follows: if the
-.Fl c
-option is used and there is a non-option argument, it is used as the name;
-if commands are being read from a file, the file is used as the name;
-otherwise, the name the shell was called with (i.e. argv[0]) is used.
+options are specified,
+.Nm mksh
+will read and execute commands as if the
+.Fl s
+flag was passed iff the
+.Ar file
+argument is absent or
+.Dq Li \- ;
+otherwise, it sets $0 to
+.Ar file
+and reads commands from it.
+Further arguments
+.Ar arg1 ...
+are assigned to positional parameters.
 .Pp
-The exit status of the shell is 127 if the command file specified on the
-command line could not be opened, or non-zero if a fatal syntax error
-occurred during the execution of a script.
-In the absence of fatal errors,
-the exit status is that of the last command executed, or zero if no
-command is executed.
+The exit status of the shell is 127 if the
+.Ar file
+specified on the command line could not be opened,
+or non-zero if a fatal error occurred during execution of the script.
+Otherwise, the errorlevel is that of the last command executed,
+0 if no command was executed.
 .Ss Startup files
 For the actual location of these files, see
 .Sx FILES .
@@ -4569,10 +4608,10 @@ the real UID or GID does not match
 the effective UID (EUID) or GID (EGID), respectively.
 See above for a description of what this means.
 .Pp
-If the shell is privileged, setting this flag after startup files
-have been processed let it go full setuid and/or setgid.
-Clearing this flag makes the shell drop privileges.
-Changing this flag resets the groups vector.
+If the shell is privileged, setting this flag after startup file
+processing let it go full setuid and/or setgid.
+Clearing the flag makes the shell drop privileges.
+Changing this flag resets the supplementary groups vector.
 .It Fl r \*(Ba Fl o Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
@@ -5959,7 +5998,7 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Fl n ,
 unless built with
-.Ev \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
+.Dv \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
 .It
 The substitution operations
 .Sm off
@@ -5998,7 +6037,7 @@ passes through the errorlevel.
 eats a leading
 .Fl \-
 if built with
-.Ev \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
+.Dv \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
 .El
 .Ss Interactive input line editing
 The shell supports three modes of reading command lines from a
