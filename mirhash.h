@@ -32,7 +32,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.11 2022/01/26 12:30:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.12 2022/01/26 12:36:54 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -100,10 +100,11 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.11 2022/01/26 12:30:07 tg Exp $");
 
 #define BAFHUpdateMem_reg(h,p,z) do {				\
 	register const unsigned char *BAFHUpdate_p;		\
-	register size_t BAFHUpdate_z = (z);			\
+	register const unsigned char *BAFHUpdate_d;		\
 								\
 	BAFHUpdate_p = (const void *)(p);			\
-	while (BAFHUpdate_z--)					\
+	BAFHUpdate_d = BAFHUpdate_p + (z);			\
+	while (BAFHUpdate_p < BAFHUpdate_d)			\
 		BAFHUpdateOctet_reg((h), *BAFHUpdate_p++);	\
 } while (/* CONSTCOND */ 0)
 
