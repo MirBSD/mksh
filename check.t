@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.889 2022/01/25 06:24:45 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.890 2022/01/26 13:02:33 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/01/06
+	KSH R59 2022/01/26
 description:
 	Check base version of full shell
 stdin:
@@ -10069,7 +10069,7 @@ stdin:
 	unset baz
 	print ${foo@#} ${bar@#} ${baz@#} .
 expected-stdout:
-	9B15FBFB CFBDD32B 00000000 .
+	D2F7C7B5 FE93FA63 03010102 .
 ---
 name: varexpand-special-hash-ebcdic
 description:
@@ -10081,7 +10081,7 @@ stdin:
 	unset baz
 	print ${foo@#} ${bar@#} ${baz@#} .
 expected-stdout:
-	016AE33D 9769C4AF 00000000 .
+	7819D62A E1FC0712 00000000 .
 ---
 name: varexpand-special-quote
 description:
