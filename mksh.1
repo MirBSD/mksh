@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.530 2022/01/26 01:05:51 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.531 2022/01/26 12:30:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1803,7 +1803,7 @@ and
 are evaluated as arithmetic expressions.
 .Pp
 .It Pf ${ Ns Ar name Ns @#}
-The hash (using the BAFH algorithm) of the expansion of
+The hash (using the BAFH1-0 algorithm) of the expansion of
 .Ar name .
 This is also used internally for the shell's hashtables.
 .Pp
@@ -3291,7 +3291,8 @@ or standard input as base64.
 .It Ic Lbafh_add Op Ar string
 .It Ic Lbafh_finish
 .Pq Li dot.mkshrc No functions
-Implement the Better Avalance for the Jenkins Hash.
+Implement the Better Avalance for Jenkins Hash
+.Pq IV=1 .
 This is the same hash
 .Nm
 currently uses internally.
