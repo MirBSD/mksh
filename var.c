@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.261 2022/01/06 22:35:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.262 2022/01/27 14:49:50 tg Exp $");
 
 /*-
  * Variables
@@ -1842,8 +1842,8 @@ hash(const void *s)
 	register k32 h;
 
 	BAFHInit(h);
-	BAFHUpdateStr_reg(h, s);
-	BAFHFinish_reg(h);
+	BAFHUpdateStr(h, s);
+	BAFHFinish(h);
 	return (h);
 }
 
@@ -1855,13 +1855,13 @@ chvt_rndsetup(const void *bp, size_t sz)
 	/* use LCG as seed but try to get them to deviate immediately */
 	h = lcg_state;
 	(void)rndget();
-	BAFHFinish_reg(h);
+	BAFHFinish(h);
 	/* variation through pid, ppid, and the works */
-	BAFHUpdateMem_reg(h, &rndsetupstate, sizeof(rndsetupstate));
+	BAFHUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
 	/* some variation, some possibly entropy, depending on OE */
-	BAFHUpdateMem_reg(h, bp, sz);
+	BAFHUpdateMem(h, bp, sz);
 	/* mix them all up */
-	BAFHFinish_reg(h);
+	BAFHFinish(h);
 
 	return (h);
 }
@@ -1899,8 +1899,8 @@ rndset(unsigned long v)
 	memset(&z, 0, sizeof(z));
 
 	h = lcg_state;
-	BAFHFinish_reg(h);
-	BAFHUpdateMem_reg(h, &v, sizeof(v));
+	BAFHFinish(h);
+	BAFHUpdateMem(h, &v, sizeof(v));
 
 	mksh_TIME(z.tv);
 	z.sp = &z;
@@ -1916,8 +1916,8 @@ rndset(unsigned long v)
 	 * user requested us to use the old functions
 	 */
 	t = h;
-	BAFHUpdateMem_reg(t, &lcg_state, sizeof(lcg_state));
-	BAFHFinish_reg(t);
+	BAFHUpdateMem(t, &lcg_state, sizeof(lcg_state));
+	BAFHFinish(t);
 	lcg_state = t;
 #if defined(arc4random_pushb_fast)
 	arc4random_pushb_fast(&lcg_state, sizeof(lcg_state));
@@ -1925,13 +1925,13 @@ rndset(unsigned long v)
 #else
 	lcg_state = arc4random_pushb(&lcg_state, sizeof(lcg_state));
 #endif
-	BAFHUpdateMem_reg(h, &lcg_state, sizeof(lcg_state));
+	BAFHUpdateMem(h, &lcg_state, sizeof(lcg_state));
 #else
 	z.qh = qh_state;
 #endif
 
-	BAFHUpdateMem_reg(h, &z, sizeof(z));
-	BAFHFinish_reg(h);
+	BAFHUpdateMem(h, &z, sizeof(z));
+	BAFHFinish(h);
 	lcg_state = h;
 }
 
@@ -1940,8 +1940,8 @@ rndpush(const void *s, size_t n)
 {
 	register k32 h = qh_state;
 
-	BAFHUpdateMem_reg(h, s, n);
-	BAFHFinish_reg(h);
+	BAFHUpdateMem(h, s, n);
+	BAFHFinish(h);
 	qh_state = h;
 }
 

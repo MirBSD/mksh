@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.182 2022/01/06 22:34:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.183 2022/01/27 14:49:50 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1228,10 +1228,10 @@ traphash(int signo, int extra)
 	z.j = extra;
 
 	o = h = state;
-	BAFHUpdateMem_reg(h, &z, sizeof(z));
+	BAFHUpdateMem(h, &z, sizeof(z));
 	while (state != o) {
 		o = state;
-		BAFHUpdateMem_reg(h, &o, sizeof(o));
+		BAFHUpdateMem(h, &o, sizeof(o));
 	}
 	state = h;
 	return (h);
