@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.816 2021/12/15 14:23:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.817 2022/01/27 07:55:44 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020, 2021
+#		2020, 2021, 2022
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -2074,11 +2074,10 @@ ac_header values.h
 #
 echo '#include <sys/types.h>
 #include <unistd.h>
-/* check that off_t can represent 2^63-1 correctly, thx FSF */
-#define LARGE_OFF_T ((((off_t)1 << 31) << 31) - 1 + (((off_t)1 << 31) << 31))
-int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
-    LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
-int main(void) { return (isatty(0)); }' >lft.c
+struct ctassert_offt {
+	off_t min63bits:63;
+};
+int main(void) { return ((int)sizeof(struct ctassert_offt)); }' >lft.c
 ac_testn can_lfs '' "for large file support" <lft.c
 save_CPPFLAGS=$CPPFLAGS
 add_cppflags -D_FILE_OFFSET_BITS=64
