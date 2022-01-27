@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.817 2022/01/27 07:55:44 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.818 2022/01/27 13:45:02 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2096,13 +2096,12 @@ rmf lft*	# end of large file support test
 #
 ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
+	#include <limits.h>
 	#include <stddef.h>
-	int main(int ac, char *av[]) { return ((uint32_t)(size_t)*av + (int32_t)ac); }
-EOF
-ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	#include <stddef.h>
-	int main(int ac, char *av[]) { return ((u_int32_t)(size_t)*av + (int32_t)ac); }
+	int main(int ac, char *av[]) {
+		return ((int)((uint32_t)(size_t)*av +
+		    ((int32_t)ac - INT32_MAX)));
+	}
 EOF
 
 # only testn: added later below
@@ -2594,11 +2593,11 @@ if test $legacy = 1; then
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		struct ctasserts {
-			cta(char_is_8_bits, (CHAR_BIT) == 8);
-			cta(long_is_4_chars, sizeof(long) == 4);
-			cta(ulong_is_32_bits, UMAX_BITS(unsigned long) == 32U);
-			cta(slong_is_31_bits, IMAX_BITS(LONG_MAX) == 31U);
+		mbiCTAS(conftest) {
+			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbiCTA(long_is_4_chars, sizeof(long) == 4);
+			mbiCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
+			mbiCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
 		};
 		int main(void) { return (sizeof(struct ctasserts)); }
 EOF
@@ -2609,11 +2608,11 @@ EOF
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		struct ctasserts {
-			cta(char_is_8_bits, (CHAR_BIT) == 8);
-			cta(long_is_8_chars, sizeof(long) == 8);
-			cta(ulong_is_64_bits, UMAX_BITS(unsigned long) == 64U);
-			cta(slong_is_63_bits, IMAX_BITS(LONG_MAX) == 63U);
+		mbiCTAS(conftest) {
+			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbiCTA(long_is_8_chars, sizeof(long) == 8);
+			mbiCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
+			mbiCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
 		};
 		int main(void) { return (sizeof(struct ctasserts)); }
 EOF

@@ -33,7 +33,9 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.410 2022/01/06 22:34:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.411 2022/01/27 13:45:05 tg Exp $");
+__IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
+__IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -105,90 +107,54 @@ extern const char Tpipest[];
 static struct env env;
 struct env *e = &env;
 
-/* compile-time assertions */
-struct ctasserts_main {
+/* many compile-time assertions */
+mbiCTAS(main_c) {
 
-/* sanity and range checks for macros */
-cta(basic_char, sizeof(char) == 1 && (CHAR_BIT) >= 7 &&
-    sizeof(signed char) == 1 && ICHKBITS(SCHAR_MAX) &&
-    sizeof(unsigned char) == 1 && ICHKBITS(UCHAR_MAX) &&
-    UMAX_TYPE(unsigned char) == (UCHAR_MAX) &&
-    UMAX_TYPE(unsigned short) == (USHRT_MAX) &&
-    UMAX_TYPE(unsigned int) == (UINT_MAX) &&
-    UMAX_TYPE(unsigned long) == (ULONG_MAX));
 /* require char to be 8 bit long */
-cta(char_8bit, (CHAR_BIT) == 8 &&
+mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
     (((unsigned int)(unsigned char)255U) == 255U) &&
     (((unsigned int)(unsigned char)256U) == 0U) &&
-    UMAX_BITS(unsigned char) == 8U && IMAX_BITS(SCHAR_MAX) == 7U);
-
-/* 255*8=2040, needed for IMAX_BITS, ICHKBITS currently does ~72 bits */
-cta(basic_short,
-    sizeof(short) < 255 && ICHKBITS(SHRT_MAX) &&
-    sizeof(unsigned short) < 255 && ICHKBITS(USHRT_MAX) &&
-    sizeof(short) >= sizeof(signed char) &&
-    sizeof(unsigned short) >= sizeof(unsigned char));
-cta(basic_int,
-    sizeof(int) < 255 && ICHKBITS(INT_MAX) &&
-    sizeof(unsigned int) < 255 && ICHKBITS(UINT_MAX) &&
-    sizeof(int) >= sizeof(short) &&
-    sizeof(unsigned int) >= sizeof(unsigned short));
-cta(basic_long,
-    sizeof(long) < 255 && ICHKBITS(LONG_MAX) &&
-    sizeof(unsigned long) < 255 && ICHKBITS(ULONG_MAX) &&
-    sizeof(long) >= sizeof(int) &&
-    sizeof(unsigned long) >= sizeof(unsigned int));
-
-/* require signed and unsigned types to have the same size */
-cta(size_signedness_independent, /* char done above */
-    sizeof(short) == sizeof(unsigned short) &&
-    sizeof(int) == sizeof(unsigned int) &&
-    sizeof(long) == sizeof(unsigned long));
-
-/* C99 §6.2.6.2(1, 2, 6) permits M ≤ N but M < N is usually required */
-/* here require signed/unsigned types to have same the width (M=N-1) */
-/* (char done above where we require 8 bits) */
-cta(vbits_short, UMAX_BITS(unsigned short) == IMAX_BITS(SHRT_MAX) + 1U);
-cta(vbits_int, UMAX_BITS(unsigned int) == IMAX_BITS(INT_MAX) + 1U);
-/* only this one is really required for arith, M<N should work for others */
-cta(vbits_long, UMAX_BITS(unsigned long) == IMAX_BITS(LONG_MAX) + 1U);
+    mbiTYPE_UBITS(unsigned char) == 8U &&
+    mbiMASK_BITS(SCHAR_MAX) == 7U);
 
 /* POSIX guarantees a 32-bit int */
-cta(int_32bit, UMAX_BITS(unsigned int) >= 32U && IMAX_BITS(INT_MAX) >= 31U);
+mbiCTA(int_32bit, mbiTYPE_UBITS(unsigned int) >= 32U &&
+    mbiMASK_BITS(INT_MAX) >= 31U);
 /* which implies unsigned long has at least 32 bit width, too */
 
 /* the next assertion is probably not really needed */
-cta(short_is_2_char, sizeof(short) == 2);
+mbiCTA(short_is_2_char, sizeof(short) == 2);
 /* the next assertion is probably not really needed */
-cta(int_is_4_char, sizeof(int) == 4);
+mbiCTA(int_is_4_char, sizeof(int) == 4);
 
 #ifndef MKSH_LEGACY_MODE
+mbiCTA(basic_int32_ari,
+    mbiTYPE_UMAX(mksh_uari_t) == (UINT32_MAX) &&
+    sizeof(mksh_ari_t) <= (279 / CHAR_BIT) &&
+    sizeof(mksh_uari_t) <= (279 / CHAR_BIT) &&
+    mbiMASK_CHK(INT32_MAX) && mbiMASK_CHK(UINT32_MAX) &&
+    /* require two’s complement */
+    ((INT32_MIN) == -(INT32_MAX)-1));
 /* the next assertion is probably not really needed */
-cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
+mbiCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 /* but this is */
-cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
+mbiCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
 /* the next assertion is probably not really needed */
-cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
-cta(uari_is_32_bit, UMAX_BITS(mksh_uari_t) == 32);
-/* but the next three are; we REQUIRE unsigned integer wraparound */
-cta(uari_has_31_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 2 + 1));
-cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3));
-cta(uari_wrap_32_bit,
-    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
-    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
+mbiCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
+mbiCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
+#else
+mbiCTA(long_complement, (LONG_MIN) == -(LONG_MAX)-1);
 #endif
 /* these are always required */
-cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
-cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
+mbiCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
+mbiCTA(uari_is_unsigned, mbiTYPE_ISU(mksh_uari_t));
 /* we require these to have the precisely same size and assume 2s complement */
-cta(ari_size_no_matter_of_signedness, sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
+mbiCTA(ari_size_no_matter_of_signedness,
+    sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
-cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
-cta(sizet_voidptr_same_size, sizeof(size_t) == sizeof(void *));
-cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
-cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
-cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
+mbiCTA(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
+mbiCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 
 };
 /* end of compile-time asserts */

@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2016, 2017, 2018, 2019,
- *		 2021
+ *		 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.117 2022/01/06 22:34:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.118 2022/01/27 13:45:03 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -272,7 +272,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 {
 	struct tbl *vl, *vr = NULL, *vasn;
 	enum token op;
-	mksh_uari_t res = 0, t1, t2, t3;
+	mksh_uari_t res = 0, t1, t2;
 
 	if (prec == P_PRIMARY) {
 		switch ((int)(op = es->tok)) {
@@ -381,32 +381,19 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_DIVASN:
 		case O_MOD:
 		case O_MODASN:
-			if (vr->val.u == 0) {
+			if (vr->val.i == 0) {
 				if (!es->noassign)
 					evalerr(es, ET_STR, "zero divisor");
-				vr->val.u = 1;
+				t2 = vl->val.u;
+				goto div_by_zero;
 			}
-			/* calculate the absolute values */
-			t1 = vl->val.i < 0 ? -vl->val.u : vl->val.u;
-			t2 = vr->val.i < 0 ? -vr->val.u : vr->val.u;
+			if (es->natural) {
+				t1 = vl->val.u / vr->val.u;
+				t2 = vl->val.u % vr->val.u;
+			} else
+				mbiVASdivrem(mksh_uari_t, mksh_ari_t,
+				    t1, t2, vl->val.i, vr->val.i);
 			break;
-#ifndef MKSH_LEGACY_MODE
-		case O_LSHIFT:
-		case O_LSHIFTASN:
-		case O_RSHIFT:
-		case O_RSHIFTASN:
-		case O_ROL:
-		case O_ROLASN:
-		case O_ROR:
-		case O_RORASN:
-			t1 = vl->val.u;
-			t2 = vr->val.u & 31;
-			if (!t2) {
-				res = t1;
-				goto rotate_by_zero;
-			}
-			break;
-#endif
 		case O_LAND:
 		case O_LOR:
 			t1 = vl->val.u;
@@ -425,45 +412,6 @@ evalexpr(Expr_state *es, unsigned int prec)
 
 		/* op calculation */
 		switch ((int)op) {
-		case O_TIMES:
-		case O_TIMESASN:
-			res = t1 * t2;
-			break;
-		case O_MOD:
-		case O_MODASN:
-			if (es->natural) {
-				res = vl->val.u % vr->val.u;
-				break;
-			}
-			goto signed_division;
-		case O_DIV:
-		case O_DIVASN:
-			if (es->natural) {
-				res = vl->val.u / vr->val.u;
-				break;
-			}
- signed_division:
-			/*
-			 * a / b = abs(a) / abs(b) * sgn((u)a^(u)b)
-			 */
-			t3 = t1 / t2;
-#ifndef MKSH_LEGACY_MODE
-			res = ((vl->val.u ^ vr->val.u) & 0x80000000) ? -t3 : t3;
-#else
-			res = ((t1 == vl->val.u ? 0 : 1) ^
-			    (t2 == vr->val.u ? 0 : 1)) ? -t3 : t3;
-#endif
-			if (op == O_MOD || op == O_MODASN) {
-				/*
-				 * primitive modulo, to get the sign of
-				 * the result correct:
-				 * (a % b) = a - ((a / b) * b)
-				 * the subtraction and multiplication
-				 * are, amazingly enough, sign ignorant
-				 */
-				res = vl->val.u - (res * vr->val.u);
-			}
-			break;
 		case O_PLUS:
 		case O_PLUSASN:
 			res = t1 + t2;
@@ -472,26 +420,35 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_MINUSASN:
 			res = t1 - t2;
 			break;
-#ifndef MKSH_LEGACY_MODE
+		case O_TIMES:
+		case O_TIMESASN:
+			res = t1 * t2;
+			break;
+		case O_DIV:
+		case O_DIVASN:
+			res = t1;
+			break;
+		case O_MOD:
+		case O_MODASN:
+			res = t2;
+			break;
 		case O_ROL:
 		case O_ROLASN:
-			res = (t1 << t2) | (t1 >> (32 - t2));
+			mbiVAUrol(mksh_uari_t, res, t1, t2);
 			break;
 		case O_ROR:
 		case O_RORASN:
-			res = (t1 >> t2) | (t1 << (32 - t2));
- rotate_by_zero:
+			mbiVAUror(mksh_uari_t, res, t1, t2);
 			break;
-#endif
 		case O_LSHIFT:
 		case O_LSHIFTASN:
-			res = t1 << t2;
+			mbiVAUshl(mksh_uari_t, res, t1, t2);
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
-			res = es->natural || vl->val.i >= 0 ?
-			    t1 >> t2 :
-			    ~(~t1 >> t2);
+			mbiVAUshr(mksh_uari_t, res,
+			    !es->natural && vl->val.i < 0,
+			    t1, t2);
 			break;
 		case O_LT:
 			res = cmpop(<);
@@ -543,6 +500,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 			break;
 		case O_ASN:
 		case O_COMMA:
+ div_by_zero:
 			res = t2;
 			break;
 		}

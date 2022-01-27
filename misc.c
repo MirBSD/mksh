@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.340 2022/01/06 22:34:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.341 2022/01/27 13:45:05 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -94,8 +94,8 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 	};
 #include "sh_flags.gen"
 
-struct ctasserts_shopts {
-#define FN(sname,cname,flags,ochar) cta(cta_ ## cname, \
+mbiCTAS(sh_flags_gen) {
+#define FN(sname,cname,flags,ochar) mbiCTA(cta_ ## cname, \
 	offsetof(struct shoptionS_ ## cname, optflags) == 1 && \
 	offsetof(struct shoptionS_ ## cname, name[0]) == 2);
 #include "sh_flags.gen"
