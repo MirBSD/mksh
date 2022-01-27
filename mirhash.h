@@ -32,7 +32,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.12 2022/01/26 12:36:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.14 2022/01/27 14:15:41 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -73,7 +73,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.12 2022/01/26 12:36:54 tg Exp $");
 	(h) = 1U;						\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHUpdateOctet_reg(h,b) do {				\
+#define BAFHUpdateOctet(h,b) do {				\
 	(h) = K32(K32(h) + KBI(b));				\
 	(h) = K32((h) + K32((h) << 10));			\
 	(h) = K32((h) ^ K32((h) >> 6));				\
@@ -92,29 +92,29 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.12 2022/01/26 12:36:54 tg Exp $");
 	v = K32(v ^ (h = BAFHror(h, 8)));			\
 	d = K32(v ^ BAFHror(h, 8));
 
-#define BAFHFinish_reg(h) do {					\
+#define BAFHFinish(h) do {					\
 	register k32 BAFHFinish_v;				\
 								\
 	BAFHFinish__impl((h), BAFHFinish_v, (h))		\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHUpdateMem_reg(h,p,z) do {				\
+#define BAFHUpdateMem(h,p,z) do {				\
 	register const unsigned char *BAFHUpdate_p;		\
 	register const unsigned char *BAFHUpdate_d;		\
 								\
 	BAFHUpdate_p = (const void *)(p);			\
 	BAFHUpdate_d = BAFHUpdate_p + (z);			\
 	while (BAFHUpdate_p < BAFHUpdate_d)			\
-		BAFHUpdateOctet_reg((h), *BAFHUpdate_p++);	\
+		BAFHUpdateOctet((h), *BAFHUpdate_p++);		\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHUpdateStr_reg(h,s) do {				\
+#define BAFHUpdateStr(h,s) do {					\
 	register const unsigned char *BAFHUpdate_s;		\
 	register unsigned char BAFHUpdate_c;			\
 								\
 	BAFHUpdate_s = (const void *)(s);			\
 	while ((BAFHUpdate_c = *BAFHUpdate_s++) != 0)		\
-		BAFHUpdateOctet_reg((h), BAFHUpdate_c);		\
+		BAFHUpdateOctet((h), BAFHUpdate_c);		\
 } while (/* CONSTCOND */ 0)
 
 #endif
