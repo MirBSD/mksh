@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.183 2022/01/27 14:49:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.184 2022/01/28 00:58:35 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1053,7 +1053,7 @@ inittraps(void)
 {
 	int i;
 	const char *cs;
-#if !HAVE_SYS_SIGNAME
+#if !HAVE_SIGABBREV_NP && !HAVE_SYS_SIGNAME
 	const struct mksh_sigpair *pair;
 #endif
 
@@ -1062,7 +1062,9 @@ inittraps(void)
 	/* populate sigtraps based on sys_signame and sys_siglist */
 	for (i = 1; i < ksh_NSIG; i++) {
 		sigtraps[i].signal = i;
-#if HAVE_SYS_SIGNAME
+#if HAVE_SIGABBREV_NP
+		cs = sigabbrev_np(i);
+#elif HAVE_SYS_SIGNAME
 		cs = sys_signame[i];
 #else
 		pair = mksh_sigpairs;

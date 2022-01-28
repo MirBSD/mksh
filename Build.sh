@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.818 2022/01/27 13:45:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.819 2022/01/28 00:58:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1157,16 +1157,10 @@ SCO_SV)
 	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
 	;;
 SerenityOS)
-	oswarn="; it has major issues"
-	cpp_define MKSH_NO_SIGSUSPEND 1
-	cpp_define MKSH_POLL_FOR_PAUSE 1
+	oswarn="; it has issues"
 	: "${MKSH_UNLIMITED=1}${HAVE_GETRUSAGE=0}"
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
-	cpp_define MKSH_NO_SIGSETJMP 1
-	cpp_define _setjmp setjmp
-	cpp_define _longjmp longjmp
-	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	;;
 skyos)
 	oswarn="; it has minor issues"
@@ -2226,20 +2220,31 @@ ac_cppflags SYS_ERRLIST
 
 for what in name list; do
 	uwhat=`upper $what`
-	ac_testn sys_sig$what '' "the sys_sig$what[] array" <<-EOF
+	eval HAVE_SOME_SIG$uwhat=0
+
+	case $what in name) x=sigabbrev_np ;; list) x=sigdescr_np ;; esac
+	ac_test $x '!' some_sig$what 0 "GNU $x()" <<-EOF
+		extern const char *$x(int);
+		int main(int ac, char *av[]) { return (*$x(*av[ac])); }
+	EOF
+	test x"1" = x"$fv" && eval HAVE_SOME_SIG$uwhat=1
+
+	ac_testn sys_sig$what '!' some_sig$what 0 "the sys_sig$what[] array" <<-EOF
 		extern const char * const sys_sig$what[];
 		extern int isatty(int);
 		int main(void) { return (sys_sig$what[0][0] + isatty(0)); }
 	EOF
-	ac_testn _sys_sig$what '!' sys_sig$what 0 "the _sys_sig$what[] array" <<-EOF
+	test x"1" = x"$fv" && eval HAVE_SOME_SIG$uwhat=1
+
+	ac_testn _sys_sig$what '!' some_sig$what 0 "the _sys_sig$what[] array" <<-EOF
 		extern const char * const _sys_sig$what[];
 		extern int isatty(int);
 		int main(void) { return (_sys_sig$what[0][0] + isatty(0)); }
 	EOF
-	eval uwhat_v=\$HAVE__SYS_SIG$uwhat
-	if test 1 = "$uwhat_v"; then
+	if test x"1" = x"$fv"; then
 		cpp_define sys_sig$what _sys_sig$what
 		eval HAVE_SYS_SIG$uwhat=1
+		eval HAVE_SOME_SIG$uwhat=1
 	fi
 	ac_cppflags SYS_SIG$uwhat
 done
@@ -2503,7 +2508,7 @@ ac_test strerror '!' some_errlist 0 <<-'EOF'
 	int main(int ac, char *av[]) { return (*strerror(*av[ac])); }
 EOF
 
-ac_test strsignal '!' sys_siglist 0 <<-'EOF'
+ac_test strsignal '!' some_siglist 0 <<-'EOF'
 	#include <string.h>
 	#include <signal.h>
 	int main(void) { return (strsignal(1)[0]); }
@@ -2627,7 +2632,7 @@ fi
 #
 # Compiler: Praeprocessor (only if needed)
 #
-test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
+test 0 = $HAVE_SOME_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >conftest.c
 	vv ']' "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN -dD conftest.c >x"
@@ -2648,7 +2653,7 @@ ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories="$check_categories $oldish_ed"
 rmf x vv.out
 
-if test 0 = $HAVE_SYS_SIGNAME; then
+if test 0 = $HAVE_SOME_SIGNAME; then
 	if test 1 = $HAVE_CPP_DD; then
 		$e Generating list of signal names...
 	else
@@ -2919,7 +2924,7 @@ echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
 	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
-	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
+	test 0 = $HAVE_SOME_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do
 		genf=`basename "$file" | sed 's/.opt$/.gen/'`

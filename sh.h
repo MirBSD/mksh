@@ -200,7 +200,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.974 2022/01/27 13:45:06 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.975 2022/01/28 00:58:36 tg Exp $"
 #define MKSH_VERSION "R59 2022/01/26"
 
 /* shell types */
@@ -496,7 +496,9 @@ typedef sig_t ksh_sigsaved;
 #define ksh_sigrestore(s,svp) ksh_sigset((s), *(svp), NULL)
 #endif
 
-#if HAVE_SYS_SIGLIST
+#if HAVE_SIGDESCR_NP
+#define ksh_sigmess(nr) sigdescr_np(nr)
+#elif HAVE_SYS_SIGLIST
 #if !HAVE_SYS_SIGLIST_DECL
 extern const char * const sys_siglist[];
 #endif
