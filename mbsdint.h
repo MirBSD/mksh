@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.1 2022/01/27 13:45:01 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.2 2022/01/28 03:49:12 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 
@@ -36,6 +36,8 @@
 /* compile-time assertions: mbiCTAS(srcf_c) { … }; */
 #define mbiCTAS(name)		struct ctassert_ ## name
 #define mbiCTA(name,cond)	char cta_ ## name [(cond) ? 1 : -1]
+/* special CTAs */
+#define mbiCTA_TYPE_NOTF(type)	char ctati_ ## type [((type)0.5 == 0) ? 1 : -1]
 
 /* largest integer */
 #if defined(INTMAX_MIN)
@@ -59,7 +61,9 @@
 #endif
 
 /* kinds of types */
+	/* runtime only, but see mbiCTA_TYPE_NOTF */
 #define mbiTYPE_ISF(type)	((double)0.5 == (double)(type)0.5)
+	/* compile-time and runtime */
 #define mbiTYPE_ISU(type)	((type)-1 > 0)
 /* limits of types */
 #define mbiTYPE_UMAX(type)	((type)~(type)0)
@@ -161,10 +165,10 @@ mbiCTAS(mbsdint_h) {
 	sizeof(intmax_t) == sizeof(uintmax_t));
 #endif
  /* size_t is C but ssize_t is POSIX */
+ mbiCTA_TYPE_NOTF(size_t);
  mbiCTA(basic_sizet,
 	sizeof(size_t) >= sizeof(unsigned int) &&
 	sizeof(size_t) <= sizeof(mbiHUGE_U) &&
-	!mbiTYPE_ISF(size_t) &&
 	mbiTYPE_ISU(size_t) &&
 #ifdef SIZE_MAX
 	mbiMASK_CHK(SIZE_MAX) &&
@@ -172,10 +176,10 @@ mbiCTAS(mbsdint_h) {
 	((SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)) &&
 #endif
 	mbiTYPE_UBITS(size_t) <= mbiMASK_BITS(mbiHUGE_UMAX));
+ mbiCTA_TYPE_NOTF(ptrdiff_t);
  mbiCTA(basic_ptrdifft,
 	sizeof(ptrdiff_t) >= sizeof(int) &&
 	sizeof(ptrdiff_t) <= sizeof(mbiHUGE_S) &&
-	!mbiTYPE_ISF(ptrdiff_t) &&
 	!mbiTYPE_ISU(ptrdiff_t) &&
 #ifdef PTRDIFF_MAX
 	mbiMASK_CHK(PTRDIFF_MAX) &&
@@ -184,9 +188,9 @@ mbiCTAS(mbsdint_h) {
 	1);
  /* UGH! off_t is POSIX, with no _MIN/_MAX constants… WTF‽ */
 #ifdef SSIZE_MAX
+ mbiCTA_TYPE_NOTF(ssize_t);
  mbiCTA(basic_ssizet,
 	sizeof(ssize_t) == sizeof(size_t) &&
-	!mbiTYPE_ISF(ssize_t) &&
 	!mbiTYPE_ISU(ssize_t) &&
 	mbiMASK_CHK(SSIZE_MAX) &&
 	((SSIZE_MAX) == (mbiHUGE_S)(ssize_t)(SSIZE_MAX)) &&
