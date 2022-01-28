@@ -30,6 +30,8 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.977 2022/01/28 08:55:52 tg Exp $"
+
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
 #include "autoconf.h"
@@ -200,7 +202,6 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.976 2022/01/28 07:01:13 tg Exp $"
 #define MKSH_VERSION "R59 2022/01/27"
 
 /* shell types */
@@ -259,10 +260,10 @@ typedef unsigned int mksh_uari_t;
 /* new arithmetics in preparation */
 
 /*
- * mksh_uari_t for now, already checked to be replaced
+ * k32 for now, already checked to be replaced
  * later by kul with POSIX mode-dependent masking
  */
-typedef mksh_uari_t kul_ari;
+typedef k32 kul_k32;
 
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
@@ -1868,7 +1869,7 @@ struct tbl {
 	} u;
 	union {
 		k32 hval;		/* hash(name) */
-		kul_ari index;		/* index for an array */
+		kul_k32 index;		/* index for an array */
 	} ua;
 	union {
 		int field;		/* field with for -L/-R/-Z */
@@ -2944,7 +2945,7 @@ const char *skip_varname(const char *, bool) MKSH_A_PURE;
 const char *skip_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarassign(const char *) MKSH_A_PURE;
-struct tbl *arraysearch(struct tbl *, kul_ari);
+struct tbl *arraysearch(struct tbl *, kul_k32);
 char **makenv(void);
 void change_winsz(void);
 size_t array_ref_len(const char *) MKSH_A_PURE;

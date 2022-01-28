@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.262 2022/01/27 14:49:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.263 2022/01/28 08:55:53 tg Exp $");
 
 /*-
  * Variables
@@ -73,7 +73,7 @@ static void setspec(struct tbl *);
 static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
 static int getnum(const char *, mksh_ari_u *, bool, bool);
-static const char *array_index_calc(const char *, bool *, kul_ari *);
+static const char *array_index_calc(const char *, bool *, kul_k32 *);
 static struct tbl *vtypeset(int *, const char *, kui, kui, int, int);
 
 /*
@@ -193,7 +193,7 @@ varsearch(struct block *l, struct tbl **vpp, const char *vn, k32 h)
  * and must be their first callee.
  */
 static const char *
-array_index_calc(const char *n, bool *arrayp, kul_ari *valp)
+array_index_calc(const char *n, bool *arrayp, kul_k32 *valp)
 {
 	const char *p;
 	size_t len;
@@ -269,7 +269,7 @@ isglobal(const char *n, bool docreate)
 	int c;
 	bool array;
 	k32 h;
-	kul_ari val;
+	kul_k32 val;
 
 	/*
 	 * check to see if this is an array;
@@ -362,7 +362,7 @@ local(const char *n, bool copy)
 	struct block *l = e->loc;
 	bool array;
 	k32 h;
-	kul_ari val;
+	kul_k32 val;
 
 	/*
 	 * check to see if this is an array;
@@ -1625,7 +1625,7 @@ unsetspec(struct tbl *vp, bool dounset)
  * vp, indexed by val.
  */
 struct tbl *
-arraysearch(struct tbl *vp, kul_ari val)
+arraysearch(struct tbl *vp, kul_k32 val)
 {
 	struct tbl *prev, *curr, *news;
 	size_t len;
