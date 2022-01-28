@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.819 2022/01/28 00:58:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.820 2022/01/28 07:01:08 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2604,7 +2604,7 @@ if test $legacy = 1; then
 			mbiCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
 			mbiCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
 		};
-		int main(void) { return (sizeof(struct ctasserts)); }
+		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
 	ac_test long_64bit '!' long_32bit 0 'whether long is 64 bit wide' <<-'EOF'
@@ -2619,7 +2619,7 @@ EOF
 			mbiCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
 			mbiCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
 		};
-		int main(void) { return (sizeof(struct ctasserts)); }
+		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
 	case $HAVE_LONG_32BIT$HAVE_LONG_64BIT in

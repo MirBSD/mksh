@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.890 2022/01/26 13:02:33 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.891 2022/01/28 07:01:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/01/26
+	KSH R59 2022/01/27
 description:
 	Check base version of full shell
 stdin:
@@ -441,6 +441,21 @@ stdin:
 expected-stderr:
 	1
 ---
+name: arith-divnull
+description:
+	Check what happens if dividing by 0
+stdin:
+	echo 1 $((0 ? 2/0 : 666)) .
+	echo 2 $?
+	echo 3 $((1 ? 2/0 : 666)) .
+	echo 4 $?
+expected-stdout:
+	1 666 .
+	2 0
+expected-exit: e != 0
+expected-stderr-pattern:
+	/^[^\n]*: zero divisor$/
+---
 name: arith-lazy-1
 description:
 	Check that only one side of ternary operator is evaluated
@@ -612,24 +627,13 @@ expected-stderr-pattern:
 name: arith-div-intmin-by-minusone
 description:
 	Check division overflow wraps around silently
-category: int:32
+category: shell:legacy-no
 stdin:
 	echo signed:$((-2147483648 / -1))r$((-2147483648 % -1)).
 	echo unsigned:$((# -2147483648 / -1))r$((# -2147483648 % -1)).
 expected-stdout:
 	signed:-2147483648r0.
 	unsigned:0r2147483648.
----
-name: arith-div-intmin-by-minusone-64
-description:
-	Check division overflow wraps around silently
-category: int:64
-stdin:
-	echo signed:$((-9223372036854775808 / -1))r$((-9223372036854775808 % -1)).
-	echo unsigned:$((# -9223372036854775808 / -1))r$((# -9223372036854775808 % -1)).
-expected-stdout:
-	signed:-9223372036854775808r0.
-	unsigned:0r9223372036854775808.
 ---
 name: arith-assop-assoc-1
 description:
@@ -1493,14 +1497,13 @@ file-setup: file 644 "foo"
 	XXX=_
 	PS1=X
 	false && echo hmmm
-need-ctty: yes
 arguments: !-i!
 stdin:
 	echo hi${XXX}there
 expected-stdout:
 	hi_there
-expected-stderr: !
-	XX
+expected-stderr-pattern:
+	/^(?:W: [^\n]*(?:find tty fd|have full job control)[^\n]*\n)*XX$/
 ---
 name: expand-ugly
 description:
@@ -5082,7 +5085,6 @@ description:
 	Syntax errors in expressions and effects on bases
 	(interactive so errors don't cause exits)
 	(ksh88 fails this test - shell exits, even with -i)
-need-ctty: yes
 arguments: !-i!
 stdin:
 	PS1= # minimise prompt hassles
@@ -5093,7 +5095,7 @@ stdin:
 	typeset -i2 a=2+
 	echo $a
 expected-stderr-pattern:
-	/^([#\$] )?.*:.*2+.*\n.*:.*2+.*\n$/
+	/^(?:W: [^\n]*(?:find tty fd|have full job control)[^\n]*\n)*([#\$] )?.*:.*2\+.*\n.*:.*2\+.*\n$/
 expected-stdout:
 	4#22
 	4#22
@@ -6980,12 +6982,12 @@ stdin:
 	echo 1 $(( a ^<= 1 )) , $(( b ^<= 1 )) .
 	echo 2 $(( a ^>= 2 )) , $(( b ^>= 2 )) .
 	echo 3 $(( 5 ^< 1 )) .
-	echo 4 $(( 5 ^> 1 )) .
+	echo 4 $(( 5 ^> 1 )) , $((# 5 ^> 1 )) .
 expected-stdout:
 	1 10 , 11 .
 	2 -2147483646 , -1073741822 .
 	3 10 .
-	4 -2147483646 .
+	4 -2147483646 , 2147483650 .
 ---
 name: export-1
 description:

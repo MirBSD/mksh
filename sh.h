@@ -200,8 +200,8 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.975 2022/01/28 00:58:36 tg Exp $"
-#define MKSH_VERSION "R59 2022/01/26"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.976 2022/01/28 07:01:13 tg Exp $"
+#define MKSH_VERSION "R59 2022/01/27"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
