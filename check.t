@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.891 2022/01/28 07:01:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.892 2022/01/28 10:28:14 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9306,7 +9306,6 @@ expected-stdout:
 name: arrays-3
 description:
 	Check if array bounds are uint32_t
-	XXX changing to arithmetic type later
 stdin:
 	set -A foo a b c
 	foo[4097]=d

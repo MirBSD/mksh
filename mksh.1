@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.531 2022/01/26 12:30:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.532 2022/01/28 10:28:19 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 26 2022 $
+.Dd $Mdocdate: January 28 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1442,24 +1442,20 @@ See
 .Sx Arithmetic expressions
 for a description of an expression.
 .Ss Parameters
-Parameters are shell variables; they can be assigned values and their values
+Parameters are shell variables; they can be assigned values, and their values
 can be accessed using a parameter substitution.
 A parameter name is either one
-of the special single punctuation or digit character parameters described
-below, or a letter followed by zero or more letters or digits
-.Po
-.Ql _
-counts as a letter
-.Pc .
-The latter form can be treated as arrays by appending an array index of the
-form
-.Op Ar expr
-where
+of the special single punctuation character or positional parameters described
+below, or a letter followed by zero or more letters, digits or underscores.
+The latter form can be accessed as array appending an index of the form
+.Li [\& Ns Ar expr Ns Li ]\&
+(in which
 .Ar expr
-is an arithmetic expression.
-Array indices in
-.Nm
-are of the unsigned arithmetic type.
+is an arithmetic expression).
+Array indices range from 0 to 4294967295
+.Pq 2\*(ha32\-1 ,
+inclusive, in
+.Nm .
 .Pp
 Parameter substitutions take the form
 .Pf $ Ns Ar name ,
@@ -1876,8 +1872,9 @@ keyword (i.e. a Korn shell style function).
 .It Ev 1 No .. Ev 9
 The first nine positional parameters that were supplied to the shell, function,
 or script sourced using the
-.Dq Li \&.
-built-in.
+.Dq Li .\&
+.Pq Dq dot
+builtin.
 Further positional parameters may be accessed using
 .Pf ${ Ar number Ns } .
 .It Ev *

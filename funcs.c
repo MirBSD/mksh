@@ -5,7 +5,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.400 2022/01/27 13:45:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.401 2022/01/28 10:28:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1582,7 +1582,7 @@ c_read(const char **wp)
 	bool rawmode = false, expanding = false;
 	bool lastparmmode = false, lastparmused = false;
 	enum { LINES, BYTES, UPTO, READALL } readmode = LINES;
-	char delim = '\n';
+	kby delim = ORD('\n');
 	size_t bytesleft = 128, bytesread;
 	struct tbl *vp /* FU gcc */ = NULL, *vq = NULL;
 	char *cp, *allocd = NULL, *xp;
@@ -1593,6 +1593,7 @@ c_read(const char **wp)
 	bool restore_tios = false;
 	/* to catch read -aN2 foo[i] */
 	bool subarray = false;
+	k32 idx = 0;
 #if HAVE_SELECT
 	bool hastimeout = false;
 	struct timeval tv, tvlim;
@@ -1606,19 +1607,22 @@ c_read(const char **wp)
 #endif
 
 	while ((c = ksh_getopt(wp, &builtin_opt, c_read_opts)) != -1)
-	switch (c) {
-	case 'a':
+	switch (ord(c)) {
+	case ORD('a'):
 		aschars = true;
 		/* FALLTHROUGH */
-	case 'A':
+	case ORD('A'):
 		intoarray = true;
 		break;
-	case 'd':
-		delim = builtin_opt.optarg[0];
+	case ORD('d'):
+		delim = ord(builtin_opt.optarg[0]);
 		break;
-	case 'N':
-	case 'n':
-		readmode = c == 'N' ? BYTES : UPTO;
+	case ORD('N'):
+		readmode = BYTES;
+		if (0)
+			/* FALLTHROUGH */
+	case ORD('n'):
+		  readmode = UPTO;
 		if (!bi_getn(builtin_opt.optarg, &c))
 			return (2);
 		if (c == -1) {
@@ -1801,7 +1805,7 @@ c_read(const char **wp)
 		}
 		if (expanding) {
 			expanding = false;
-			if (c == delim) {
+			if (ord(c) == ord(delim)) {
 				if (Flag(FTALKING_I) && isatty(fd)) {
 					/*
 					 * set prompt in case this is
@@ -1815,9 +1819,9 @@ c_read(const char **wp)
 				/* and the delimiter */
 				break;
 			}
-		} else if (c == delim) {
+		} else if (ord(c) == ord(delim)) {
 			goto c_read_readdone;
-		} else if (!rawmode && c == '\\') {
+		} else if (!rawmode && ord(c) == ORD('\\')) {
 			expanding = true;
 		}
 		Xcheck(xs, xp);
@@ -1863,7 +1867,8 @@ c_read(const char **wp)
 			goto c_read_out;
 		}
 		/* counter for array index */
-		c = subarray ? arrayindex(vp) : 0;
+		if (subarray)
+			idx = arrayindex(vp);
 		/* exporting an array is currently pointless */
 		unset(vp, subarray ? 0 : 1);
 	}
@@ -1979,11 +1984,13 @@ c_read(const char **wp)
 				goto c_read_spliterr;
 			}
 			vq = vp;
-			if (c)
+			if (idx)
 				/* [0] doesn't */
 				vq->flag |= AINDEX;
-		} else
-			vq = arraysearch(vp, c++);
+		} else {
+			vq = arraysearch(vp, idx);
+			idx = K32(idx + 1);
+		}
 	} else {
 		vq = global(*wp);
 		/* must be checked before exporting */

@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.977 2022/01/28 08:55:52 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.978 2022/01/28 10:28:20 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -258,12 +258,6 @@ typedef unsigned int mksh_uari_t;
 #endif
 
 /* new arithmetics in preparation */
-
-/*
- * k32 for now, already checked to be replaced
- * later by kul with POSIX mode-dependent masking
- */
-typedef k32 kul_k32;
 
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
@@ -1869,7 +1863,7 @@ struct tbl {
 	} u;
 	union {
 		k32 hval;		/* hash(name) */
-		kul_k32 index;		/* index for an array */
+		k32 index;		/* index for an array */
 	} ua;
 	union {
 		int field;		/* field with for -L/-R/-Z */
@@ -2945,7 +2939,7 @@ const char *skip_varname(const char *, bool) MKSH_A_PURE;
 const char *skip_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarassign(const char *) MKSH_A_PURE;
-struct tbl *arraysearch(struct tbl *, kul_k32);
+struct tbl *arraysearch(struct tbl *, k32);
 char **makenv(void);
 void change_winsz(void);
 size_t array_ref_len(const char *) MKSH_A_PURE;
