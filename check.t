@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.892 2022/01/28 10:28:14 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.893 2022/01/30 18:59:49 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2523,7 +2523,7 @@ stdin:
 	echo [!-ab]*
 	echo [!ab]*
 	echo []ab]*
-	echo [^ab]*
+	echo [\^ab]*
 	echo [+--]*
 	echo [--1]*
 

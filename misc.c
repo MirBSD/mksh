@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.341 2022/01/27 13:45:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.342 2022/01/30 18:59:53 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -643,10 +643,22 @@ simplify_gmatch_pattern(const unsigned char *sp)
 			*dp++ = c;
 			continue;
 		}
-		switch ((c = *sp++)) {
-		case 0x80|'@':
+		switch (ord((c = *sp++))) {
+		case ORD('['):
+			if (ISMAGIC(sp[0]) && ord(sp[1]) == ORD('^')) {
+				/* https://www.austingroupbugs.net/view.php?id=1558 */
+#ifndef MKSH_SMALL
+				kwarnf(KWF_WARNING | KWF_PREFIX | KWF_FILELINE |
+				    KWF_BUILTIN | KWF_ONEMSG | KWF_NOERRNO,
+				    "unescaped [^...] in shellglob; "
+				    "this may change the meaning in the future!");
+#endif
+				++sp;
+			}
+			break;
+		case ORD(0x80|'@'):
 		/* simile for @ */
-		case 0x80|' ':
+		case ORD(0x80|' '):
 			/* check whether it has only one clause */
 			ps = pat_scan(sp, se, true);
 			if (!ps || ps[-1] != /*(*/ ')')

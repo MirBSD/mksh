@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.532 2022/01/28 10:28:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.533 2022/01/30 18:59:54 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 28 2022 $
+.Dd $Mdocdate: January 30 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2394,6 +2394,8 @@ Also, an
 .Ql \&!
 appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
+.Ql \*(ha\&
+at the beginning of the list must be quoted or appear later.
 .It \&[!...]
 Like [...],
 except it matches any octet not inside the brackets.
