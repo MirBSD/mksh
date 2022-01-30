@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.533 2022/01/30 18:59:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.534 2022/01/30 19:08:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -4539,7 +4539,7 @@ and also supported by
 is:
 .Ic foo=(a b c); foo+=(d e)
 .It Fl a \*(Ba Fl o Ic allexport
-All new parameters are created with the export attribute.
+Make all variables assigned to while enabled as exported.
 .It Fl b \*(Ba Fl o Ic notify
 Print job notification messages asynchronously instead of just before the
 prompt.
