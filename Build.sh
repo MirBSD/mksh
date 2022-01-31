@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.821 2022/01/28 14:26:27 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.822 2022/01/31 21:49:59 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2089,10 +2089,13 @@ rmf lft*	# end of large file support test
 #
 # Environment: types
 #
-ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
+ac_test can_inttypes '' "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <limits.h>
 	#include <stddef.h>
+	#if HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
 	int main(int ac, char *av[]) {
 		return ((int)((uint32_t)(size_t)*av +
 		    ((int32_t)ac - INT32_MAX)));

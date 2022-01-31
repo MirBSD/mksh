@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.978 2022/01/28 10:28:20 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.979 2022/01/31 21:50:00 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -391,18 +391,17 @@ extern int ksh_getrusage(int, struct rusage *);
 #endif
 #endif
 
-#ifndef SIZE_MAX
-#define SIZE_MAX	((size_t)-1)
-#endif
-
-#ifndef PTRDIFF_MAX
-#if (sizeof(size_t) == sizeof(ptrdiff_t)) && ((SIZE_MAX) == ((size_t)-1))
-#define PTRDIFF_MAX	((ptrdiff_t)(SIZE_MAX >> 1))
-#endif
-#endif
-
 /* limit maximum object size so we can express pointer differences w/o UB */
-#if SIZE_MAX <= PTRDIFF_MAX
+#if !defined(SIZE_MAX)
+#ifdef PTRDIFF_MAX
+#define mksh_MAXSZ	((size_t)PTRDIFF_MAX)
+#else
+#define mksh_MAXSZ	((size_t)(((size_t)-1) >> 1))
+#endif
+#elif !defined(PTRDIFF_MAX)
+/* can we limit? maybe but also maybe not */
+#define mksh_MAXSZ	SIZE_MAX
+#elif SIZE_MAX <= PTRDIFF_MAX
 #define mksh_MAXSZ	SIZE_MAX
 #else
 #define mksh_MAXSZ	((size_t)PTRDIFF_MAX)
