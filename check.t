@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.893 2022/01/30 18:59:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.894 2022/01/31 22:23:07 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/01/27
+	KSH R59 2022/01/31
 description:
 	Check base version of full shell
 stdin:
@@ -237,7 +237,7 @@ stdin:
 expected-stdout:
 	ok
 expected-stderr-pattern:
-	/ksh: warning: won't have full job control\nXX/
+	/^W: .*find tty fd.*\nW: .*have full job control\nXX$/
 ---
 name: selftest-tty-present
 description:
