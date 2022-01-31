@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.411 2022/01/27 13:45:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.412 2022/01/31 22:16:16 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -1101,6 +1101,10 @@ quitenv(struct shf *shf)
 		if (SAVEDFD(ep, 2))
 			/* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
+	}
+	if (ep->type == E_EXEC) {
+		/* could be set, would be reclaim()ed below */
+		builtin_argv0 = NULL;
 	}
 	/*
 	 * Bottom of the stack.
