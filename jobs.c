@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021
+ *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021,
+ *		 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +27,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.151 2022/01/28 10:28:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.152 2022/02/08 20:53:55 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -355,14 +356,13 @@ j_change(void)
 	int i;
 
 	if (Flag(FMONITOR)) {
-		bool use_tty = Flag(FTALKING);
-
 		/* don't call mksh_tcget until we own the tty process group */
-		if (use_tty)
+		if (Flag(FTALKING))
 			tty_init_talking();
 
 		/* no controlling tty, no SIGT* */
-		if ((ttypgrp_ok = (use_tty && tty_fd >= 0 && tty_devtty))) {
+		ttypgrp_ok = (Flag(FTALKING) && tty_fd >= 0 && tty_devtty);
+		if (ttypgrp_ok) {
 			setsig(&sigtraps[SIGTTIN], SIG_DFL,
 			    SS_RESTORE_ORIG|SS_FORCE);
 			/* wait to be given tty (POSIX.1, B.2, job control) */
@@ -399,7 +399,7 @@ j_change(void)
 			}
 		}
 #ifndef MKSH_DISABLE_TTY_WARNING
-		if (use_tty && !ttypgrp_ok)
+		if (Flag(FTALKING) && !ttypgrp_ok)
 			kwarnf(KWF_PREFIX | KWF_ONEMSG | KWF_NOERRNO,
 			    "won't have full job control");
 #endif
@@ -419,7 +419,10 @@ j_change(void)
 					    SS_RESTORE_ORIG|SS_FORCE);
 			}
 	}
-	tty_init_state();
+	if (Flag(FTALKING))
+		tty_init_state();
+	else
+		tty_hasstate = false;
 }
 #endif
 
