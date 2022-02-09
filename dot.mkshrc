@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.139 2022/01/26 13:02:35 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.140 2022/02/09 13:14:27 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -694,11 +694,11 @@ function enable {
 \: place customisations below this line
 
 # some defaults / samples which you are supposed to adjust to your
-# liking; by default we add ~/.etc/bin and ~/bin (whichever exist)
+# liking; by default we add user-local bin directories which exist
 # to $PATH, set $SHELL to mksh, set some defaults for man and less
 # and show a few more possible things for users to begin moving in
 
-for p in ~/.etc/bin ~/bin; do
+for p in ~/bin ~/.local/bin ~/.etc/bin; do
 	[[ -d $p/. ]] || \\builtin continue
 	[[ $PATHSEP$PATH$PATHSEP = *"$PATHSEP$p$PATHSEP"* ]] || \
 	    PATH=$p$PATHSEP$PATH
