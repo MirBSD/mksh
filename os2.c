@@ -29,7 +29,7 @@
 #include <klibc/startup.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.16 2022/01/06 22:35:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.17 2022/02/19 21:21:59 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -40,7 +40,7 @@ struct a_s_arg {
 		int i;
 		void *p;
 	} arg;
-	bool isint;
+	Wahr isint;
 };
 
 static void remove_trailing_dots(char *, size_t);
@@ -324,7 +324,7 @@ access_ex(int (*fn)(const char *, int), const char *name, int mode)
 
 	arg.fn.i = fn;
 	arg.arg.i = mode;
-	arg.isint = true;
+	arg.isint = Ja;
 	return (access_stat_ex(name, &arg));
 }
 
@@ -337,7 +337,7 @@ stat_ex(int (*fn)(const char *, struct stat *),
 
 	arg.fn.p = fn;
 	arg.arg.p = buffer;
-	arg.isint = false;
+	arg.isint = Nee;
 	return (access_stat_ex(name, &arg));
 }
 
@@ -364,7 +364,7 @@ real_exec_name(const char *name)
 
 	arg.fn.p = &test_exec_exist;
 	arg.arg.p = (void *)(&real_name);
-	arg.isint = false;
+	arg.isint = Nee;
 	return (access_stat_ex(name, &arg) ? name : real_name);
 }
 

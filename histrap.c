@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.185 2022/01/28 03:54:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.186 2022/02/19 21:21:56 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -40,10 +40,10 @@ static void writehistfile(int, const char *);
 #endif
 
 static int hist_execute(char *, Area *);
-static char **hist_get(const char *, bool, bool);
+static char **hist_get(const char *, Wahr, Wahr);
 static char **hist_get_oldest(void);
 
-static bool hstarted;		/* set after hist_init() called */
+static Wahr hstarted;		/* set after hist_init() called */
 static Source *hist_source;
 
 #if HAVE_PERSISTENT_HISTORY
@@ -87,8 +87,7 @@ c_fc(const char **wp)
 {
 	struct shf *shf;
 	struct temp *tf;
-	bool gflag = false, lflag = false, nflag = false, rflag = false,
-	    sflag = false;
+	Wahr gflag = Nee, lflag = Nee, nflag = Nee, rflag = Nee, sflag = Nee;
 	int optc;
 	const char *p, *first = NULL, *last = NULL;
 	char **hfirst, **hlast, **hp, *editor = NULL;
@@ -105,7 +104,7 @@ c_fc(const char **wp)
 		case 'e':
 			p = builtin_opt.optarg;
 			if (ksh_isdash(p))
-				sflag = true;
+				sflag = Ja;
 			else {
 				size_t len = strlen(p);
 
@@ -118,24 +117,24 @@ c_fc(const char **wp)
 
 		/* non-AT&T ksh */
 		case 'g':
-			gflag = true;
+			gflag = Ja;
 			break;
 
 		case 'l':
-			lflag = true;
+			lflag = Ja;
 			break;
 
 		case 'n':
-			nflag = true;
+			nflag = Ja;
 			break;
 
 		case 'r':
-			rflag = true;
+			rflag = Ja;
 			break;
 
 		/* POSIX version of -e - */
 		case 's':
-			sflag = true;
+			sflag = Ja;
 			break;
 
 		/* kludge city - accept -num as -- -num (kind of) */
@@ -182,8 +181,7 @@ c_fc(const char **wp)
 			return (1);
 		}
 
-		hp = first ? hist_get(first, false, false) :
-		    hist_get_newest(false);
+		hp = first ? hist_get(first, Nee, Nee) : hist_get_newest(Nee);
 		if (!hp)
 			return (1);
 		/* hist_replace */
@@ -194,14 +192,14 @@ c_fc(const char **wp)
 			size_t len, pat_len, rep_len;
 			XString xs;
 			char *xp;
-			bool any_subst = false;
+			Wahr any_subst = Nee;
 
 			pat_len = strlen(pat);
 			rep_len = strlen(rep);
 			Xinit(xs, xp, 128, ATEMP);
 			for (s = *hp; (s1 = ucstrstr(s, pat)) &&
 			    (!any_subst || gflag); s = s1 + pat_len) {
-				any_subst = true;
+				any_subst = Ja;
 				len = s1 - s;
 				XcheckN(xs, xp, len + rep_len);
 				/*; first part */
@@ -238,23 +236,22 @@ c_fc(const char **wp)
 		return (1);
 	}
 	if (!first) {
-		hfirst = lflag ? hist_get("-16", true, true) :
-		    hist_get_newest(false);
+		hfirst = lflag ? hist_get("-16", Ja, Ja) : hist_get_newest(Nee);
 		if (!hfirst)
 			return (1);
 		/* can't fail if hfirst didn't fail */
-		hlast = hist_get_newest(false);
+		hlast = hist_get_newest(Nee);
 	} else {
 		/*
 		 * POSIX says not an error if first/last out of bounds
 		 * when range is specified; AT&T ksh and pdksh allow out
 		 * of bounds for -l as well.
 		 */
-		hfirst = hist_get(first, tobool(lflag || last), lflag);
+		hfirst = hist_get(first, isWahr(lflag || last), lflag);
 		if (!hfirst)
 			return (1);
-		hlast = last ? hist_get(last, true, lflag) :
-		    (lflag ? hist_get_newest(false) : hfirst);
+		hlast = last ? hist_get(last, Ja, lflag) :
+		    (lflag ? hist_get_newest(Nee) : hfirst);
 		if (!hlast)
 			return (1);
 	}
@@ -307,7 +304,7 @@ c_fc(const char **wp)
 	}
 
 	/* Ignore setstr errors here (arbitrary) */
-	setstr(local("_", false), tf->tffn, KSH_RETURN_ERROR);
+	setstr(local("_", Nee), tf->tffn, KSH_RETURN_ERROR);
 
 	if ((optc = command(editor ? editor : TFCEDIT_dollaru, 0)))
 		return (optc);
@@ -365,7 +362,7 @@ hist_execute(char *cmd, Area *areap)
 		last_line = hist_source->line;
 	}
 
-	histsave(&hist_source->line, cmd, HIST_STORE, true);
+	histsave(&hist_source->line, cmd, HIST_STORE, Ja);
 	/* now *histptr == cmd without all trailing newlines */
 	afree(cmd, areap);
 	cmd = *histptr;
@@ -387,7 +384,7 @@ hist_execute(char *cmd, Area *areap)
  * pattern is a number or string
  */
 static char **
-hist_get(const char *str, bool approx, bool allow_cur)
+hist_get(const char *str, Wahr approx, Wahr allow_cur)
 {
 	char **hp = NULL;
 	int n;
@@ -413,11 +410,10 @@ hist_get(const char *str, bool approx, bool allow_cur)
 			hp = NULL;
 		}
 	} else {
-		bool anchored = *str == '?' ? (++str, false) : true;
+		Wahr anchd = *str == '?' ? (++str, Nee) : Ja;
 
 		/* the -1 is to avoid the current fc command */
-		if ((n = findhist(histptr - history - 1, str, false,
-		    anchored)) < 0)
+		if ((n = findhist(histptr - history - 1, str, Nee, anchd)) < 0)
 			bi_errorf(Tf_sD_s, str, Tnot_in_history);
 		else
 			hp = &history[n];
@@ -427,7 +423,7 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 /* Return a pointer to the newest command in the history */
 char **
-hist_get_newest(bool allow_cur)
+hist_get_newest(Wahr allow_cur)
 {
 	if (histptr < history || (!allow_cur && histptr == history)) {
 		bi_errorf("no history (yet)");
@@ -481,7 +477,7 @@ histnum(int n)
  * direction.
  */
 int
-findhist(int start, const char *str, bool fwd, bool anchored)
+findhist(int start, const char *str, Wahr fwd, Wahr anchored)
 {
 	char **hp;
 	int maxhist = histptr - history;
@@ -533,7 +529,7 @@ void
 sethistfile(const char *name)
 {
 	/* if not started then nothing to do */
-	if (hstarted == false)
+	if (!hstarted)
 		return;
 
 	/* if the name is the same as the name we have */
@@ -545,13 +541,13 @@ sethistfile(const char *name)
 	 */
 	if (histfd != -1) {
 		/* yes the file is open */
-		(void)close(histfd);
+		close(histfd);
 		histfd = -1;
 		histfsize = 0;
 		afree(hname, APERM);
 		hname = NULL;
 		/* let's reset the history */
-		histsave(NULL, NULL, HIST_DISCARD, true);
+		histsave(NULL, NULL, HIST_DISCARD, Ja);
 		histptr = history - 1;
 		hist_source->line = 0;
 	}
@@ -580,10 +576,10 @@ init_histvec(void)
 
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
 /* do not save command in history but possibly sync */
-bool
+Wahr
 histsync(void)
 {
-	bool changed = false;
+	Wahr changed = Nee;
 
 	/* called by histsave(), may not HIST_DISCARD, caller should flush */
 
@@ -595,7 +591,7 @@ histsync(void)
 		hist_source->line--;
 
 		if (lno != hist_source->line)
-			changed = true;
+			changed = Ja;
 	}
 
 	return (changed);
@@ -606,7 +602,7 @@ histsync(void)
  * save command in history
  */
 void
-histsave(int *lnp, const char *cmd, int svmode, bool ignoredups)
+histsave(int *lnp, const char *cmd, int svmode, Wahr ignoredups)
 {
 	static char *enqueued = NULL;
 	char **hp, *c;
@@ -625,7 +621,7 @@ histsave(int *lnp, const char *cmd, int svmode, bool ignoredups)
 		c = enqueued;
 		enqueued = NULL;
 		--*lnp;
-		histsave(lnp, c, HIST_STORE, true);
+		histsave(lnp, c, HIST_STORE, Ja);
 		afree(c, APERM);
 	}
 
@@ -894,12 +890,12 @@ hist_persist_init(void)
 void
 hist_init(Source *s)
 {
-	histsave(NULL, NULL, HIST_DISCARD, true);
+	histsave(NULL, NULL, HIST_DISCARD, Ja);
 
 	if (Flag(FTALKING) == 0)
 		return;
 
-	hstarted = true;
+	hstarted = Ja;
 	hist_source = s;
 
 #if HAVE_PERSISTENT_HISTORY
@@ -943,7 +939,7 @@ histload(Source *s, unsigned char *base, size_t bytes)
 		}
 	} else {
 		s->line = lno--;
-		histsave(&lno, (char *)(base + 4), HIST_NOTE, false);
+		histsave(&lno, (char *)(base + 4), HIST_NOTE, Nee);
 	}
 	/* advance base pointer past NUL */
 	bytes -= ++cp - base;
@@ -1030,7 +1026,7 @@ hist_finish(void)
 {
 	if (histfd >= 0) {
 		mksh_unlkfd(histfd);
-		(void)close(histfd);
+		close(histfd);
 	}
 	histfd = -1;
 }
@@ -1156,7 +1152,7 @@ alarm_catcher(int sig MKSH_A_UNUSED)
 }
 
 Trap *
-gettrap(const char *cs, bool igncase, bool allsigs)
+gettrap(const char *cs, Wahr igncase, Wahr allsigs)
 {
 	int i;
 	Trap *p;
@@ -1349,15 +1345,15 @@ runtraps(int flag)
 	do {
 		if (p->set && (!flag ||
 		    ((p->flags & flag) && p->trap == NULL)))
-			runtrap(p, false);
+			runtrap(p, Nee);
 		++p;
 	} while (--i);
 	if (!--trap_nested)
-		runtrap(NULL, true);
+		runtrap(NULL, Ja);
 }
 
 void
-runtrap(Trap *p, bool is_last)
+runtrap(Trap *p, Wahr is_last)
 {
 	int old_changed = 0, i;
 	char *trapstr;
@@ -1489,20 +1485,20 @@ settrap(Trap *p, const char *s)
  * called by c_print() when writing to a co-process to ensure
  * SIGPIPE won't kill shell (unless user catches it and exits)
  */
-bool
+Wahr
 block_pipe(void)
 {
-	bool restore_dfl = false;
+	Wahr restore_dfl = Nee;
 	Trap *p = &sigtraps[SIGPIPE];
 
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
 		if (p->flags & TF_ORIG_DFL)
-			restore_dfl = true;
+			restore_dfl = Ja;
 	} else if (p->cursig == SIG_DFL) {
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
 		/* restore to SIG_DFL */
-		restore_dfl = true;
+		restore_dfl = Ja;
 	}
 	return (restore_dfl);
 }
@@ -1609,7 +1605,7 @@ mksh_lockfd(int fd)
 {
 #if defined(__OpenBSD__)
 	/* flock is not interrupted by signals */
-	(void)flock(fd, LOCK_EX);
+	flock(fd, LOCK_EX);
 #elif HAVE_FLOCK
 	int rv;
 
@@ -1634,7 +1630,7 @@ mksh_lockfd(int fd)
 void
 mksh_unlkfd(int fd)
 {
-	(void)flock(fd, LOCK_UN);
+	flock(fd, LOCK_UN);
 }
 #elif HAVE_LOCK_FCNTL
 void
@@ -1644,7 +1640,7 @@ mksh_unlkfd(int fd)
 
 	memset(&lks, 0, sizeof(lks));
 	lks.l_type = F_UNLCK;
-	(void)fcntl(fd, F_SETLKW, &lks);
+	fcntl(fd, F_SETLKW, &lks);
 }
 #endif
 #endif

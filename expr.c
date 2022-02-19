@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.119 2022/01/28 07:01:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.120 2022/02/19 21:21:55 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -81,9 +81,9 @@ typedef struct expr_state {
 	/* don't do assignments (for ?:, &&, ||) */
 	kby noassign;
 	/* evaluating an $(()) expression? */
-	bool arith;
+	Wahr arith;
 	/* unsigned arithmetic calculation */
-	bool natural;
+	Wahr natural;
 } Expr_state;
 
 enum error_type {
@@ -95,7 +95,7 @@ static void evalerr(Expr_state *, enum error_type, const char *)
     MKSH_A_NORETURN;
 static struct tbl *evalexpr(Expr_state *, unsigned int);
 static void exprtoken(Expr_state *);
-static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
+static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, Wahr);
 static void assign_check(Expr_state *, enum token, struct tbl *);
 static struct tbl *intvar(Expr_state *, struct tbl *);
 
@@ -103,7 +103,7 @@ static struct tbl *intvar(Expr_state *, struct tbl *);
  * parse and evaluate expression
  */
 int
-evaluate(const char *expr, mksh_ari_t *rval, int error_ok, bool arith)
+evaluate(const char *expr, mksh_ari_t *rval, int error_ok, Wahr arith)
 {
 	struct tbl v;
 	int ret;
@@ -120,7 +120,7 @@ evaluate(const char *expr, mksh_ari_t *rval, int error_ok, bool arith)
  */
 int
 v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
-    bool arith)
+    Wahr arith)
 {
 	struct tbl *v;
 	Expr_state curstate;
@@ -145,7 +145,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 			/* error already printed */
 			/* (cf. syn.c for why) */
 			exstat = 1;
-			shl_stdout_ok = false;
+			shl_stdout_ok = Nee;
 			i = LERROR;
 		}
 		unwind(i);
@@ -181,7 +181,7 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 	char tbuf[2];
 	const char *s;
 
-	es->arith = false;
+	es->arith = Nee;
 	switch (type) {
 	case ET_UNEXPECTED:
 		switch (es->tok) {
@@ -241,7 +241,7 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 
 /* do a ++ or -- operation */
 static struct tbl *
-do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
+do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, Wahr is_prefix)
 {
 	struct tbl *vl;
 	mksh_uari_t oval;
@@ -309,7 +309,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_PLUSPLUS:
 		case O_MINUSMINUS:
 			exprtoken(es);
-			vl = do_ppmm(es, op, es->val, true);
+			vl = do_ppmm(es, op, es->val, Ja);
 			exprtoken(es);
 			break;
 
@@ -325,7 +325,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		}
 
 		if (es->tok == O_PLUSPLUS || es->tok == O_MINUSMINUS) {
-			vl = do_ppmm(es, es->tok, vl, false);
+			vl = do_ppmm(es, es->tok, vl, Nee);
 			exprtoken(es);
 		}
 
@@ -354,7 +354,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 				assign_check(es, op, vasn);
 			vr = intvar(es, evalexpr(es, P_ASSIGN));
 		} else if (op == O_TERN) {
-			bool ev = vl->val.u != 0;
+			Wahr ev = vl->val.u != 0;
 
 			if (!ev)
 				es->noassign++;
@@ -539,7 +539,7 @@ exprtoken(Expr_state *es)
 	if (es->tokp == es->expression && (unsigned int)c == ORD('#')) {
 		/* expression begins with # */
 		/* switch to unsigned */
-		es->natural = true;
+		es->natural = Ja;
 		++cp;
 		goto skip_spaces;
 	}
@@ -887,7 +887,7 @@ struct mb_ucsrange {
 };
 
 static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
-    unsigned int val) MKSH_A_PURE;
+    unsigned int val);
 
 /*
  * Generated from the UCD 13.0.0 - see /usr/share/doc/legal/LICENCE-BSD - by

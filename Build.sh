@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.822 2022/01/31 21:49:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.823 2022/02/19 21:21:51 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1963,13 +1963,6 @@ ac_test attribute_noreturn attribute_extension 0 'for __attribute__((__noreturn_
 	void fnord(void) __attribute__((__noreturn__));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
-EOF
-ac_test attribute_pure attribute_extension 0 'for __attribute__((__pure__))' <<-'EOF'
-	#include <unistd.h>
-	#undef __attribute__
-	int foo(const char *) __attribute__((__pure__));
-	int main(int ac, char *av[]) { return (foo(av[ac - 1]) + isatty(0)); }
-	int foo(const char *s) { return ((int)s[0]); }
 EOF
 ac_test attribute_unused attribute_extension 0 'for __attribute__((__unused__))' <<-'EOF'
 	#include <unistd.h>

@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.31 2021/11/13 21:22:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.32 2022/02/19 21:21:57 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -147,7 +147,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 {
 	struct lalloc_common *lp = NULL;
 
-	/* resizing (true) or newly allocating? */
+	/* resizing or newly allocating? */
 	if (ptr != NULL) {
 		struct lalloc_common *pp;
 

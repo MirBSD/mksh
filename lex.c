@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.263 2022/01/06 22:34:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.264 2022/02/19 21:21:57 tg Exp $");
 
 /*
  * states while lexing word
@@ -63,9 +63,9 @@ typedef struct lex_state {
 		struct lex_state *base;
 		/* marks start of state output in output string */
 		size_t start;
-		/* SBQUOTE: true if in double quotes: "`...`" */
+		/* SBQUOTE: Ja if in double quotes: "`...`" */
 		/* SEQUOTE: got NUL, ignore rest of string */
-		bool abool;
+		Wahr sxqflag;
 		/* SADELIM information */
 		struct {
 			/* character to search for */
@@ -83,7 +83,7 @@ typedef struct lex_state {
 } Lex_state;
 #define ls_base		u.base
 #define ls_start	u.start
-#define ls_bool		u.abool
+#define ls_flag		u.sxqflag
 #define ls_adelim	u.adelim
 
 /* ls_flags */
@@ -102,7 +102,7 @@ static void getsc_line(Source *);
 static int getsc_bn(void);
 static int getsc_i(void);
 static char *get_brace_var(XString *, char *);
-static bool arraysub(char **);
+static Wahr arraysub(char **);
 static void gethere(void);
 static Lex_state *push_state_i(State_info *, Lex_state *);
 static Lex_state *pop_state_i(State_info *, Lex_state *);
@@ -284,7 +284,7 @@ yylex(int cf)
 			if ((unsigned int)c == ORD('[') && (cf & CMDASN)) {
 				/* temporary */
 				*wp = EOS;
-				if (is_wdvarname(Xstring(ws, wp), false)) {
+				if (is_wdvarname(Xstring(ws, wp), Nee)) {
 					char *p, *tmp;
 
 					if (arraysub(&tmp)) {
@@ -555,13 +555,13 @@ yylex(int cf)
 				 * meaning for the inside. For more details:
 				 * https://www.austingroupbugs.net/view.php?id=1015
 				 */
-				statep->ls_bool = false;
+				statep->ls_flag = Nee;
 				s2 = statep;
 				base = state_info.base;
 				while (/* CONSTCOND */ 1) {
 					for (; s2 != base; s2--) {
 						if (s2->type == SDQUOTE) {
-							statep->ls_bool = true;
+							statep->ls_flag = Ja;
 							break;
 						}
 					}
@@ -592,11 +592,11 @@ yylex(int cf)
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
 			} else if ((unsigned int)c == ORD('\\')) {
-				if ((c2 = unbksl(true, getsc_i, ungetsc)) == -1)
+				if ((c2 = unbksl(Ja, getsc_i, ungetsc)) == -1)
 					c2 = getsc();
 				if (c2 == 0)
-					statep->ls_bool = true;
-				if (!statep->ls_bool) {
+					statep->ls_flag = Ja;
+				if (!statep->ls_flag) {
 					char ts[5];
 
 					if ((unsigned int)c2 < 0x100) {
@@ -612,7 +612,7 @@ yylex(int cf)
 						} while (ts[++cz]);
 					}
 				}
-			} else if (!statep->ls_bool) {
+			} else if (!statep->ls_flag) {
 				*wp++ = QCHAR;
 				*wp++ = c;
 			}
@@ -753,7 +753,7 @@ yylex(int cf)
 					*wp++ = c;
 					break;
 				case ORD('"'):
-					if (statep->ls_bool) {
+					if (statep->ls_flag) {
 						*wp++ = c;
 						break;
 					}
@@ -831,7 +831,7 @@ yylex(int cf)
 					*wp++ = OQUOTE;
 					ignore_backslash_newline++;
 					PUSH_STATE(SEQUOTE);
-					statep->ls_bool = false;
+					statep->ls_flag = Nee;
 					break;
 				} else if ((unsigned int)c2 == ORD('"')) {
 					/* FALLTHROUGH */
@@ -1339,8 +1339,8 @@ static void
 getsc_line(Source *s)
 {
 	char *xp = Xstring(s->xs, xp), *cp;
-	bool interactive = Flag(FTALKING) && s->type == SSTDIN;
-	bool have_tty = interactive && (s->flags & SF_TTY) && tty_hasstate;
+	Wahr interactive = Flag(FTALKING) && s->type == SSTDIN;
+	Wahr have_tty = interactive && (s->flags & SF_TTY) && tty_hasstate;
 
 	/* Done here to ensure nothing odd happens when a timeout occurs */
 	XcheckN(s->xs, xp, LINE);
@@ -1353,7 +1353,7 @@ getsc_line(Source *s)
 	}
 	if (interactive) {
 		if (cur_prompt == PS1)
-			histsave(&s->line, NULL, HIST_FLUSH, true);
+			histsave(&s->line, NULL, HIST_FLUSH, Ja);
 		change_winsz();
 	}
 #ifndef MKSH_NO_CMDLINE_EDITING
@@ -1421,9 +1421,9 @@ getsc_line(Source *s)
 		s->str = NULL;
 	} else if (interactive && *s->str) {
 		if (cur_prompt != PS1)
-			histsave(&s->line, s->str, HIST_APPEND, true);
+			histsave(&s->line, s->str, HIST_APPEND, Ja);
 		else if (!ctype(*s->str, C_IFS | C_IFSWS))
-			histsave(&s->line, s->str, HIST_QUEUE, true);
+			histsave(&s->line, s->str, HIST_QUEUE, Ja);
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
 		else
 			goto check_for_sole_return;
@@ -1433,7 +1433,7 @@ getsc_line(Source *s)
 		while (ctype(*cp, C_IFSWS))
 			++cp;
 		if (!*cp) {
-			histsave(&s->line, NULL, HIST_FLUSH, true);
+			histsave(&s->line, NULL, HIST_FLUSH, Ja);
 			histsync();
 		}
 #endif
@@ -1509,8 +1509,8 @@ int
 pprompt(const char *cp, int ntruncate)
 {
 	char delimiter = 0;
-	bool doprint = (ntruncate != -1);
-	bool indelimit = false;
+	Wahr doprint = (ntruncate != -1);
+	Wahr indelimit = Nee;
 	int columns = 0, lines = 0;
 
 	/*
@@ -1657,11 +1657,11 @@ get_brace_var(XString *wsp, char *wp)
 }
 
 /*
- * Save an array subscript - returns true if matching bracket found, false
- * if eof or newline was found.
- * (Returned string double null terminated)
+ * Save an array subscript
+ * Returns Ja if matching bracket found, Nee if EOF or newline was found.
+ * (Returned string is double-NUL-terminated.)
  */
-static bool
+static Wahr
 arraysub(char **strp)
 {
 	XString ws;
@@ -1684,7 +1684,7 @@ arraysub(char **strp)
 	*wp++ = '\0';
 	*strp = Xclose(ws, wp);
 
-	return (tobool(depth == 0));
+	return (isWahr(depth == 0));
 }
 
 /* Unget a char: handles case when we are already at the start of the buffer */

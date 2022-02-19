@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.249 2022/01/31 21:05:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.250 2022/02/19 21:21:53 tg Exp $");
 
 /*
  * string expansion
@@ -48,7 +48,7 @@ typedef struct {
 	/* variable in ${var...} */
 	struct tbl *var;
 	/* split "$@" / call waitlast in $() */
-	bool split;
+	Wahr split;
 } Expand;
 
 #define XBASE		0	/* scanning original string */
@@ -81,14 +81,14 @@ static int comsub(Expand *, const char *, int);
 static char *valsub(struct op *, Area *);
 static void funsub(struct op *);
 static char *trimsub(char *, char *, int);
-static void glob(char *, XPtrV *, bool);
+static void glob(char *, XPtrV *, Wahr);
 static void globit(XString *, char **, char *, XPtrV *, int);
-static const char *maybe_expand_tilde(const char *, XString *, char **, bool);
+static const char *maybe_expand_tilde(const char *, XString *, char **, Wahr);
 #ifndef MKSH_NOPWNAM
 static char *homedir(char *);
 #endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
-static int utflen(const char *) MKSH_A_PURE;
+static int utflen(const char *);
 static void utfincptr(const char *, mksh_ari_t *);
 
 /* UTFMODE functions */
@@ -250,7 +250,7 @@ expand(
 	SubType st_head, *st;
 	/* record number of trailing newlines in COMSUB */
 	int newlines = 0;
-	bool saw_eq, make_magic;
+	Wahr saw_eq, make_magic;
 	unsigned int tilde_ok;
 	size_t len;
 	char *cp;
@@ -275,11 +275,11 @@ expand(
 	type = XBASE;
 	sp = ccp;
 	fdo = 0;
-	saw_eq = false;
+	saw_eq = Nee;
 	/* must be 1/0 */
 	tilde_ok = (f & (DOTILDE | DOASNTILDE)) ? 1 : 0;
 	doblank = 0;
-	make_magic = false;
+	make_magic = Nee;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
 	/* clang doesn't know OSUBST comes before CSUBST */
 	memset(&st_head, 0, sizeof(st_head));
@@ -371,7 +371,7 @@ expand(
 					v.type = 10;
 					v.name[0] = '\0';
 					v_evaluate(&v, substitute(sp, 0),
-					    KSH_UNWIND_ERROR, true);
+					    KSH_UNWIND_ERROR, Ja);
 					sp = strnul(sp) + 1;
 					x.str = str_val(&v);
 					type = XSUB;
@@ -471,11 +471,11 @@ expand(
 							sp += end - beg - 1;
 						}
 						evaluate(substitute(stg = wdstrip(beg, 0), 0),
-						    &from, KSH_UNWIND_ERROR, true);
+						    &from, KSH_UNWIND_ERROR, Ja);
 						afree(stg, ATEMP);
 						if (end) {
 							evaluate(substitute(stg = wdstrip(mid, 0), 0),
-							    &num, KSH_UNWIND_ERROR, true);
+							    &num, KSH_UNWIND_ERROR, Ja);
 							afree(stg, ATEMP);
 						}
 						afree(beg, ATEMP);
@@ -547,7 +547,7 @@ expand(
 							goto no_repl;
 						}
 						if ((stype & STYPE_MASK) &&
-						    gmatchx(null, pat, false)) {
+						    gmatchx(null, pat, Nee)) {
 							/*
 							 * pattern matches empty
 							 * string => don't loop
@@ -574,13 +574,13 @@ expand(
 						 * this would not be necessary if gmatchx would return
 						 * the start and end values of a match found, like re*
 						 */
-						if (!gmatchx(sbeg, tpat1, false))
+						if (!gmatchx(sbeg, tpat1, Nee))
 							goto end_repl;
 						d = strnul(s);
 						/* now anchor the beginning of the match */
 						if (ord(fpat) != ORD('#'))
 							while (sbeg <= d) {
-								if (gmatchx(sbeg, tpat2, false))
+								if (gmatchx(sbeg, tpat2, Nee))
 									break;
 								else
 									sbeg++;
@@ -589,11 +589,11 @@ expand(
 						p = d;
 						if (ord(fpat) != ORD('%'))
 							while (p >= sbeg) {
-								bool gotmatch;
+								Wahr gotmatch;
 
 								c = ord(*p);
 								*p = '\0';
-								gotmatch = tobool(gmatchx(sbeg, pat, false));
+								gotmatch = isWahr(gmatchx(sbeg, pat, Nee));
 								*p = c;
 								if (gotmatch)
 									break;
@@ -832,7 +832,7 @@ expand(
 					struct shf shf;
 
 					shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
-					uprntmbs(str_val(st->var), true, &shf);
+					uprntmbs(str_val(st->var), Ja, &shf);
 					x.str = shf_sclose(&shf);
 					goto common_CSUBST;
 				    }
@@ -856,19 +856,19 @@ expand(
 			case OPAT:
 				/* open pattern: *(foo|bar) */
 				/* Next char is the type of pattern */
-				make_magic = true;
+				make_magic = Ja;
 				c = ord(*sp++) | 0x80U;
 				break;
 
 			case SPAT:
 				/* pattern separator (|) */
-				make_magic = true;
+				make_magic = Ja;
 				c = ORD('|');
 				break;
 
 			case CPAT:
 				/* close pattern */
-				make_magic = true;
+				make_magic = Ja;
 				c = ORD(/*(*/ ')');
 				break;
 			}
@@ -911,7 +911,7 @@ expand(
 				if (ord(*x.str) == ORD('('/*)*/)) {
 					++x.str;
 					c |= 0x80U;
-					make_magic = true;
+					make_magic = Ja;
 				}
 				break;
 			case ORD('('):
@@ -919,7 +919,7 @@ expand(
 				/* FALLTHROUGH */
 			case ORD('|'):
 			case ORD(')'):
-				make_magic = true;
+				make_magic = Ja;
 				break;
 			}
 			break;
@@ -1092,14 +1092,14 @@ expand(
 					    cp + Xlength(ds, (dp - 1)),
 					    fdo | (f & DOMARKDIRS));
 				else if (fdo & DOGLOB)
-					glob(cp, wp, tobool(f & DOMARKDIRS));
+					glob(cp, wp, isWahr(f & DOMARKDIRS));
 				else if ((f & DOPAT) || !(fdo & DOMAGIC))
 					XPput(*wp, cp);
 				else
 					XPput(*wp, debunk(cp, cp,
 					    strlen(cp) + 1));
 				fdo = 0;
-				saw_eq = false;
+				saw_eq = Nee;
 				/* must be 1/0 */
 				tilde_ok = (f & (DOTILDE | DOASNTILDE)) ? 1 : 0;
 				if (c == 0)
@@ -1168,7 +1168,7 @@ expand(
 					/* Note first unquoted = for ~ */
 					if (!(f & DOTEMP) && (!Flag(FPOSIX) ||
 					    (f & DOASNTILDE)) && !saw_eq) {
-						saw_eq = true;
+						saw_eq = Ja;
 						tilde_ok = 1;
 					}
 					break;
@@ -1193,7 +1193,7 @@ expand(
 
 						tcp = maybe_expand_tilde(sp,
 						    &ds, &tdp,
-						    tobool(f & DOASNTILDE));
+						    isWahr(f & DOASNTILDE));
 						if (tcp) {
 							if (dp != tdp)
 								word = IFS_WORD;
@@ -1209,7 +1209,7 @@ expand(
 				quote &= ~2;
 
 			if (make_magic) {
-				make_magic = false;
+				make_magic = Nee;
 				fdo |= DOMAGIC | (f & DOGLOB);
 				*dp++ = MAGIC;
 			} else if (ISMAGIC(c)) {
@@ -1223,15 +1223,15 @@ expand(
 	}
 }
 
-static bool
+static Wahr
 hasnonempty(const char **strv)
 {
 	size_t i = 0;
 
 	while (strv[i])
 		if (*strv[i++])
-			return (true);
-	return (false);
+			return (Ja);
+	return (Nee);
 }
 
 /*
@@ -1250,7 +1250,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	int slen = 0;
 	const char *p;
 	struct tbl *vp;
-	bool zero_ok = false;
+	Wahr zero_ok = Nee;
 	int sc;
 	XPtrV wv;
 
@@ -1369,7 +1369,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			case 3:
 				vp = arraybase(sp);
 				if (vp->flag & (ISSET|ARRAY))
-					zero_ok = true;
+					zero_ok = Ja;
 				sc = 0;
 				do {
 					if (vp->flag & ISSET)
@@ -1500,7 +1500,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			else
 				xp->u.strv = (const char **)e->loc->argv + 1;
 			/* POSIX 2009? */
-			zero_ok = true;
+			zero_ok = Ja;
 		}
 		/* have we got any elements? */
 		if (c) {
@@ -1511,7 +1511,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			/* yes → load first */
 			xp->str = *xp->u.strv++;
 			/* $@ or ${foo[@]} */
-			xp->split = tobool(sc & 4);
+			xp->split = isWahr(sc & 4);
 			state = XARG;
 		}
 	}
@@ -1548,7 +1548,7 @@ comsub(Expand *xp, const char *cp, int fn)
 	Source *s, *sold;
 	struct op *t;
 	struct shf *shf;
-	bool doalias = false;
+	Wahr doalias = Nee;
 	kby old_utfmode = UTFMODE;
 
 	switch (fn) {
@@ -1558,7 +1558,7 @@ comsub(Expand *xp, const char *cp, int fn)
 			/* FALLTHROUGH */
 	case FUNASUB:
 		  fn = FUNSUB;
-		doalias = true;
+		doalias = Ja;
 	}
 
 	s = pushs(SSTRING, ATEMP);
@@ -1574,7 +1574,7 @@ comsub(Expand *xp, const char *cp, int fn)
 		return (XBASE);
 
 	/* no waitlast() unless specifically enabled later */
-	xp->split = false;
+	xp->split = Nee;
 
 	if (t->type == TCOM &&
 	    *t->args == NULL && *t->vars == NULL && t->ioact != NULL) {
@@ -1626,7 +1626,7 @@ comsub(Expand *xp, const char *cp, int fn)
 		afree(tf, ATEMP);
 		/* save stdout and let it point to the tempfile */
 		ofd1 = savefd(1);
-		ksh_dup2(shf_fileno(shf), 1, false);
+		ksh_dup2(shf_fileno(shf), 1, Nee);
 		/*
 		 * run tree, with output thrown into the tempfile,
 		 * in a new function block
@@ -1647,14 +1647,14 @@ comsub(Expand *xp, const char *cp, int fn)
 		shf = shf_fdopen(pv[0], SHF_RD, NULL);
 		ofd1 = savefd(1);
 		if (pv[1] != 1) {
-			ksh_dup2(pv[1], 1, false);
+			ksh_dup2(pv[1], 1, Nee);
 			close(pv[1]);
 		}
 		execute(t, XXCOM | XPIPEO | XFORK, NULL);
 		restfd(1, ofd1);
 		startlast();
 		/* waitlast() */
-		xp->split = true;
+		xp->split = Ja;
 	}
 
 	xp->u.shf = shf;
@@ -1677,7 +1677,7 @@ trimsub(char *str, char *pat, int how)
 		do {
 			c = *p;
 			*p = '\0';
-			if (gmatchx(str, pat, false)) {
+			if (gmatchx(str, pat, Nee)) {
 				record_match(str);
 				*p = c;
 				return (p);
@@ -1692,7 +1692,7 @@ trimsub(char *str, char *pat, int how)
 		while (p >= str) {
 			c = *p;
 			*p = '\0';
-			if (gmatchx(str, pat, false)) {
+			if (gmatchx(str, pat, Nee)) {
 				record_match(str);
 				*p = c;
 				return (p);
@@ -1705,7 +1705,7 @@ trimsub(char *str, char *pat, int how)
 		/* shortest match at end */
 		p = end;
 		while (p >= str) {
-			if (gmatchx(p, pat, false))
+			if (gmatchx(p, pat, Nee))
 				goto trimsub_match;
 			p = ez_bs(p - 1, str);
 		}
@@ -1713,7 +1713,7 @@ trimsub(char *str, char *pat, int how)
 	case ORD('%') | STYPE_DBL:
 		/* longest match at end */
 		for (p = str; p <= end; p++)
-			if (gmatchx(p, pat, false)) {
+			if (gmatchx(p, pat, Nee)) {
  trimsub_match:
 				record_match(p);
 				strndupx(end, str, p - str, ATEMP);
@@ -1733,7 +1733,7 @@ trimsub(char *str, char *pat, int how)
 
 /* XXX cp not const 'cause slashes are temporarily replaced with NULs... */
 static void
-glob(char *cp, XPtrV *wp, bool markdirs)
+glob(char *cp, XPtrV *wp, Wahr markdirs)
 {
 	int oldsize = XPsize(*wp);
 
@@ -1754,7 +1754,7 @@ glob(char *cp, XPtrV *wp, bool markdirs)
  * the number of matches found.
  */
 int
-glob_str(char *cp, XPtrV *wp, bool markdirs)
+glob_str(char *cp, XPtrV *wp, Wahr markdirs)
 {
 	int oldsize = XPsize(*wp);
 	XString xs;
@@ -1875,7 +1875,7 @@ globit(XString *xs,	/* dest string */
 				/* always ignore . and .. */
 				continue;
 			if ((isch(d->d_name[0], '.') && !isch(*sp, '.')) ||
-			    !gmatchx(d->d_name, sp, true))
+			    !gmatchx(d->d_name, sp, Ja))
 				continue;
 
 			len = strlen(d->d_name) + 1;
@@ -1927,7 +1927,7 @@ debunk(char *dp, const char *sp, size_t dlen)
  * past the name, otherwise returns 0.
  */
 static const char *
-maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
+maybe_expand_tilde(const char *p, XString *dsp, char **dpp, Wahr isassign)
 {
 	XString ts;
 	char *dp = *dpp;
@@ -1969,7 +1969,7 @@ do_tilde(char *cp)
 {
 	char *dp = null;
 #ifndef MKSH_NOPWNAM
-	bool do_simplify = true;
+	Wahr do_simplify = Ja;
 #endif
 
 	if (cp[0] == '\0')
@@ -1981,7 +1981,7 @@ do_tilde(char *cp)
 #ifndef MKSH_NOPWNAM
 	else {
 		dp = homedir(cp);
-		do_simplify = false;
+		do_simplify = Nee;
 	}
 #endif
 
@@ -2064,7 +2064,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		 * expansion. }
 		 */
 		if (fdo & DOGLOB)
-			glob(start, wp, tobool(fdo & DOMARKDIRS));
+			glob(start, wp, isWahr(fdo & DOMARKDIRS));
 		else
 			XPput(*wp, debunk(start, start, end - start));
 		return;
@@ -2118,7 +2118,7 @@ valsub(struct op *t, Area *ap)
 
 	newenv(E_FUNC);
 	newblock();
-	vp = local(TREPLY, false);
+	vp = local(TREPLY, Nee);
 	if (!(i = kshsetjmp(e->jbuf))) {
 		execute(t, XXCOM, NULL);
 		i = LRETURN;

@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.401 2022/01/28 10:28:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.402 2022/02/19 21:21:55 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -56,7 +56,7 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.401 2022/01/28 10:28:17 tg Exp $");
 static int c_suspend(const char **);
 #endif
 
-static int do_whence(const char **, int, bool, bool);
+static int do_whence(const char **, int, Wahr, Wahr);
 
 /* getn() that prints error */
 static int
@@ -210,31 +210,31 @@ const struct t_op b_ops[] = {
 	{"",	TO_NONOP }
 };
 
-static int test_oexpr(Test_env *, bool);
-static int test_aexpr(Test_env *, bool);
-static int test_nexpr(Test_env *, bool);
-static int test_primary(Test_env *, bool);
+static int test_oexpr(Test_env *, Wahr);
+static int test_aexpr(Test_env *, Wahr);
+static int test_nexpr(Test_env *, Wahr);
+static int test_primary(Test_env *, Wahr);
 static Test_op ptest_isa(Test_env *, Test_meta);
-static const char *ptest_getopnd(Test_env *, Test_op, bool);
+static const char *ptest_getopnd(Test_env *, Test_op, Wahr);
 static void ptest_error(Test_env *, int, const char *);
 static void kill_fmt_entry(char *, size_t, unsigned int, const void *);
-static void p_time(struct shf *, bool, long, int, int,
+static void p_time(struct shf *, Wahr, long, int, int,
     const char *, const char *);
 
 int
 c_pwd(const char **wp)
 {
 	int optc;
-	bool physical = tobool(Flag(FPHYSICAL));
+	Wahr physical = isWahr(Flag(FPHYSICAL));
 	char *p, *allocd = NULL;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
 		case 'L':
-			physical = false;
+			physical = Nee;
 			break;
 		case 'P':
-			physical = true;
+			physical = Ja;
 			break;
 		case '?':
 			return (1);
@@ -283,25 +283,25 @@ c_print(const char **wp)
 		/* output line separator */
 		char ls;
 		/* output a trailing line separator? */
-		bool nl;
+		Wahr nl;
 		/* expand backslash sequences? */
-		bool exp;
+		Wahr exp;
 		/* columnise output? */
-		bool col;
+		Wahr col;
 		/* print to history instead of file descriptor / stdout? */
-		bool hist;
+		Wahr hist;
 		/* print words as wide characters? */
-		bool chars;
+		Wahr chars;
 		/* writing to a coprocess (SIGPIPE blocked)? */
-		bool coproc;
-		bool copipe;
+		Wahr coproc;
+		Wahr copipe;
 	} po;
 
 	memset(&po, 0, sizeof(po));
 	po.fd = 1;
 	po.ws = ' ';
 	po.ls = '\n';
-	po.nl = true;
+	po.nl = Ja;
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
@@ -314,12 +314,12 @@ c_print(const char **wp)
 			++wp;
  bsd_echo:
 			if (*wp && !strcmp(*wp, Tdn)) {
-				po.nl = false;
+				po.nl = Nee;
 				++wp;
 			}
-			po.exp = false;
+			po.exp = Nee;
 		} else {
-			bool new_exp, new_nl = true;
+			Wahr new_exp, new_nl = Ja;
 
 			/*-
 			 * compromise between various historic echos: only
@@ -329,11 +329,11 @@ c_print(const char **wp)
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 			/* MidnightBSD /bin/sh needs -e supported but off */
 			if (Flag(FSH))
-				new_exp = false;
+				new_exp = Nee;
 			else
 #endif
 			/* otherwise compromise on -e enabled by default */
-			  new_exp = true;
+			  new_exp = Ja;
 			goto print_tradparse_beg;
 
  print_tradparse_arg:
@@ -341,13 +341,13 @@ c_print(const char **wp)
  print_tradparse_ch:
 				switch ((c = *s++)) {
 				case 'E':
-					new_exp = false;
+					new_exp = Nee;
 					goto print_tradparse_ch;
 				case 'e':
-					new_exp = true;
+					new_exp = Ja;
 					goto print_tradparse_ch;
 				case 'n':
-					new_nl = false;
+					new_nl = Nee;
 					goto print_tradparse_ch;
 				case '\0':
  print_tradparse_beg:
@@ -363,18 +363,18 @@ c_print(const char **wp)
 		const char *opts = "AcelNnpRrsu,";
 		const char *emsg;
 
-		po.exp = true;
+		po.exp = Ja;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
 			case 'A':
-				po.chars = true;
+				po.chars = Ja;
 				break;
 			case 'c':
-				po.col = true;
+				po.col = Ja;
 				break;
 			case 'e':
-				po.exp = true;
+				po.exp = Ja;
 				break;
 			case 'l':
 				po.ws = '\n';
@@ -384,7 +384,7 @@ c_print(const char **wp)
 				po.ls = '\0';
 				break;
 			case 'n':
-				po.nl = false;
+				po.nl = Nee;
 				break;
 			case 'p':
 				if ((po.fd = coproc_getfd(W_OK, &emsg)) < 0) {
@@ -397,10 +397,10 @@ c_print(const char **wp)
 				wp += builtin_opt.optind;
 				goto bsd_echo;
 			case 'r':
-				po.exp = false;
+				po.exp = Nee;
 				break;
 			case 's':
-				po.hist = true;
+				po.hist = Ja;
 				break;
 			case 'u':
 				if (!*(s = builtin_opt.optarg))
@@ -440,7 +440,7 @@ c_print(const char **wp)
 			s = *wp++;
 			if (*s == '\0')
 				break;
-			if (!evaluate(s, &po.wc, KSH_RETURN_ERROR, true))
+			if (!evaluate(s, &po.wc, KSH_RETURN_ERROR, Ja))
 				return (1);
 			XcheckN(xs, xp, 4);
 			xp += ez_ctomb(xp, po.wc);
@@ -451,13 +451,13 @@ c_print(const char **wp)
 			XcheckN(xs, xp, 4);
 			if (po.exp && c == '\\') {
 				s_ptr = s;
-				c = unbksl(false, s_get, s_put);
+				c = unbksl(Nee, s_get, s_put);
 				s = s_ptr;
 				if (c == -1) {
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':
-						po.nl = false;
+						po.nl = Nee;
 						/* AT&T brain damage */
 						continue;
 					case '\0':
@@ -493,7 +493,7 @@ c_print(const char **wp)
 		XPput(po.words, NULL);
 		co.shf = shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, NULL);
 		co.linesep = po.ls;
-		co.prefcol = co.do_last = false;
+		co.prefcol = co.do_last = Nee;
 		pr_list(&co, (char **)XPptrv(po.words));
 		while (w--)
 			afree(XPptrv(po.words)[w], ATEMP);
@@ -511,7 +511,7 @@ c_print(const char **wp)
 	c = 0;
 	if (po.hist) {
 		Xput(xs, xp, '\0');
-		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, Nee);
 	} else {
 		size_t len = Xlength(xs, xp);
 
@@ -522,10 +522,10 @@ c_print(const char **wp)
 		 * not enough).
 		 */
 		if (coproc.write >= 0 && coproc.write == po.fd) {
-			po.coproc = true;
+			po.coproc = Ja;
 			po.copipe = block_pipe();
 		} else
-			po.coproc = po.copipe = false;
+			po.coproc = po.copipe = Nee;
 
 		s = Xstring(xs, xp);
 		while (len > 0) {
@@ -573,15 +573,15 @@ int
 c_whence(const char **wp)
 {
 	int optc;
-	bool pflag = false, vflag = false;
+	Wahr pflag = Nee, vflag = Nee;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, Tpv)) != -1)
 		switch (optc) {
 		case 'p':
-			pflag = true;
+			pflag = Ja;
 			break;
 		case 'v':
-			vflag = true;
+			vflag = Ja;
 			break;
 		case '?':
 			return (1);
@@ -589,7 +589,7 @@ c_whence(const char **wp)
 	wp += builtin_opt.optind;
 
 	return (do_whence(wp, pflag ? FC_PATH :
-	    FC_BI | FC_FUNC | FC_PATH | FC_WHENCE, vflag, false));
+	    FC_BI | FC_FUNC | FC_PATH | FC_WHENCE, vflag, Nee));
 }
 
 /* note: command without -vV is dealt with in comexec() */
@@ -597,7 +597,7 @@ int
 c_command(const char **wp)
 {
 	int optc, fcflags = FC_BI | FC_FUNC | FC_PATH | FC_WHENCE;
-	bool vflag = false;
+	Wahr vflag = Nee;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, TpVv)) != -1)
 		switch (optc) {
@@ -605,21 +605,21 @@ c_command(const char **wp)
 			fcflags |= FC_DEFPATH;
 			break;
 		case 'V':
-			vflag = true;
+			vflag = Ja;
 			break;
 		case 'v':
-			vflag = false;
+			vflag = Nee;
 			break;
 		case '?':
 			return (1);
 		}
 	wp += builtin_opt.optind;
 
-	return (do_whence(wp, fcflags, vflag, true));
+	return (do_whence(wp, fcflags, vflag, Ja));
 }
 
 static int
-do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
+do_whence(const char **wp, int fcflags, Wahr vflag, Wahr iscommand)
 {
 	k32 h;
 	int rv = 0;
@@ -736,24 +736,24 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 	return (rv);
 }
 
-bool
+Wahr
 valid_alias_name(const char *cp)
 {
 	switch (ord(*cp)) {
 	case ORD('+'):
 	case ORD('-'):
-		return (false);
+		return (Nee);
 	case ORD('['):
 		if (ord(cp[1]) == ORD('[') && !cp[2])
-			return (false);
+			return (Nee);
 		break;
 	}
 	while (*cp)
 		if (ctype(*cp, C_ALIAS))
 			++cp;
 		else
-			return (false);
-	return (true);
+			return (Nee);
+	return (Ja);
 }
 
 int
@@ -761,7 +761,7 @@ c_alias(const char **wp)
 {
 	struct table *t = &aliases;
 	int rv = 0, prefix = 0;
-	bool rflag = false, tflag, Uflag = false, pflag = false, chkalias;
+	Wahr rflag = Nee, tflag, Uflag = Nee, pflag = Nee, chkalias;
 	kui xflag = 0;
 	int optc;
 
@@ -777,10 +777,10 @@ c_alias(const char **wp)
 #endif
 			break;
 		case 'p':
-			pflag = true;
+			pflag = Ja;
 			break;
 		case 'r':
-			rflag = true;
+			rflag = Ja;
 			break;
 		case 't':
 			t = &taliases;
@@ -790,7 +790,7 @@ c_alias(const char **wp)
 			 * kludge for tracked alias initialization
 			 * (don't do a path search, just make an entry)
 			 */
-			Uflag = true;
+			Uflag = Ja;
 			break;
 		case 'x':
 			xflag = EXPORT;
@@ -913,12 +913,12 @@ c_unalias(const char **wp)
 	struct table *t = &aliases;
 	struct tbl *ap;
 	int optc, rv = 0;
-	bool all = false;
+	Wahr all = Nee;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "adt")) != -1)
 		switch (optc) {
 		case 'a':
-			all = true;
+			all = Ja;
 			break;
 		case 'd':
 #ifdef MKSH_NOPWNAM
@@ -980,7 +980,7 @@ c_let(const char **wp)
 		bi_errorf(Tno_args);
 	else
 		for (wp++; *wp; wp++)
-			if (!evaluate(*wp, &val, KSH_RETURN_ERROR, true)) {
+			if (!evaluate(*wp, &val, KSH_RETURN_ERROR, Ja)) {
 				/* distinguish error from zero result */
 				rv = 2;
 				break;
@@ -1028,7 +1028,7 @@ c_jobs(const char **wp)
 int
 c_fgbg(const char **wp)
 {
-	bool bg = strcmp(*wp, Tbg) == 0;
+	Wahr bg = strcmp(*wp, Tbg) == 0;
 	int rv = 0;
 
 	if (!Flag(FMONITOR)) {
@@ -1066,13 +1066,13 @@ c_kill(const char **wp)
 {
 	Trap *t = NULL;
 	const char *p;
-	bool lflag = false;
+	Wahr lflag = Nee;
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
 	if ((p = wp[1]) && isch(*p, '-') && ctype(p[1], C_DIGIT | C_UPPER)) {
 		++p;
-		if (!(t = gettrap(p, false, false))) {
+		if (!(t = gettrap(p, Nee, Nee))) {
 			kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
 			    Tbad_sig, p);
 			return (1);
@@ -1084,11 +1084,11 @@ c_kill(const char **wp)
 		while ((optc = ksh_getopt(wp, &builtin_opt, "ls:")) != -1)
 			switch (optc) {
 			case 'l':
-				lflag = true;
+				lflag = Ja;
 				break;
 			case 's':
 				if (!(t = gettrap(builtin_opt.optarg,
-				    true, false))) {
+				    Ja, Nee))) {
 					kwarnf(KWF_BIERR | KWF_TWOMSG |
 					    KWF_NOERRNO, Tbad_sig,
 					    builtin_opt.optarg);
@@ -1156,7 +1156,7 @@ c_kill(const char **wp)
 
 			co.shf = shl_stdout;
 			co.linesep = '\n';
-			co.prefcol = co.do_last = true;
+			co.prefcol = co.do_last = Ja;
 
 			print_columns(&co, (unsigned int)(ksh_NSIG - 1),
 			    kill_fmt_entry, (void *)&ki,
@@ -1218,7 +1218,7 @@ c_getopts(const char **wp)
 		bi_errorf(Tf_sD_s, Tname, Tno_args);
 		return (1);
 	}
-	if (!*var || *skip_varname(var, true)) {
+	if (!*var || *skip_varname(var, Ja)) {
 		bi_errorf(Tf_sD_s, var, Tnot_ident);
 		return (1);
 	}
@@ -1293,7 +1293,7 @@ c_bind(const char **wp)
 {
 	int optc, rv = 0;
 #ifndef MKSH_SMALL
-	bool macro = false;
+	Wahr macro = Nee;
 #endif
 
 	if (x_bind_check()) {
@@ -1307,7 +1307,7 @@ c_bind(const char **wp)
 			return (x_bind_list());
 #ifndef MKSH_SMALL
 		case 'm':
-			macro = true;
+			macro = Ja;
 			break;
 #endif
 		default:
@@ -1347,7 +1347,7 @@ c_shift(const char **wp)
 
 	if (!arg)
 		n = 1;
-	else if (!evaluate(arg, &val, KSH_RETURN_ERROR, false)) {
+	else if (!evaluate(arg, &val, KSH_RETURN_ERROR, Nee)) {
 		/* error already printed */
 		bi_unwind(1);
 		return (1);
@@ -1374,13 +1374,13 @@ c_umask(const char **wp)
 {
 	int i, optc;
 	const char *cp;
-	bool symbolic = false;
+	Wahr symbolic = Nee;
 	mode_t old_umask;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "S")) != -1)
 		switch (optc) {
 		case 'S':
-			symbolic = true;
+			symbolic = Ja;
 			break;
 		case '?':
 			return (1);
@@ -1540,7 +1540,7 @@ c_dot(const char **wp)
 	}
 	/* SUSv4: OR with a high value never written otherwise */
 	exstat |= 0x4000;
-	if ((rv = include(file, argc, argv, false)) < 0) {
+	if ((rv = include(file, argc, argv, Nee)) < 0) {
 		/* should not happen */
 		bi_errorf(Tf_sD_s, cp, cstrerror(errno));
 		return (1);
@@ -1578,9 +1578,9 @@ c_read(const char **wp)
 {
 #define is_ifsws(c) (ctype((c), C_IFS) && ctype((c), C_IFSWS))
 	int c, fd = 0, rv = 0;
-	bool savehist = false, intoarray = false, aschars = false;
-	bool rawmode = false, expanding = false;
-	bool lastparmmode = false, lastparmused = false;
+	Wahr savehist = Nee, intoarray = Nee, aschars = Nee;
+	Wahr rawmode = Nee, expanding = Nee;
+	Wahr lastparmmode = Nee, lastparmused = Nee;
 	enum { LINES, BYTES, UPTO, READALL } readmode = LINES;
 	kby delim = ORD('\n');
 	size_t bytesleft = 128, bytesread;
@@ -1590,12 +1590,12 @@ c_read(const char **wp)
 	XString xs;
 	size_t xsave = 0;
 	mksh_ttyst tios;
-	bool restore_tios = false;
+	Wahr restore_tios = Nee;
 	/* to catch read -aN2 foo[i] */
-	bool subarray = false;
+	Wahr subarray = Nee;
 	k32 idx = 0;
 #if HAVE_SELECT
-	bool hastimeout = false;
+	Wahr hastimeout = Nee;
 	struct timeval tv, tvlim;
 #define c_read_opts "Aad:N:n:prst:u,"
 #else
@@ -1609,10 +1609,10 @@ c_read(const char **wp)
 	while ((c = ksh_getopt(wp, &builtin_opt, c_read_opts)) != -1)
 	switch (ord(c)) {
 	case ORD('a'):
-		aschars = true;
+		aschars = Ja;
 		/* FALLTHROUGH */
 	case ORD('A'):
-		intoarray = true;
+		intoarray = Ja;
 		break;
 	case ORD('d'):
 		delim = ord(builtin_opt.optarg[0]);
@@ -1638,10 +1638,10 @@ c_read(const char **wp)
 		}
 		break;
 	case 'r':
-		rawmode = true;
+		rawmode = Ja;
 		break;
 	case 's':
-		savehist = true;
+		savehist = Ja;
 		break;
 #if HAVE_SELECT
 	case 't':
@@ -1650,7 +1650,7 @@ c_read(const char **wp)
 			    builtin_opt.optarg);
 			return (2);
 		}
-		hastimeout = true;
+		hastimeout = Ja;
 		break;
 #endif
 	case 'u':
@@ -1695,8 +1695,8 @@ c_read(const char **wp)
 	if (readmode == LINES)
 		bytesleft = 1;
 	else if (isatty(fd)) {
-		x_mkraw(fd, &tios, true);
-		restore_tios = true;
+		x_mkraw(fd, &tios, Ja);
+		restore_tios = Ja;
 	}
 
 #if HAVE_SELECT
@@ -1799,12 +1799,12 @@ c_read(const char **wp)
 			rv = 1;
 			goto c_read_readdone;
 		}
-		if ((c = *xp) == '\0' && !aschars && delim != '\0') {
+		if ((c = ord(*xp)) == '\0' && !aschars && delim != '\0') {
 			/* skip any read NULs unless delimiter */
 			break;
 		}
 		if (expanding) {
-			expanding = false;
+			expanding = Nee;
 			if (ord(c) == ord(delim)) {
 				if (Flag(FTALKING_I) && isatty(fd)) {
 					/*
@@ -1822,7 +1822,7 @@ c_read(const char **wp)
 		} else if (ord(c) == ord(delim)) {
 			goto c_read_readdone;
 		} else if (!rawmode && ord(c) == ORD('\\')) {
-			expanding = true;
+			expanding = Ja;
 		}
 		Xcheck(xs, xp);
 		++xp;
@@ -1849,10 +1849,10 @@ c_read(const char **wp)
 	}
 
 	if (savehist)
-		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, Nee);
 
 	ccp = cp = Xclose(xs, xp);
-	expanding = false;
+	expanding = Nee;
 	XinitN(xs, 128, ATEMP);
 	if (intoarray) {
 		vp = global(*wp);
@@ -1915,7 +1915,7 @@ c_read(const char **wp)
 	}
 
 	if (!intoarray && wp[1] == NULL)
-		lastparmmode = true;
+		lastparmmode = Ja;
 
  c_read_splitlast:
 	/* copy until IFS character */
@@ -1924,12 +1924,12 @@ c_read(const char **wp)
 
 		ch = *ccp;
 		if (expanding) {
-			expanding = false;
+			expanding = Nee;
 			goto c_read_splitcopy;
 		} else if (ctype(ch, C_IFS)) {
 			break;
 		} else if (!rawmode && ch == '\\') {
-			expanding = true;
+			expanding = Ja;
 		} else {
  c_read_splitcopy:
 			Xcheck(xs, xp);
@@ -1940,7 +1940,7 @@ c_read(const char **wp)
 	}
 	xsave = Xsavepos(xs, xp);
 	/* copy word delimiter: IFSWS+IFS,IFSWS */
-	expanding = false;
+	expanding = Nee;
 	while (bytesread) {
 		char ch;
 
@@ -1948,7 +1948,7 @@ c_read(const char **wp)
 		if (!ctype(ch, C_IFS))
 			break;
 		if (lastparmmode && !expanding && !rawmode && ch == '\\') {
-			expanding = true;
+			expanding = Ja;
 		} else {
 			Xcheck(xs, xp);
 			Xput(xs, xp, ch);
@@ -1968,7 +1968,7 @@ c_read(const char **wp)
 	}
 	/* if no more parameters, rinse and repeat */
 	if (lastparmmode && bytesread) {
-		lastparmused = true;
+		lastparmused = Ja;
 		goto c_read_splitlast;
 	}
 	/* get rid of the delimiter unless we pack the rest */
@@ -2002,7 +2002,7 @@ c_read(const char **wp)
 	if (!setstr(vq, Xstring(xs, xp), KSH_RETURN_ERROR))
 		goto c_read_spliterr;
 	if (aschars) {
-		setint_v(vq, vq, false);
+		setint_v(vq, vq, Nee);
 		/* protect from UTFMODE changes */
 		vq->type = 0;
 	}
@@ -2114,7 +2114,7 @@ c_trap(const char **wp)
 	/* set/clear the traps */
 	i = 0;
 	while (*wp)
-		if (!(p = gettrap(*wp++, true, true))) {
+		if (!(p = gettrap(*wp++, Ja, Ja))) {
 			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_BUILTIN |
 			    KWF_TWOMSG | KWF_NOERRNO, Tbad_sig, wp[-1]);
 			i = 1;
@@ -2151,7 +2151,7 @@ c_exitreturn(const char **wp)
 	}
 
 	if (how == LEXIT && !really_exit && j_stopped_running()) {
-		really_exit = true;
+		really_exit = Ja;
 		how = LSHELL;
 	}
 
@@ -2231,7 +2231,7 @@ int
 c_set(const char **wp)
 {
 	int argi;
-	bool setargs;
+	Wahr setargs;
 	struct block *l = e->loc;
 
 	if ((l->flags & BF_RESETSPEC)) {
@@ -2285,15 +2285,15 @@ c_unset(const char **wp)
 {
 	const char *id;
 	int optc, rv = 0;
-	bool unset_var = true;
+	Wahr unset_var = Ja;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "fv")) != -1)
 		switch (optc) {
 		case 'f':
-			unset_var = false;
+			unset_var = Nee;
 			break;
 		case 'v':
-			unset_var = true;
+			unset_var = Ja;
 			break;
 		case '?':
 			/*XXX not reached due to GF_ERROR in spec_bi */
@@ -2333,7 +2333,7 @@ c_unset(const char **wp)
 }
 
 static void
-p_time(struct shf *shf, bool posix, long tv_sec, int tv_usec, int width,
+p_time(struct shf *shf, Wahr posix, long tv_sec, int tv_usec, int width,
     const char *prefix, const char *suffix)
 {
 	tv_usec /= 10000;
@@ -2352,16 +2352,16 @@ c_times(const char **wp MKSH_A_UNUSED)
 
 	if (ksh_getrusage(RUSAGE_SELF, &usage))
 		bi_errorf("getrusage: %s", cstrerror(errno));
-	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
+	p_time(shl_stdout, Nee, usage.ru_utime.tv_sec,
 	    usage.ru_utime.tv_usec, 0, null, T1space);
-	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
+	p_time(shl_stdout, Nee, usage.ru_stime.tv_sec,
 	    usage.ru_stime.tv_usec, 0, null, "\n");
 
 	if (ksh_getrusage(RUSAGE_CHILDREN, &usage))
 		bi_errorf("getrusage: %s", cstrerror(errno));
-	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
+	p_time(shl_stdout, Nee, usage.ru_utime.tv_sec,
 	    usage.ru_utime.tv_usec, 0, null, T1space);
-	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
+	p_time(shl_stdout, Nee, usage.ru_stime.tv_sec,
 	    usage.ru_stime.tv_usec, 0, null, "\n");
 
 	return (0);
@@ -2426,23 +2426,23 @@ timex(struct op *t, int f, volatile int *xerrok)
 	if (!(tf & TF_NOREAL)) {
 		timersub(&tv1, &tv0, &tv1);
 		if (tf & TF_POSIX)
-			p_time(shl_out, true, tv1.tv_sec, tv1.tv_usec,
+			p_time(shl_out, Ja, tv1.tv_sec, tv1.tv_usec,
 			    5, Treal_sp1, "\n");
 		else
-			p_time(shl_out, false, tv1.tv_sec, tv1.tv_usec,
+			p_time(shl_out, Nee, tv1.tv_sec, tv1.tv_usec,
 			    5, null, Treal_sp2);
 	}
 	if (tf & TF_POSIX)
-		p_time(shl_out, true, usrtime.tv_sec, usrtime.tv_usec,
+		p_time(shl_out, Ja, usrtime.tv_sec, usrtime.tv_usec,
 		    5, Tuser_sp1, "\n");
 	else
-		p_time(shl_out, false, usrtime.tv_sec, usrtime.tv_usec,
+		p_time(shl_out, Nee, usrtime.tv_sec, usrtime.tv_usec,
 		    5, null, Tuser_sp2);
 	if (tf & TF_POSIX)
-		p_time(shl_out, true, systime.tv_sec, systime.tv_usec,
+		p_time(shl_out, Ja, systime.tv_sec, systime.tv_usec,
 		    5, "sys  ", "\n");
 	else
-		p_time(shl_out, false, systime.tv_sec, systime.tv_usec,
+		p_time(shl_out, Nee, systime.tv_sec, systime.tv_usec,
 		    5, null, " system\n");
 	shf_flush(shl_out);
 
@@ -2527,7 +2527,7 @@ int
 c_mknod(const char **wp)
 {
 	int argc, optc, rv = 0;
-	bool ismkfifo = false;
+	Wahr ismkfifo = Nee;
 	const char **argv;
 	void *set = NULL;
 	mode_t mode = 0, oldmode = 0;
@@ -2553,7 +2553,7 @@ c_mknod(const char **wp)
 	for (argc = 0; argv[argc]; argc++)
 		;
 	if (argc == 2 && argv[1][0] == 'p')
-		ismkfifo = true;
+		ismkfifo = Ja;
 	else if (argc != 4 || (argv[1][0] != 'b' && argv[1][0] != 'c'))
 		goto c_mknod_usage;
 
@@ -2681,7 +2681,7 @@ c_test(const char **wp)
 		}
 		if ((op = ptest_isa(&te, TM_UNOP))) {
  ptest_unary:
-			rv = test_eval(&te, op, *te.pos.wp++, NULL, true);
+			rv = test_eval(&te, op, *te.pos.wp++, NULL, Ja);
  ptest_out:
 			if (te.flags & TEF_ERROR)
 				return (T_ERR_EXIT);
@@ -2696,13 +2696,13 @@ c_test(const char **wp)
 		lhs = *te.pos.wp++;
 		if ((op = ptest_isa(&te, TM_BINOP))) {
 			/* test lhs op rhs */
-			rv = test_eval(&te, op, lhs, *te.pos.wp++, true);
+			rv = test_eval(&te, op, lhs, *te.pos.wp++, Ja);
 			goto ptest_out;
 		}
 		if (ptest_isa(&te, tm = TM_AND) || ptest_isa(&te, tm = TM_OR)) {
 			/* XSI */
-			argc = test_eval(&te, TO_STNZE, lhs, NULL, true);
-			rv = test_eval(&te, TO_STNZE, *te.pos.wp++, NULL, true);
+			argc = test_eval(&te, TO_STNZE, lhs, NULL, Ja);
+			rv = test_eval(&te, TO_STNZE, *te.pos.wp++, NULL, Ja);
 			if (tm == TM_AND)
 				rv = argc && rv;
 			else
@@ -2806,7 +2806,7 @@ mtimecmp(const struct stat *sb1, const struct stat *sb2)
 
 int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
-    bool do_eval)
+    Wahr do_eval)
 {
 	int i, s;
 	size_t k;
@@ -2861,7 +2861,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -v */
 	case TO_ISSET:
-		return ((vp = isglobal(opnd1, false)) && (vp->flag & ISSET));
+		return ((vp = isglobal(opnd1, Nee)) && (vp->flag & ISSET));
 
 	/* -o */
 	case TO_OPTION:
@@ -2998,7 +2998,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	/* =, == */
 	case TO_STEQL:
 		if (te->flags & TEF_DBRACKET) {
-			if ((i = gmatchx(opnd1, opnd2, false)))
+			if ((i = gmatchx(opnd1, opnd2, Nee)))
 				record_match(opnd1);
 			return (i);
 		}
@@ -3007,7 +3007,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	/* != */
 	case TO_STNEQ:
 		if (te->flags & TEF_DBRACKET) {
-			if ((i = gmatchx(opnd1, opnd2, false)))
+			if ((i = gmatchx(opnd1, opnd2, Nee)))
 				record_match(opnd1);
 			return (!i);
 		}
@@ -3065,8 +3065,8 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_INTLE:
 	/* -lt */
 	case TO_INTLT:
-		if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR, false) ||
-		    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, false)) {
+		if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR, Nee) ||
+		    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, Nee)) {
 			/* error already printed.. */
 			te->flags |= TEF_ERROR;
 			return (1);
@@ -3108,31 +3108,31 @@ test_parse(Test_env *te)
 }
 
 static int
-test_oexpr(Test_env *te, bool do_eval)
+test_oexpr(Test_env *te, Wahr do_eval)
 {
 	int rv;
 
 	if ((rv = test_aexpr(te, do_eval)))
-		do_eval = false;
+		do_eval = Nee;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_OR))
 		return (test_oexpr(te, do_eval) || rv);
 	return (rv);
 }
 
 static int
-test_aexpr(Test_env *te, bool do_eval)
+test_aexpr(Test_env *te, Wahr do_eval)
 {
 	int rv;
 
 	if (!(rv = test_nexpr(te, do_eval)))
-		do_eval = false;
+		do_eval = Nee;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_AND))
 		return (test_aexpr(te, do_eval) && rv);
 	return (rv);
 }
 
 static int
-test_nexpr(Test_env *te, bool do_eval)
+test_nexpr(Test_env *te, Wahr do_eval)
 {
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_NOT))
 		return (!test_nexpr(te, do_eval));
@@ -3140,7 +3140,7 @@ test_nexpr(Test_env *te, bool do_eval)
 }
 
 static int
-test_primary(Test_env *te, bool do_eval)
+test_primary(Test_env *te, Wahr do_eval)
 {
 	const char *opnd1, *opnd2;
 	int rv;
@@ -3230,7 +3230,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-ptest_getopnd(Test_env *te, Test_op op, bool do_eval MKSH_A_UNUSED)
+ptest_getopnd(Test_env *te, Test_op op, Wahr do_eval MKSH_A_UNUSED)
 {
 	if (te->pos.wp >= te->wp_end)
 		return (op == TO_FILTT ? "1" : NULL);

@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.237 2022/01/06 22:34:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.238 2022/02/19 21:21:54 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -33,11 +33,11 @@ __RCSID("$MirOS: src/bin/mksh/exec.c,v 1.237 2022/01/06 22:34:55 tg Exp $");
 static int comexec(struct op *, struct tbl * volatile, const char **,
     int volatile, volatile int *);
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
-static int call_builtin(struct tbl *, const char **, const char *, bool);
+static int call_builtin(struct tbl *, const char **, const char *, Wahr);
 static int iosetup(struct ioword *, struct tbl *);
-static const char *do_selectargs(const char **, bool);
+static const char *do_selectargs(const char **, Wahr);
 static Test_op dbteste_isa(Test_env *, Test_meta);
-static const char *dbteste_getopnd(Test_env *, Test_op, bool);
+static const char *dbteste_getopnd(Test_env *, Test_op, Wahr);
 static void dbteste_error(Test_env *, int, const char *);
 /* XXX: horrible kludge to fit within the framework */
 static void plain_fmt_entry(char *, size_t, unsigned int, const void *);
@@ -99,7 +99,7 @@ execute(struct op * volatile t,
 		    /* of type "here document" (or "here string") */
 		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE &&
 		    /* the variable assignment begins with a valid varname */
-		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
+		    (ccp = skip_wdvarname(t->vars[0], Ja)) != t->vars[0] &&
 		    /* and has no right-hand side (i.e. "varname=") */
 		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
 		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
@@ -176,7 +176,7 @@ execute(struct op * volatile t,
 		while (t->type == TPIPE) {
 			openpipe(pv);
 			/* stdout of curr */
-			ksh_dup2(pv[1], 1, false);
+			ksh_dup2(pv[1], 1, Nee);
 			/**
 			 * Let exchild() close pv[0] in child
 			 * (if this isn't done, commands like
@@ -186,7 +186,7 @@ execute(struct op * volatile t,
 			exchild(t->left, flags | XPIPEO | XCCLOSE,
 			    NULL, pv[0]);
 			/* stdin of next */
-			ksh_dup2(pv[0], 0, false);
+			ksh_dup2(pv[0], 0, Nee);
 			closepipe(pv);
 			flags |= XPIPEI;
 			t = t->right;
@@ -233,7 +233,7 @@ execute(struct op * volatile t,
 			    KWF_NOERRNO, "coprocess already exists");
 
 		/* Can we re-use the existing co-process pipe? */
-		coproc_cleanup(true);
+		coproc_cleanup(Ja);
 
 		/* do this before opening pipes, in case these fail */
 		FDSAVE(0, savefd(0));
@@ -241,18 +241,18 @@ execute(struct op * volatile t,
 
 		openpipe(pv);
 		if (pv[0] != 0) {
-			ksh_dup2(pv[0], 0, false);
+			ksh_dup2(pv[0], 0, Nee);
 			close(pv[0]);
 		}
 		coproc.write = pv[1];
 		coproc.job = NULL;
 
 		if (coproc.readw >= 0)
-			ksh_dup2(coproc.readw, 1, false);
+			ksh_dup2(coproc.readw, 1, Nee);
 		else {
 			openpipe(pv);
 			coproc.read = pv[0];
-			ksh_dup2(pv[1], 1, false);
+			ksh_dup2(pv[1], 1, Nee);
 			/* closed before first read */
 			coproc.readw = pv[1];
 			coproc.njobs = 0;
@@ -320,7 +320,7 @@ execute(struct op * volatile t,
 
 	case TFOR:
 	case TSELECT: {
-		volatile bool is_first = true;
+		volatile Wahr is_first = Ja;
 
 		ap = (t->vars == NULL) ? e->loc->argv + 1 :
 		    (const char **)eval((const char **)t->vars,
@@ -346,7 +346,7 @@ execute(struct op * volatile t,
 		} else {
  do_TSELECT:
 			if ((ccp = do_selectargs(ap, is_first))) {
-				is_first = false;
+				is_first = Nee;
 				setstr(global(t->str), ccp, KSH_UNWIND_ERROR);
 				execute(t->left, flags & XERROK, xerrok);
 				goto do_TSELECT;
@@ -391,7 +391,7 @@ execute(struct op * volatile t,
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
-				    gmatchx(ccp, s, false))) {
+				    gmatchx(ccp, s, Nee))) {
 					record_match(ccp);
 					rv = execute(t->left, flags & XERROK,
 					    xerrok);
@@ -494,12 +494,12 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* Must be static (XXX but why?) */
 	static struct op texec;
 	int type_flags;
-	bool resetspec;
+	Wahr resetspec;
 	int fcflags = FC_BI | FC_FUNC | FC_PATH;
 	struct block *l_expand, *l_assign;
 	int optc;
 	const char *exec_argv0 = NULL;
-	bool exec_clrenv = false;
+	Wahr exec_clrenv = Nee;
 
 	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
@@ -529,7 +529,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	 *	FOO=bar command			FOO is neither kept nor exported
 	 *	PATH=... foobar			use new PATH in foobar search
 	 */
-	resetspec = false;
+	resetspec = Nee;
 	while (tp && tp->type == CSHELL) {
 		/* undo effects of command */
 		fcflags = FC_BI | FC_FUNC | FC_PATH;
@@ -556,9 +556,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					exec_argv0 = builtin_opt.optarg;
 					break;
 				case 'c':
-					exec_clrenv = true;
+					exec_clrenv = Ja;
 					/* ensure we can actually do this */
-					resetspec = true;
+					resetspec = Ja;
 					break;
 				default:
 					rv = 2;
@@ -570,7 +570,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (Flag(FPOSIX))
 				fcflags = FC_PATH;
 		} else if (tp->val.f == c_command) {
-			bool saw_p = false;
+			Wahr saw_p = Nee;
 
 			/*
 			 * Ugly dealing with options in two places (here
@@ -578,7 +578,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 */
 			ksh_getopt_reset(&builtin_opt, 0);
 			while ((optc = ksh_getopt(ap, &builtin_opt, ":p")) == 'p')
-				saw_p = true;
+				saw_p = Ja;
 			if (optc != -1)
 				/* command -vV or something */
 				break;
@@ -599,7 +599,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 * POSIX says special builtins lose their status
 			 * if accessed using command.
 			 */
-			resetspec = true;
+			resetspec = Ja;
 			if (!ap[0]) {
 				/* ensure command with no args exits with 0 */
 				subst_exstat = 0;
@@ -644,7 +644,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	if (Flag(FEXPORT))
 		type_flags |= EXPORT;
 	if (Flag(FXTRACE))
-		change_xtrace(2, false);
+		change_xtrace(2, Nee);
 	for (i = 0; t->vars[i]; i++) {
 		/* do NOT lookup in the new var/fn block just created */
 		e->loc = l_expand;
@@ -653,7 +653,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (Flag(FXTRACE)) {
 			const char *ccp;
 
-			ccp = skip_varname(cp, true);
+			ccp = skip_varname(cp, Ja);
 			if (*ccp == '+')
 				++ccp;
 			if (*ccp == '=')
@@ -667,7 +667,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	}
 
 	if (Flag(FXTRACE)) {
-		change_xtrace(2, false);
+		change_xtrace(2, Nee);
 		if (ap[rv = 0]) {
  xtrace_ap_loop:
 			print_value_quoted(shl_xtrace, ap[rv]);
@@ -676,7 +676,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				goto xtrace_ap_loop;
 			}
 		}
-		change_xtrace(1, false);
+		change_xtrace(1, Nee);
 	}
 
 	if ((cp = *ap) == NULL) {
@@ -720,8 +720,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			errno = 0;
-			if (include(tp->u.fpath, 0, NULL, false) < 0 ||
-			    !(ftp = findfunc(cp, hash(cp), false)) ||
+			if (include(tp->u.fpath, 0, NULL, Nee) < 0 ||
+			    !(ftp = findfunc(cp, hash(cp), Nee)) ||
 			    !(ftp->flag & ISSET)) {
 				rv = errno;
 				if ((ftp = findcom(cp, FC_BI)) &&
@@ -770,7 +770,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		for (type_flags = 0; type_flags < FNFLAGS; ++type_flags)
 			old_flags[type_flags] = shell_flags[type_flags];
 		change_xtrace((Flag(FXTRACEREC) ? Flag(FXTRACE) : 0) |
-		    ((tp->flag & TRACE) ? 1 : 0), false);
+		    ((tp->flag & TRACE) ? 1 : 0), Nee);
 		old_inuse = tp->flag & FINUSE;
 		tp->flag |= FINUSE;
 
@@ -781,7 +781,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		}
 
 		kshname = old_kshname;
-		change_xtrace(old_flags[(int)FXTRACE], false);
+		change_xtrace(old_flags[(int)FXTRACE], Nee);
 #ifndef MKSH_LEGACY_MODE
 		if (tp->flag & FKSH) {
 			/* Korn style functions restore Flags on return */
@@ -1036,7 +1036,7 @@ scriptexec(struct op *tp, const char **ap)
 int
 c_builtin(const char **wp)
 {
-	return (call_builtin(get_builtin(*wp), wp, Tbuiltin, false));
+	return (call_builtin(get_builtin(*wp), wp, Tbuiltin, Nee));
 }
 
 struct tbl *
@@ -1050,7 +1050,7 @@ get_builtin(const char *s)
  * is created if none is found.
  */
 struct tbl *
-findfunc(const char *name, k32 h, bool create)
+findfunc(const char *name, k32 h, Wahr create)
 {
 	struct block *l;
 	struct tbl *tp = NULL;
@@ -1079,15 +1079,15 @@ define(const char *name, struct op *t)
 {
 	k32 nhash;
 	struct tbl *tp;
-	bool was_set = false;
+	Wahr was_set = Nee;
 
 	nhash = hash(name);
 
 	while (/* CONSTCOND */ 1) {
-		tp = findfunc(name, nhash, true);
+		tp = findfunc(name, nhash, Ja);
 
 		if (tp->flag & ISSET)
-			was_set = true;
+			was_set = Ja;
 		/*
 		 * If this function is currently being executed, we zap
 		 * this table entry so findfunc() won't see it
@@ -1207,7 +1207,7 @@ findcom(const char *name, int flags)
 	if ((flags & FC_SPECBI) && tbi && (tbi->flag & SPEC_BI))
 		tp = tbi;
 	if (!tp && (flags & FC_FUNC)) {
-		tp = findfunc(name, h, false);
+		tp = findfunc(name, h, Nee);
 		if (tp && !(tp->flag & ISSET)) {
 			if ((fpath = str_val(global(TFPATH))) == null) {
 				tp->u.fpath = NULL;
@@ -1278,7 +1278,7 @@ findcom(const char *name, int flags)
  * (just relative or all?)
  */
 void
-flushcom(bool all)
+flushcom(Wahr all)
 {
 	struct tbl *tp;
 	struct tstate ts;
@@ -1395,7 +1395,7 @@ search_path(const char *name, const char *lpath,
 }
 
 static int
-call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
+call_builtin(struct tbl *tp, const char **wp, const char *where, Wahr resetspec)
 {
 	int rv;
 
@@ -1403,9 +1403,9 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
 		    where, wp[0]);
 	builtin_argv0 = wp[0];
-	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
+	builtin_spec = isWahr(!resetspec && (tp->flag & SPEC_BI));
 	shf_reopen(1, SHF_WR, shl_stdout);
-	shl_stdout_ok = true;
+	shl_stdout_ok = Ja;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);
 	rv = (*tp->val.f)(wp);
 	if (shf_flush(shl_stdout) < 0) {
@@ -1413,9 +1413,9 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 		if (rv == 0)
 			rv = 1;
 	}
-	shl_stdout_ok = false;
+	shl_stdout_ok = Nee;
 	builtin_argv0 = NULL;
-	builtin_spec = false;
+	builtin_spec = Nee;
 	return (rv);
 }
 
@@ -1428,7 +1428,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	int u = -1;
 	char *cp = iop->ioname;
 	int iotype = iop->ioflag & IOTYPE;
-	bool do_open = true, do_close = false, do_fstat = false;
+	Wahr do_open = Ja, do_close = Nee, do_fstat = Nee;
 	int flags = 0;
 	struct ioword iotmp;
 	struct stat statb;
@@ -1442,9 +1442,9 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	iotmp.ioflag |= IONAMEXP;
 
 	if (Flag(FXTRACE)) {
-		change_xtrace(2, false);
+		change_xtrace(2, Nee);
 		fptreef(shl_xtrace, 0, Tft_R, &iotmp);
-		change_xtrace(1, false);
+		change_xtrace(1, Nee);
 	}
 
 	switch (iotype) {
@@ -1472,7 +1472,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 				 */
 				flags = O_WRONLY;
 				/* but check again after opening */
-				do_fstat = true;
+				do_fstat = Ja;
 			}
 		} else {
 			/* >|file or set +C */
@@ -1485,7 +1485,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		break;
 
 	case IOHERE:
-		do_open = false;
+		do_open = Nee;
 		/* herein() returns -2 if error has been printed */
 		u = herein(iop, NULL);
 		/* cp may have wrong name */
@@ -1494,11 +1494,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	case IODUP: {
 		const char *emsg;
 
-		do_open = false;
+		do_open = Nee;
 		if (ksh_isdash(cp)) {
 			/* prevent error return below */
 			u = 1009;
-			do_close = true;
+			do_close = Ja;
 		} else if ((u = check_fd(cp,
 		    X_OK | ((iop->ioflag & IORDUP) ? R_OK : W_OK),
 		    &emsg)) < 0) {
@@ -1563,7 +1563,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		close(iop->unit);
 		e->savedfd[iop->unit] |= FDICLMASK;
 	} else if (u != (int)iop->unit) {
-		if (ksh_dup2(u, iop->unit, true) < 0) {
+		if (ksh_dup2(u, iop->unit, Ja) < 0) {
 			int eno;
 			char *sp;
 
@@ -1692,7 +1692,7 @@ herein(struct ioword *iop, char **resbuf)
  *	print the args in column form - assuming that we can
  */
 static const char *
-do_selectargs(const char **ap, bool print_menu)
+do_selectargs(const char **ap, Wahr print_menu)
 {
 	static const char *read_args[] = {
 		Tread, Tdr, TREPLY, NULL
@@ -1712,13 +1712,12 @@ do_selectargs(const char **ap, bool print_menu)
 		if (print_menu || !*str_val(global(TREPLY)))
 			pr_menu(ap);
 		shellf(Tf_s, str_val(global("PS3")));
-		if (call_builtin(findcom(Tread, FC_BI), read_args, Tselect,
-		    false))
+		if (call_builtin(findcom(Tread, FC_BI), read_args, Tselect, Nee))
 			return (NULL);
 		if (*(s = str_val(global(TREPLY))))
 			return ((getn(s, &i) && i >= 1 && i <= argct) ?
 			    ap[i - 1] : null);
-		print_menu = true;
+		print_menu = Ja;
 	}
 }
 
@@ -1779,7 +1778,7 @@ pr_menu(const char * const *ap)
 	smi.args = ap;
 	co.shf = shl_out;
 	co.linesep = '\n';
-	co.prefcol = co.do_last = true;
+	co.prefcol = co.do_last = Ja;
 	print_columns(&co, n, select_fmt_entry, (void *)&smi,
 	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols);
 }
@@ -1823,7 +1822,7 @@ static Test_op
 dbteste_isa(Test_env *te, Test_meta meta)
 {
 	Test_op ret = TO_NONOP;
-	bool uqword;
+	Wahr uqword;
 	const char *p;
 
 	if (!*te->pos.wp)
@@ -1861,7 +1860,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
+dbteste_getopnd(Test_env *te, Test_op op, Wahr do_eval)
 {
 	const char *s = *te->pos.wp;
 	int flags = DOTILDE | DOSCALAR;

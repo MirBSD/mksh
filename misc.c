@@ -33,15 +33,14 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.343 2022/01/31 21:05:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.344 2022/02/19 21:21:59 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
-    const unsigned char *, bool) MKSH_A_PURE;
+    const unsigned char *, Wahr);
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *,
-    const unsigned char *) MKSH_A_PURE;
-static const unsigned char *gmatch_cclass(const unsigned char *, unsigned char)
-    MKSH_A_PURE;
+    const unsigned char *);
+static const unsigned char *gmatch_cclass(const unsigned char *, unsigned char);
 static void chvt(const Getopt *);
 static unsigned int dollarqU(struct shf *, const unsigned char *);
 #ifndef MKSH_SMALL
@@ -140,7 +139,7 @@ struct options_info {
 };
 
 static void options_fmt_entry(char *, size_t, unsigned int, const void *);
-static int printoptions(bool);
+static int printoptions(Wahr);
 static int printoption(size_t);
 
 /* format a single select menu item */
@@ -176,7 +175,7 @@ printoption(size_t i)
 }
 
 static int
-printoptions(bool verbose)
+printoptions(Wahr verbose)
 {
 	size_t i = 0;
 	int rv = 0;
@@ -203,7 +202,7 @@ printoptions(bool verbose)
 		}
 		co.shf = shl_stdout;
 		co.linesep = '\n';
-		co.prefcol = co.do_last = true;
+		co.prefcol = co.do_last = Ja;
 		print_columns(&co, n, options_fmt_entry, &oi,
 		    octs + 4, oi.opt_width + 4);
 	} else {
@@ -243,13 +242,13 @@ void
 change_flag(enum sh_flag f,
     /* OF_INTERNAL, OF_FIRSTTIME, OF_CMDLINE, or OF_SET */
     unsigned int what,
-    bool newset)
+    Wahr newset)
 {
 	unsigned char oldval = Flag(f);
 	unsigned char newval = (newset ? 1 : 0);
 
 	if (f == FXTRACE) {
-		change_xtrace(newval, true);
+		change_xtrace(newval, Ja);
 		return;
 	} else if (f == FPRIVILEGED) {
 		if (!oldval)
@@ -324,9 +323,9 @@ change_flag(enum sh_flag f,
 }
 
 void
-change_xtrace(unsigned char newval, bool dosnapshot)
+change_xtrace(unsigned char newval, Wahr dosnapshot)
 {
-	static bool in_xtrace;
+	static Wahr in_xtrace;
 
 	if (in_xtrace)
 		return;
@@ -356,11 +355,11 @@ change_xtrace(unsigned char newval, bool dosnapshot)
 
  changed_xtrace:
 	if ((Flag(FXTRACE) = newval) == 2) {
-		in_xtrace = true;
+		in_xtrace = Ja;
 		Flag(FXTRACE) = 0;
 		shf_putsv(substitute(str_val(global("PS4")), 0), shl_xtrace);
 		Flag(FXTRACE) = 2;
-		in_xtrace = false;
+		in_xtrace = Nee;
 	}
 }
 
@@ -372,7 +371,7 @@ int
 parse_args(const char **argv,
     /* OF_FIRSTTIME, OF_CMDLINE, or OF_SET */
     unsigned int what,
-    bool *setargsp)
+    Wahr *setargsp)
 {
 	static const char cmd_opts[] =
 #define SHFLAGS_NOT_SET
@@ -386,18 +385,18 @@ parse_args(const char **argv,
 #include "sh_flags.gen"
 #undef SHFLAGS_NOT_CMD
 	    ;
-	bool set;
+	Wahr set;
 	const char * const opts = what == OF_SET ? set_opts : cmd_opts;
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
 	int optc, arrayset = 0;
-	bool sortargs = false;
-	bool fcompatseen = false;
+	Wahr sortargs = Nee;
+	Wahr fcompatseen = Nee;
 
 	ksh_getopt_reset(&go, GF_ERROR|GF_PLUSOPT);
 	while ((optc = ksh_getopt(argv, &go, opts)) != -1) {
-		set = tobool(!(go.info & GI_PLUS));
+		set = isWahr(!(go.info & GI_PLUS));
 		switch (optc) {
 		case 'A':
 			if (what == OF_FIRSTTIME)
@@ -437,7 +436,7 @@ parse_args(const char **argv,
 				 */
 				Flag(FPOSIX) = 0;
 				Flag(FSH) = 0;
-				fcompatseen = true;
+				fcompatseen = Ja;
 			}
 			if ((i != (size_t)-1) && (set ? 1U : 0U) == Flag(i))
 				/*
@@ -485,7 +484,7 @@ parse_args(const char **argv,
 				break;
 			/* -s: sort positional params (via AT&T ksh) */
 			if (what == OF_SET && isch(optc, 's')) {
-				sortargs = true;
+				sortargs = Ja;
 				break;
 			}
 			for (i = 0; i < NELEM(options); i++)
@@ -507,7 +506,7 @@ parse_args(const char **argv,
 		if (what == OF_SET && isch(argv[go.optind][0], '-')) {
 			/* set; lone dash clears -v and -x flags (obsolete) */
 			Flag(FVERBOSE) = 0;
-			change_xtrace(0, false);
+			change_xtrace(0, Nee);
 		}
 		/* either way, skip it (POSIX only dash but… meh) */
 		go.optind++;
@@ -521,7 +520,7 @@ parse_args(const char **argv,
 		const char *ccp = NULL;
 
 		if (array && *array)
-			ccp = skip_varname(array, false);
+			ccp = skip_varname(array, Nee);
 		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
 			bi_errorf(Tf_sD_s, array, Tnot_ident);
 			return (-1);
@@ -534,7 +533,7 @@ parse_args(const char **argv,
 		    ascpstrcmp);
 	}
 	if (arrayset)
-		go.optind += set_array(array, tobool(arrayset > 0),
+		go.optind += set_array(array, isWahr(arrayset > 0),
 		    argv + go.optind);
 
 	return (go.optind);
@@ -565,7 +564,7 @@ getpn(const char **sp, int *ai)
 	const char *s;
 	mksh_uari_t num = 0;
 	kby state = 0;
-	bool neg = false;
+	Wahr neg = Nee;
 
 	s = *sp;
 
@@ -575,7 +574,7 @@ getpn(const char **sp, int *ai)
 
 	switch (c) {
 	case '-':
-		neg = true;
+		neg = Ja;
 		/* FALLTHROUGH */
 	case '+':
 		c = *s++;
@@ -660,7 +659,7 @@ simplify_gmatch_pattern(const unsigned char *sp)
 		/* simile for @ */
 		case ORD(0x80|' '):
 			/* check whether it has only one clause */
-			ps = pat_scan(sp, se, true);
+			ps = pat_scan(sp, se, Ja);
 			if (!ps || ps[-1] != /*(*/ ')')
 				/* nope */
 				break;
@@ -712,7 +711,7 @@ simplify_gmatch_pattern(const unsigned char *sp)
  * pattern character are prefixed with MAGIC by expand.
  */
 int
-gmatchx(const char *s, const char *p, bool isfile)
+gmatchx(const char *s, const char *p, Wahr isfile)
 {
 	const char *se, *pe;
 	char *pnew;
@@ -723,8 +722,8 @@ gmatchx(const char *s, const char *p, bool isfile)
 
 	pe = strnul(p);
 	/*
-	 * isfile is false iff no syntax check has been done on
-	 * the pattern. If check fails, just do a strcmp().
+	 * isfile is Nee iff no syntax check has been done on the pattern.
+	 * If check fails just do a strcmp().
 	 */
 	if (!isfile && !has_globbing(p)) {
 		size_t len = pe - p + 1;
@@ -750,8 +749,8 @@ gmatchx(const char *s, const char *p, bool isfile)
 }
 
 /**
- * Returns if p is a syntacticly correct globbing pattern, false
- * if it contains no pattern characters or if there is a syntax error.
+ * Returns if p is a syntacticly correct globbing pattern, Nee if it
+ * contains no pattern characters or if there is a syntax error.
  * Syntax errors are:
  *	- [ with no closing ]
  *	- imbalanced $(...) expression
@@ -766,11 +765,11 @@ gmatchx(const char *s, const char *p, bool isfile)
  *	return ?
  * - return ?
  */
-bool
+Wahr
 has_globbing(const char *pat)
 {
 	unsigned char c, subc;
-	bool saw_glob = false;
+	Wahr saw_glob = Nee;
 	unsigned int nest = 0;
 	const unsigned char *p = (const unsigned char *)pat;
 	const unsigned char *s;
@@ -781,11 +780,11 @@ has_globbing(const char *pat)
 			continue;
 		/* MAGIC + NUL? abort. */
 		if (!(c = *p++))
-			return (false);
+			return (Nee);
 		/* some specials */
 		if (ord(c) == ORD('*') || ord(c) == ORD('?')) {
 			/* easy glob, accept */
-			saw_glob = true;
+			saw_glob = Ja;
 		} else if (ord(c) == ORD('[')) {
 			/* bracket expression; eat negation and initial ] */
 			if (ISMAGIC(p[0]) && ord(p[1]) == ORD('!'))
@@ -800,12 +799,12 @@ has_globbing(const char *pat)
 					continue;
 				/* MAGIC + NUL cannot happen */
 				if (!(c = *s++))
-					return (false);
+					return (Nee);
 				/* terminating bracket? */
 				if (ord(c) == ORD(']')) {
 					/* accept and continue */
 					p = s;
-					saw_glob = true;
+					saw_glob = Ja;
 					break;
 				}
 				/* sub-bracket expressions */
@@ -836,7 +835,7 @@ has_globbing(const char *pat)
 			}
 		} else if ((c & 0x80) && ctype(c & 0x7F, C_PATMO | C_SPC)) {
 			/* opening pattern */
-			saw_glob = true;
+			saw_glob = Ja;
 			++nest;
 		} else if (ord(c) == ORD(/*(*/ ')')) {
 			/* closing pattern */
@@ -928,7 +927,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		case ORD('+') | 0x80:
 		/* matches zero or more times */
 		case ORD('*') | 0x80:
-			if (!(prest = pat_scan(p, pe, false)))
+			if (!(prest = pat_scan(p, pe, Nee)))
 				return (0);
 			s--;
 			/* take care of zero matches */
@@ -936,7 +935,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			    do_gmatch(s, se, prest, pe, smin))
 				return (1);
 			for (psub = p; ; psub = pnext) {
-				pnext = pat_scan(psub, pe, true);
+				pnext = pat_scan(psub, pe, Ja);
 				for (srest = s; srest <= se; srest++) {
 					if (do_gmatch(s, srest, psub, pnext - 2, smin) &&
 					    (do_gmatch(srest, se, prest, pe, smin) ||
@@ -955,7 +954,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		case ORD('@') | 0x80:
 		/* simile for @ */
 		case ORD(' ') | 0x80:
-			if (!(prest = pat_scan(p, pe, false)))
+			if (!(prest = pat_scan(p, pe, Nee)))
 				return (0);
 			s--;
 			/* Take care of zero matches */
@@ -963,7 +962,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			    do_gmatch(s, se, prest, pe, smin))
 				return (1);
 			for (psub = p; ; psub = pnext) {
-				pnext = pat_scan(psub, pe, true);
+				pnext = pat_scan(psub, pe, Ja);
 				srest = prest == pe ? se : s;
 				for (; srest <= se; srest++) {
 					if (do_gmatch(s, srest, psub, pnext - 2, smin) &&
@@ -977,14 +976,14 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 
 		/* matches none of the patterns */
 		case ORD('!') | 0x80:
-			if (!(prest = pat_scan(p, pe, false)))
+			if (!(prest = pat_scan(p, pe, Nee)))
 				return (0);
 			s--;
 			for (srest = s; srest <= se; srest++) {
 				int matched = 0;
 
 				for (psub = p; ; psub = pnext) {
-					pnext = pat_scan(psub, pe, true);
+					pnext = pat_scan(psub, pe, Ja);
 					if (do_gmatch(s, srest, psub,
 					    pnext - 2, smin)) {
 						matched = 1;
@@ -1048,14 +1047,14 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 {
 	unsigned char c, subc, lc;
 	const unsigned char *p = pat, *s;
-	bool found = false;
-	bool negated = false;
+	Wahr found = Nee;
+	Wahr negated = Nee;
 	char *subp;
 
 	/* check for negation */
 	if (ISMAGIC(p[0]) && ord(p[1]) == ORD('!')) {
 		p += 2;
-		negated = true;
+		negated = Ja;
 	}
 	/* make initial ] non-MAGIC */
 	if (ISMAGIC(p[0]) && ord(p[1]) == ORD(']'))
@@ -1111,7 +1110,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 							/* found, match? */
 							if (ctype(sc,
 							    cls->value))
-								found = true;
+								found = Ja;
 							/* break either way */
 							break;
 						} else
@@ -1135,7 +1134,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 				if ((c &= 0x7F) != ' ') {
 					/* check single match NOW */
 					if (sc == c)
-						found = true;
+						found = Ja;
 					/* next character is (...) */
 				}
 				c = '(' /*)*/;
@@ -1148,7 +1147,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 			/* no, check single match */
 			if (sc == c)
 				/* note: sc is never NUL */
-				found = true;
+				found = Ja;
 			/* do the next "first" character */
 			continue;
 		}
@@ -1198,10 +1197,10 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 
 					/* match single previous char */
 					if (lc && (sc == lc))
-						found = true;
+						found = Ja;
 					/* match hyphen-minus */
 					if (ord(sc) == ORD('-'))
-						found = true;
+						found = Ja;
 					/* handle cclass common part */
 					goto cclass_common;
 				}
@@ -1229,7 +1228,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 		if (lc != 0 /* && c != 0 */ &&
 		    asciibetical(lc) <= asciibetical(sc) &&
 		    asciibetical(sc) <= asciibetical(c))
-			found = true;
+			found = Ja;
 		/* forced next character? */
 		if (subc) {
 			c = subc;
@@ -1247,7 +1246,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */
 static const unsigned char *
-pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
+pat_scan(const unsigned char *p, const unsigned char *pe, Wahr match_sep)
 {
 	int nest = 0;
 
@@ -1442,7 +1441,7 @@ print_value_quoted(struct shf *shf, const char *s)
 {
 	unsigned char c;
 	const unsigned char *p = (const unsigned char *)s;
-	bool inquote = true;
+	Wahr inquote = Ja;
 
 	/* first, special-case empty strings (for re-entrancy) */
 	if (!*s) {
@@ -1480,19 +1479,19 @@ print_value_quoted(struct shf *shf, const char *s)
 				return;
 			}
 			if (ctype(c, C_QUOTE | C_SPC))
-				inquote = false;
+				inquote = Nee;
 		}
 		/* assert: c == 0; all chars in [20;7E] ASCII */
 #ifndef MKSH_EBCDIC
 	} else if (Flag(FASIS)) {
 		while ((c = *p++), !ksh_asisctrl(c))
 			if (ctype(c, C_QUOTE | C_SPC))
-				inquote = false;
+				inquote = Nee;
 #endif
 	} else {
 		while ((c = *p++), !ksh_isctrl(c))
 			if (ctype(c, C_QUOTE | C_SPC))
-				inquote = false;
+				inquote = Nee;
 	}
 	/* state: if c == 0, all chars printable, inquote shortcuts */
 
@@ -1508,7 +1507,7 @@ print_value_quoted(struct shf *shf, const char *s)
 	/* no */
  always_single:
 	/* all chars printable, no control chars, quote nicely */
-	inquote = false;
+	inquote = Nee;
 	p = (const unsigned char *)s;
 
 	while ((c = *p++) != 0) {
@@ -1516,12 +1515,12 @@ print_value_quoted(struct shf *shf, const char *s)
 			if (inquote) {
 				shf_scheck(3, shf);
 				shf_putc('\'', shf);
-				inquote = false;
+				inquote = Nee;
 			}
 			shf_putc('\\', shf);
 		} else if (!inquote) {
 			shf_putc('\'', shf);
-			inquote = true;
+			inquote = Ja;
 		}
 		shf_putc(c, shf);
 	}
@@ -1816,12 +1815,12 @@ ssize_t
 blocking_read(int fd, char *buf, size_t nbytes)
 {
 	ssize_t ret;
-	bool tried_reset = false;
+	Wahr tried_reset = Nee;
 
 	while ((ret = read(fd, buf, nbytes)) < 0) {
 		if (!tried_reset && errno == EAGAIN) {
 			if (reset_nonblock(fd) > 0) {
-				tried_reset = true;
+				tried_reset = Ja;
 				continue;
 			}
 			errno = EAGAIN;
@@ -2135,7 +2134,7 @@ make_path(const char *cwd, const char *file,
     int *phys_pathp)
 {
 	int rval = 0;
-	bool use_cdpath = true;
+	Wahr use_cdpath = Ja;
 	char *plist;
 	size_t len, plen = 0;
 	char *xp = Xstring(*xsp, xp);
@@ -2149,7 +2148,7 @@ make_path(const char *cwd, const char *file,
 
 	if (mksh_abspath(file)) {
 		*phys_pathp = 0;
-		use_cdpath = false;
+		use_cdpath = Nee;
 	} else {
 		if (file[0] == '.') {
 			char c = file[1];
@@ -2157,12 +2156,12 @@ make_path(const char *cwd, const char *file,
 			if (c == '.')
 				c = file[2];
 			if (mksh_cdirsep(c) || c == '\0')
-				use_cdpath = false;
+				use_cdpath = Nee;
 		}
 
 		plist = *cdpathp;
 		if (!plist)
-			use_cdpath = false;
+			use_cdpath = Nee;
 		else if (use_cdpath) {
 			char *pend = plist;
 
@@ -2232,17 +2231,17 @@ simplify_path(char *p)
 {
 	char *dp, *ip, *sp, *tp;
 	size_t len;
-	bool needslash;
+	Wahr needslash;
 #ifdef MKSH_DOSPATH
-	bool needdot = true;
+	Wahr needdot = Ja;
 
 	/* keep drive letter */
 	if (mksh_drvltr(p)) {
 		p += 2;
-		needdot = false;
+		needdot = Nee;
 	}
 #else
-#define needdot true
+#define needdot Ja
 #endif
 
 	switch (*p) {
@@ -2261,10 +2260,10 @@ simplify_path(char *p)
 			++p;
 #endif
 		}
-		needslash = true;
+		needslash = Ja;
 		break;
 	default:
-		needslash = false;
+		needslash = Nee;
 	}
 	dp = ip = sp = p;
 
@@ -2293,7 +2292,7 @@ simplify_path(char *p)
 					goto strip_last_component;
 				else if (dp > sp) {
 					/* relative path, with subpaths */
-					needslash = false;
+					needslash = Nee;
  strip_last_component:
 					/* strip off last pathname component */
 					while (dp > sp)
@@ -2307,7 +2306,7 @@ simplify_path(char *p)
 					/* keep dotdot-slash if not absolute */
 					*dp++ = '.';
 					*dp++ = '.';
-					needslash = true;
+					needslash = Ja;
 					sp = dp;
 				}
 				/* then continue with the next one */
@@ -2323,7 +2322,7 @@ simplify_path(char *p)
 		dp += len;
 
 		/* append slash if we continue */
-		needslash = true;
+		needslash = Ja;
 		/* try next component */
 	}
 	if (dp == p) {
@@ -2357,11 +2356,11 @@ int
 c_cd(const char **wp)
 {
 	int optc, rv, phys_path;
-	bool physical = tobool(Flag(FPHYSICAL));
+	Wahr physical = isWahr(Flag(FPHYSICAL));
 	/* was a node from cdpath added in? */
 	int cdnode;
 	/* show where we went?, error for $PWD */
-	bool printpath = false, eflag = false;
+	Wahr printpath = Nee, eflag = Nee;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
 	char *dir, *allocd = NULL, *tryp, *pwd, *cdpath;
@@ -2369,13 +2368,13 @@ c_cd(const char **wp)
 	while ((optc = ksh_getopt(wp, &builtin_opt, "eLP")) != -1)
 		switch (optc) {
 		case 'e':
-			eflag = true;
+			eflag = Ja;
 			break;
 		case 'L':
-			physical = false;
+			physical = Nee;
 			break;
 		case 'P':
-			physical = true;
+			physical = Ja;
 			break;
 		case '?':
 			return (2);
@@ -2404,7 +2403,7 @@ c_cd(const char **wp)
 				bi_errorf(Tno_OLDPWD);
 				return (2);
 			}
-			printpath = true;
+			printpath = Ja;
 		} else {
 			strdupx(allocd, wp[0], ATEMP);
 			dir = allocd;
@@ -2441,7 +2440,7 @@ c_cd(const char **wp)
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
-		printpath = true;
+		printpath = Ja;
 	} else {
 		bi_errorf(Ttoo_many_args);
 		return (2);
@@ -2493,7 +2492,7 @@ c_cd(const char **wp)
 	allocd = NULL;
 
 	/* Clear out tracked aliases with relative paths */
-	flushcom(false);
+	flushcom(Nee);
 
 	/*
 	 * Set OLDPWD (note: unsetting OLDPWD does not disable this
@@ -2545,7 +2544,7 @@ chvt(const Getopt *go)
 	const char *dv = go->optarg;
 	int fd, pfd[2];
 	pid_t cpid;
-	bool isdaemon = false, dowait = false;
+	Wahr isdaemon = Nee, dowait = Nee;
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 	int revwarn = 0;
 #if !HAVE_REVOKE
@@ -2557,11 +2556,11 @@ chvt(const Getopt *go)
 
 	switch (ord(*dv)) {
 	case ORD('-'):
-		isdaemon = true;
+		isdaemon = Ja;
 		dv = "/dev/null";
 		break;
 	case ORD('!'):
-		dowait = true;
+		dowait = Ja;
 		++dv;
 		/* FALLTHROUGH */
 	default: {
@@ -2685,9 +2684,9 @@ chvt(const Getopt *go)
 			    "chvt", "TCFLSH");
 #endif
 	}
-	ksh_dup2(fd, 0, false);
-	ksh_dup2(fd, 1, false);
-	ksh_dup2(fd, 2, false);
+	ksh_dup2(fd, 0, Nee);
+	ksh_dup2(fd, 1, Nee);
+	ksh_dup2(fd, 2, Nee);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 	if (!isdaemon) {
 		ifrevwarn kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_THREEMSG,
@@ -2782,7 +2781,7 @@ ksh_getrusage(int what, struct rusage *ru)
  * escape sequence was found
  */
 int
-unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
+unbksl(Wahr cstyle, int (*fg)(void), void (*fp)(int))
 {
 	int wc, i, c, fc, n;
 

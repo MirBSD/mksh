@@ -21,7 +21,7 @@
  */
 
 @RLIMITS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.2 2020/07/24 20:50:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.3 2022/02/19 21:22:02 tg Exp $");
 @RLIMITS_ITEMS
 #define FN(lname,lg,ls,lw,lopt) (const struct limits *)(&rlimits_ ## lg),
 @@
@@ -38,9 +38,9 @@ __RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.2 2020/07/24 20:50:11 tg Exp $");
 FN("file(blocks)", KSH_UL_GFIL, KSH_UL_SFIL, KSH_UL_WFIL
 
 >d|KSH_UL_GBRK
-FN("data(KiB)", KSH_UL_GBRK, 0, false
+FN("data(KiB)", KSH_UL_GBRK, 0, Nee
 
 >n|KSH_UL_GDES
-FN("nofiles(descriptors)", KSH_UL_GDES, 0, false
+FN("nofiles(descriptors)", KSH_UL_GDES, 0, Nee
 
 |RLIMITS_OPTCS

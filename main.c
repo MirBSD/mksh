@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.412 2022/01/31 22:16:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.413 2022/02/19 21:21:58 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -346,7 +346,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (!builtin_name_cmp(ccp, builtin_name)) {
 			/* canonicalise argv[0] */
 			ccp = builtin_name;
-			as_builtin = true;
+			as_builtin = Ja;
 		}
 	}
 
@@ -367,11 +367,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			/* either also turns off braceexpand */
 #ifdef MKSH_BINSHPOSIX
 			/* enable better POSIX conformance */
-			change_flag(FPOSIX, OF_FIRSTTIME, true);
+			change_flag(FPOSIX, OF_FIRSTTIME, Ja);
 #endif
 #ifdef MKSH_BINSHREDUCED
 			/* enable kludge/compat mode */
-			change_flag(FSH, OF_FIRSTTIME, true);
+			change_flag(FSH, OF_FIRSTTIME, Ja);
 #endif
 		}
 #endif
@@ -436,7 +436,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 * by the environment or the user. Also, we want tab completion
 	 * on in vi by default.
 	 */
-	change_flag(FEMACS, OF_INTERNAL, true);
+	change_flag(FEMACS, OF_INTERNAL, Ja);
 #if !MKSH_S_NOVI
 	Flag(FVITABCOMPLETE) = 1;
 #endif
@@ -457,7 +457,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	cp = str_val(vp);
 	/* Try to use existing $PWD if it is valid */
 	set_current_wd((mksh_abspath(cp) && test_eval(NULL, TO_FILEQ, cp,
-	    Tdot, true)) ? cp : NULL);
+	    Tdot, Ja)) ? cp : NULL);
 	if (current_wd[0])
 		simplify_path(current_wd);
 	/* Only set pwd if we know where we are or if it had a bogus value */
@@ -567,7 +567,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		s->u.shf = shf_open(s->file, O_RDONLY | O_MAYEXEC, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
-			shl_stdout_ok = false;
+			shl_stdout_ok = Nee;
 			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, s->file);
 			/* mandated by SUSv4 */
 			exstat = 127;
@@ -726,25 +726,25 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		    "can't determine current directory");
 
 	if (Flag(FLOGIN))
-		include(MKSH_SYSTEM_PROFILE, 0, NULL, true);
+		include(MKSH_SYSTEM_PROFILE, 0, NULL, Ja);
 	if (Flag(FPRIVILEGED)) {
-		include(MKSH_SUID_PROFILE, 0, NULL, true);
+		include(MKSH_SUID_PROFILE, 0, NULL, Ja);
 		/* note whether -p was enabled during startup */
 		if (Flag(FPRIVILEGED) == 1)
 			/* allow set -p to setuid() later */
 			Flag(FPRIVILEGED) = 3;
 		else
 			/* turn off -p if not set explicitly */
-			change_flag(FPRIVILEGED, OF_INTERNAL, false);
+			change_flag(FPRIVILEGED, OF_INTERNAL, Nee);
 		/* track shell-imposed changes */
 		baseline_flags[(int)FPRIVILEGED] = Flag(FPRIVILEGED);
 	} else {
 		if (Flag(FLOGIN))
-			include(substitute("$HOME/.profile", 0), 0, NULL, true);
+			include(substitute("$HOME/.profile", 0), 0, NULL, Ja);
 		if (Flag(FTALKING)) {
 			cp = substitute("${ENV:-" MKSHRC_PATH "}", DOTILDE);
 			if (cp[0] != '\0')
-				include(cp, 0, NULL, true);
+				include(cp, 0, NULL, Ja);
 		}
 	}
 	if (restricted_shell) {
@@ -797,7 +797,7 @@ main(int argc, const char *argv[])
 }
 
 int
-include(const char *name, int argc, const char **argv, bool intr_ok)
+include(const char *name, int argc, const char **argv, Wahr intr_ok)
 {
 	Source *volatile s = NULL;
 	struct shf *shf;
@@ -887,9 +887,9 @@ int
 shell(Source * volatile s, volatile int level)
 {
 	struct op *t;
-	volatile bool wastty = tobool(s->flags & SF_TTY);
+	volatile Wahr wastty = isWahr(s->flags & SF_TTY);
 	volatile kby attempts = 13;
-	volatile bool interactive = (level == 0) && Flag(FTALKING);
+	volatile Wahr interactive = (level == 0) && Flag(FTALKING);
 	Source *volatile old_source = source;
 	int i;
 
@@ -897,13 +897,13 @@ shell(Source * volatile s, volatile int level)
 	if (level == 2)
 		e->flags |= EF_IN_EVAL;
 	if (interactive)
-		really_exit = false;
+		really_exit = Nee;
 	switch ((i = kshsetjmp(e->jbuf))) {
 	case 0:
 		break;
 	case LBREAK:
 	case LCONTIN:
-		/* assert: interactive == false */
+		/* assert: interactive == Nee */
 		source = old_source;
 		quitenv(NULL);
 		if (level == 2) {
@@ -936,7 +936,7 @@ shell(Source * volatile s, volatile int level)
 			 * needs FMONITOR set (not FTALKING/SF_TTY)...
 			 */
 			/* toss any input we have so far */
-			yyrecursive_pop(true);
+			yyrecursive_pop(Ja);
 			s->start = s->str = null;
 			retrace_info = NULL;
 			herep = heres;
@@ -974,9 +974,9 @@ shell(Source * volatile s, volatile int level)
 			j_notify();
 			set_prompt(PS1, s);
 		}
-		t = compile(s, true);
+		t = compile(s, Ja);
 		if (interactive)
-			histsave(&s->line, NULL, HIST_FLUSH, true);
+			histsave(&s->line, NULL, HIST_FLUSH, Ja);
 		if (!t)
 			goto source_no_tree;
 		if (t->type == TEOF) {
@@ -985,7 +985,7 @@ shell(Source * volatile s, volatile int level)
 				s->type = SSTDIN;
 			} else if (wastty && !really_exit &&
 			    j_stopped_running()) {
-				really_exit = true;
+				really_exit = Ja;
 				s->type = SSTDIN;
 			} else {
 				/*
@@ -1004,7 +1004,7 @@ shell(Source * volatile s, volatile int level)
 			exstat = execute(t, 0, NULL) & 0xFF;
 
 		if (t->type != TEOF && interactive && really_exit)
-			really_exit = false;
+			really_exit = Nee;
 
  source_no_tree:
 		reclaim();
@@ -1091,7 +1091,7 @@ quitenv(struct shf *shf)
 	char *cp;
 	int fd, i;
 
-	yyrecursive_pop(true);
+	yyrecursive_pop(Ja);
 	while (ep->oenv && ep->oenv->loc != ep->loc)
 		popblock();
 	if (ep->savedfd != NULL) {
@@ -1260,7 +1260,7 @@ int
 tty_init_fd(void)
 {
 	int fd, rv, eno = 0;
-	bool do_close = false, is_devtty = true;
+	Wahr do_close = Nee, is_devtty = Ja;
 
 	if (tty_devtty) {
 		/* already got a tty which is /dev/tty */
@@ -1276,7 +1276,7 @@ tty_init_fd(void)
 	}
 #endif
 	if ((fd = open("/dev/tty", O_RDWR, 0)) >= 0) {
-		do_close = true;
+		do_close = Ja;
 		goto got_fd;
 	}
 	eno = errno;
@@ -1286,13 +1286,13 @@ tty_init_fd(void)
 		rv = 1;
 		goto out;
 	}
-	is_devtty = false;
+	is_devtty = Nee;
 
 	if (isatty((fd = 0)) || isatty((fd = 2)))
 		goto got_fd;
 	/* cannot find one */
 	rv = 2;
-	/* assert: do_close == false */
+	/* assert: do_close == Nee */
 	goto out;
 
  got_fd:
@@ -1373,7 +1373,7 @@ initio(void)
 	shf_fdopen(1, SHF_WR, shl_stdout);
 	shf_fdopen(2, SHF_WR, shl_out);
 	shf_fdopen(2, SHF_WR, shl_xtrace);
-	initio_done = true;
+	initio_done = Ja;
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
@@ -1403,7 +1403,7 @@ initio(void)
 
 /* A dup2() with error checking */
 int
-ksh_dup2(int ofd, int nfd, bool errok)
+ksh_dup2(int ofd, int nfd, Wahr errok)
 {
 	int rv;
 
@@ -1452,7 +1452,7 @@ restfd(int fd, int ofd)
 		close(fd);
 	else if (fd != ofd) {
 		/*XXX: what to do if this dup fails? */
-		ksh_dup2(ofd, fd, true);
+		ksh_dup2(ofd, fd, Ja);
 		close(ofd);
 	}
 }
@@ -1906,7 +1906,7 @@ DF(const char *fmt, ...)
 #endif
 
 void
-x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
+x_mkraw(int fd, mksh_ttyst *ocb, Wahr forread)
 {
 	mksh_ttyst cb;
 
@@ -1962,7 +1962,7 @@ init_environ(void)
  read_envfile:
 	errno = 0;
 	if ((dent = readdir(dirp)) != NULL) {
-		if (skip_varname(dent->d_name, true)[0] == '\0') {
+		if (skip_varname(dent->d_name, Ja)[0] == '\0') {
 			strpathx(xp, MKSH_ENVDIR, dent->d_name, 1);
 			if (!(shf = shf_open(xp, O_RDONLY, 0, 0))) {
 				kwarnf(KWF_PREFIX | KWF_THREEMSG, MKSH_ENVDIR,

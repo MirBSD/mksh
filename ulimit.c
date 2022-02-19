@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.4 2021/11/12 05:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.5 2022/02/19 21:22:02 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -110,9 +110,9 @@ typedef unsigned long rlim_t;
 #endif
 
 #if defined(KSH_UL_SFIL)
-#define KSH_UL_WFIL	true
+#define KSH_UL_WFIL	Ja
 #else
-#define KSH_UL_WFIL	false
+#define KSH_UL_WFIL	Nee
 #define KSH_UL_SFIL	0
 #endif
 
@@ -147,7 +147,7 @@ struct limits {
 	/* write command */
 	int wesource;
 	/* writable? */
-	bool writable;
+	Wahr writable;
 #endif
 	/* getopts char */
 	char optchar;
@@ -171,7 +171,7 @@ struct limits {
 	static const struct {				\
 		int rcmd;				\
 		int wcmd;				\
-		bool writable;				\
+		Wahr writable;				\
 		char optchar;				\
 		char name[sizeof(lname)];		\
 	} rlimits_ ## lg = {				\
@@ -202,7 +202,7 @@ c_ulimit(const char **wp)
 	size_t i = 0;
 	int how = SOFT | HARD, optc;
 	char what = 'f';
-	bool all = false;
+	Wahr all = Nee;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, rlimits_opts)) != -1)
 		switch (optc) {
@@ -213,7 +213,7 @@ c_ulimit(const char **wp)
 			how = SOFT;
 			break;
 		case ORD('a'):
-			all = true;
+			all = Ja;
 			break;
 		case ORD('?'):
 			bi_errorf("usage: ulimit [-%s] [value]", rlimits_opts);
@@ -272,7 +272,7 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 	else {
 		mksh_uari_t rval;
 
-		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, false))
+		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, Nee))
 			return (1);
 		/*
 		 * Avoid problems caused by typos that evaluate misses due
@@ -308,7 +308,7 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 	if (!setrlimit(l->resource, &limit))
 		return (0);
 #else
-	if (l->writable == false) {
+	if (l->writable == Nee) {
 	    /* check.t:ulimit-2 fails if we return 1 and/or do:
 		bi_errorf(Tread_only ": %s", l->name);
 	    */

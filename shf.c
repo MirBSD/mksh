@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.128 2022/01/06 22:35:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.129 2022/02/19 21:22:01 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1388,7 +1388,7 @@ ebcdic_init(void)
 {
 	int i = 256;
 	unsigned char t;
-	bool mapcache[256];
+	Wahr mapcache[256];
 
 	while (i--)
 		ebcdic_rtt_toascii[i] = i;
@@ -1413,7 +1413,7 @@ ebcdic_init(void)
 		 * since there are 256 input octets, this also ensures
 		 * the other mapping direction is completely filled
 		 */
-		mapcache[t] = true;
+		mapcache[t] = Ja;
 		/* fill the complete round-trip map */
 		ebcdic_rtt_fromascii[t] = i;
 		/*

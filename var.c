@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.264 2022/01/28 10:28:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.265 2022/02/19 21:22:03 tg Exp $");
 
 /*-
  * Variables
@@ -61,19 +61,19 @@ typedef union {
 	mksh_uari_t u;
 } mksh_ari_u;
 
-static void c_typeset_vardump(struct tbl *, kui, int, int, bool, bool);
-static void c_typeset_vardump_recursive(struct block *, kui, int, bool,
-    bool);
+static void c_typeset_vardump(struct tbl *, kui, int, int, Wahr, Wahr);
+static void c_typeset_vardump_recursive(struct block *, kui, int, Wahr,
+    Wahr);
 static char *formatstr(struct tbl *, const char *);
 static void exportprep(struct tbl *, const char *, size_t);
 static int special(const char *);
 static void unspecial(const char *);
 static void getspec(struct tbl *);
 static void setspec(struct tbl *);
-static void unsetspec(struct tbl *, bool);
-static int getint(struct tbl *, mksh_ari_u *, bool);
-static int getnum(const char *, mksh_ari_u *, bool, bool);
-static const char *array_index_calc(const char *, bool *, k32 *);
+static void unsetspec(struct tbl *, Wahr);
+static int getint(struct tbl *, mksh_ari_u *, Wahr);
+static int getnum(const char *, mksh_ari_u *, Wahr, Wahr);
+static const char *array_index_calc(const char *, Wahr *, k32 *);
 static struct tbl *vtypeset(int *, const char *, kui, kui, int, int);
 
 /*
@@ -124,7 +124,7 @@ popblock(void)
 			if ((vq = global(vp->name))->flag & ISSET)
 				setspec(vq);
 			else
-				unsetspec(vq, false);
+				unsetspec(vq, Nee);
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
@@ -193,15 +193,15 @@ varsearch(struct block *l, struct tbl **vpp, const char *vn, k32 h)
  * and must be their first callee.
  */
 static const char *
-array_index_calc(const char *n, bool *arrayp, k32 *idxp)
+array_index_calc(const char *n, Wahr *arrayp, k32 *idxp)
 {
 	const char *p;
 	size_t len;
 	char *ap = NULL;
 
-	*arrayp = false;
+	*arrayp = Nee;
  redo_from_ref:
-	p = skip_varname(n, false);
+	p = skip_varname(n, Nee);
 	if ((size_t)(p - n) > (size_t)(INT_MAX - X_EXTRA))
 		kerrf(KWF_ERR(255) | KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG |
 		    KWF_NOERRNO, "parameter name too long");
@@ -232,13 +232,13 @@ array_index_calc(const char *n, bool *arrayp, k32 *idxp)
 		size_t tmplen = p - n;
 
 		/* calculate the value of the subscript */
-		*arrayp = true;
+		*arrayp = Ja;
 		len -= 2;
 		tmp = alloc((len > tmplen ? len : tmplen) + 1, ATEMP);
 		memcpy(tmp, p + 1, len);
 		tmp[len] = '\0';
 		sub = substitute(tmp, 0);
-		evaluate(sub, &rval.i, KSH_UNWIND_ERROR, true);
+		evaluate(sub, &rval.i, KSH_UNWIND_ERROR, Ja);
 		*idxp = K32(rval.u);
 		afree(sub, ATEMP);
 		memcpy(tmp, n, tmplen);
@@ -255,18 +255,18 @@ array_index_calc(const char *n, bool *arrayp, k32 *idxp)
 struct tbl *
 global(const char *n)
 {
-	return (isglobal(n, true));
+	return (isglobal(n, Ja));
 }
 
 /* search for variable; if not found, return NULL or create globally */
 struct tbl *
-isglobal(const char *n, bool docreate)
+isglobal(const char *n, Wahr docreate)
 {
 	struct tbl *vp;
 	union mksh_cchack vname;
 	struct block *l = e->loc;
 	int c;
-	bool array;
+	Wahr array;
 	k32 h;
 	k32 idx;
 
@@ -333,7 +333,7 @@ isglobal(const char *n, bool docreate)
 	if (vp == NULL && docreate)
 		vp = ktenter(&l->vars, vn, h);
 	else
-		docreate = false;
+		docreate = Nee;
 	if (vp != NULL) {
 		if (array)
 			vp = arraysearch(vp, idx);
@@ -354,12 +354,12 @@ isglobal(const char *n, bool docreate)
  * Search for local variable, if not found create locally.
  */
 struct tbl *
-local(const char *n, bool copy)
+local(const char *n, Wahr copy)
 {
 	struct tbl *vp;
 	union mksh_cchack vname;
 	struct block *l = e->loc;
-	bool array;
+	Wahr array;
 	k32 h;
 	k32 idx;
 
@@ -476,7 +476,7 @@ str_val(struct tbl *vp)
 int
 setstr(struct tbl *vq, const char *s, int error_ok)
 {
-	bool no_ro_check = tobool(error_ok & 0x4);
+	Wahr no_ro_check = isWahr(error_ok & 0x4);
 
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
@@ -519,7 +519,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		afree(salloc, ATEMP);
 	} else {
 		/* integer dest */
-		if (!v_evaluate(vq, s, error_ok, true))
+		if (!v_evaluate(vq, s, error_ok, Ja))
 			return (0);
 	}
 	vq->flag |= ISSET;
@@ -547,7 +547,7 @@ setint(struct tbl *vq, mksh_ari_t n)
 }
 
 static int
-getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
+getint(struct tbl *vp, mksh_ari_u *nump, Wahr arith)
 {
 	if (vp->flag & SPECIAL)
 		getspec(vp);
@@ -565,10 +565,10 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 }
 
 static int
-getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
+getnum(const char *s, mksh_ari_u *nump, Wahr arith, Wahr psxoctal)
 {
 	mksh_uari_t c, num = 0, base = 10;
-	bool have_base = false, neg = false;
+	Wahr have_base = Nee, neg = Nee;
 
 	do {
 		c = (unsigned char)*s++;
@@ -576,7 +576,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 
 	switch (c) {
 	case '-':
-		neg = true;
+		neg = Ja;
 		/* FALLTHROUGH */
 	case '+':
 		c = (unsigned char)*s++;
@@ -593,7 +593,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 			/* interpret as octal (deprecated) */
 			base = 8;
  getint_c_style_base:
-			have_base = true;
+			have_base = Ja;
 			c = (unsigned char)*s++;
 		}
 	}
@@ -615,7 +615,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 			} else if (base > 36)
 				base = 10;
 			num = 0;
-			have_base = true;
+			have_base = Ja;
 			continue;
 		}
 		if (ctype(c, C_DIGIT))
@@ -647,7 +647,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
  * (vq and vp may be the same)
  */
 struct tbl *
-setint_v(struct tbl *vq, struct tbl *vp, bool arith)
+setint_v(struct tbl *vq, struct tbl *vp, Wahr arith)
 {
 	int base;
 	mksh_ari_u num;
@@ -800,7 +800,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 	char *tvar, tvarbuf[32];
 	const char *val;
 	size_t len;
-	bool vappend = false;
+	Wahr vappend = Nee;
 	enum namerefflag new_refflag = SRF_NOP;
 
 	if (ep)
@@ -816,7 +816,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 	}
 
 	/* check for valid variable name, search for value */
-	val = skip_varname(var, false);
+	val = skip_varname(var, Nee);
 	if (val == var) {
 		/* no variable name given */
 		return (NULL);
@@ -841,7 +841,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 
 			len -= 2;
 			strnbdupx(tvar, val + 1, len, ATEMP, tvarbuf);
-			if (getnum(tvar, &num, true, false) == -1)
+			if (getnum(tvar, &num, Ja, Nee) == -1)
 				len = 0;
 			if (tvar != tvarbuf)
 				afree(tvar, ATEMP);
@@ -862,7 +862,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 		len = val - var;
 		strnbdupx(tvar, var, len, ATEMP, tvarbuf);
 		val += 2;
-		vappend = true;
+		vappend = Ja;
 	} else if (val[0] != '\0') {
 		/* other invalid variable names (not from environment) */
 		return (NULL);
@@ -894,7 +894,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 			qval = str_val(vp);
 		}
 		/* check target value for being a valid variable name */
-		ccp = skip_varname(qval, false);
+		ccp = skip_varname(qval, Nee);
 		if (ccp == qval) {
 			int c;
 
@@ -947,7 +947,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 		    KWF_TWOMSG | KWF_NOERRNO, tvar, "restricted"));
 
 	innermost_refflag = new_refflag;
-	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
+	vp = (set & LOCAL) ? local(tvar, isWahr(set & LOCAL_COPY)) :
 	    global(tvar);
 	/* when importing environment, resolve duplicates as first-wins */
 	/* the EXPORT check is to permit overwriting the default $PATH */
@@ -991,14 +991,14 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 
 	/* most calls are with set/clr == 0 */
 	if (set | clr) {
-		bool ok = true;
+		Wahr ok = Ja;
 
 		/*
 		 * XXX if x[0] isn't set, there will be problems: need
 		 * to have one copy of attributes for arrays...
 		 */
 		for (t = vpbase; t; t = t->u.array) {
-			bool fake_assign;
+			Wahr fake_assign;
 			const char *s = NULL;
 			char *free_me = NULL;
 
@@ -1035,8 +1035,8 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 				if ((t->flag & IMPORT) && fake_assign) {
 					mksh_ari_u num;
 
-					if (getnum(s, &num, true,
-					    tobool(Flag(FPOSIX))) == -1)
+					if (getnum(s, &num, Ja,
+					    isWahr(Flag(FPOSIX))) == -1)
 						s = "0";
 					clr |= IMPORT;
 				}
@@ -1052,7 +1052,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 					 * variable, but keep the flag
 					 * settings.
 					 */
-					ok = false;
+					ok = Nee;
 					if (t->flag & INTEGER)
 						t->flag &= ~ISSET;
 					else {
@@ -1143,7 +1143,7 @@ unset(struct tbl *vp, int flags)
 	vp->flag &= SPECIAL | ((flags & 1) ? 0 : ARRAY|DEFINED);
 	if (vp->flag & SPECIAL)
 		/* responsible for 'unspecial'ing var */
-		unsetspec(vp, true);
+		unsetspec(vp, Ja);
 }
 
 /*
@@ -1152,7 +1152,7 @@ unset(struct tbl *vp, int flags)
  * the terminating NUL if whole string is legal).
  */
 const char *
-skip_varname(const char *s, bool aok)
+skip_varname(const char *s, Wahr aok)
 {
 	size_t alen;
 
@@ -1170,7 +1170,7 @@ skip_varname(const char *s, bool aok)
 const char *
 skip_wdvarname(const char *s,
     /* skip array de-reference? */
-    bool aok)
+    Wahr aok)
 {
 	if (s[0] == CHAR && ctype(s[1], C_ALPHX)) {
 		do {
@@ -1201,7 +1201,7 @@ skip_wdvarname(const char *s,
 
 /* Check if coded string s is a variable name */
 int
-is_wdvarname(const char *s, bool aok)
+is_wdvarname(const char *s, Wahr aok)
 {
 	const char *p = skip_wdvarname(s, aok);
 
@@ -1212,7 +1212,7 @@ is_wdvarname(const char *s, bool aok)
 int
 is_wdvarassign(const char *s)
 {
-	const char *p = skip_wdvarname(s, true);
+	const char *p = skip_wdvarname(s, Ja);
 
 	return (p != s && p[0] == CHAR &&
 	    (p[1] == '=' || (p[1] == '+' && p[2] == CHAR && p[3] == '=')));
@@ -1446,7 +1446,7 @@ setspec(struct tbl *vp)
 		s = str_val(vp);
 		strdupx(path, s, APERM);
 		/* clear tracked aliases */
-		flushcom(true);
+		flushcom(Ja);
 		return;
 #ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
@@ -1487,7 +1487,7 @@ setspec(struct tbl *vp)
 	case V_SECONDS:
 	case V_TMOUT:
 		vp->flag &= ~SPECIAL;
-		if (getint(vp, &num, false) == -1) {
+		if (getint(vp, &num, Nee) == -1) {
 			s = str_val(vp);
 			if (st != V_RANDOM)
 				kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
@@ -1552,7 +1552,7 @@ setspec(struct tbl *vp)
 }
 
 static void
-unsetspec(struct tbl *vp, bool dounset)
+unsetspec(struct tbl *vp, Wahr dounset)
 {
 	/*
 	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
@@ -1582,7 +1582,7 @@ unsetspec(struct tbl *vp, bool dounset)
 		afree(path, APERM);
 		strdupx(path, def_path, APERM);
 		/* clear tracked aliases */
-		flushcom(true);
+		flushcom(Ja);
 		return;
 #ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
@@ -1711,7 +1711,7 @@ arraybase(const char *str)
 
 /* set (or overwrite, if reset) the array variable var to the values in vals */
 mksh_uari_t
-set_array(const char *var, bool reset, const char **vals)
+set_array(const char *var, Wahr reset, const char **vals)
 {
 	struct tbl *vp, *vq;
 	mksh_uari_t i = 0, j = 0;
@@ -1723,7 +1723,7 @@ set_array(const char *var, bool reset, const char **vals)
 	n = strlen(var);
 	if (n > 0 && var[n - 1] == '+') {
 		/* append mode */
-		reset = false;
+		reset = Nee;
 		strndupx(cp, var, n - 1, ATEMP);
 		ccp = cp;
 	}
@@ -1775,7 +1775,7 @@ set_array(const char *var, bool reset, const char **vals)
 				strndupx(cp, vals[i] + 1, ccp - (vals[i] + 1),
 				    ATEMP);
 				evaluate(substitute(cp, 0), (mksh_ari_t *)&j,
-				    KSH_UNWIND_ERROR, true);
+				    KSH_UNWIND_ERROR, Ja);
 				afree(cp, ATEMP);
 				ccp += 2;
 			} else
@@ -1853,7 +1853,7 @@ chvt_rndsetup(const void *bp, size_t sz)
 
 	/* use LCG as seed but try to get them to deviate immediately */
 	h = lcg_state;
-	(void)rndget();
+	rndget();
 	BAFHFinish(h);
 	/* variation through pid, ppid, and the works */
 	BAFHUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
@@ -1950,7 +1950,7 @@ record_match(const char *istr)
 {
 	struct tbl *vp;
 
-	vp = local("KSH_MATCH", false);
+	vp = local("KSH_MATCH", Nee);
 	unset(vp, 1);
 	vp->flag = DEFINED | RDONLY;
 	setstr(vp, istr, 0x4);
@@ -1966,7 +1966,7 @@ c_typeset(const char **wp)
 	struct block *l;
 	const char *opts;
 	const char *fieldstr = NULL, *basestr = NULL;
-	bool localv = false, func = false, pflag = false, istset = true;
+	Wahr localv = Nee, func = Nee, pflag = Nee, istset = Ja;
 	enum namerefflag new_refflag = SRF_NOP;
 
 	switch (**wp) {
@@ -1974,13 +1974,13 @@ c_typeset(const char **wp)
 	/* export */
 	case 'e':
 		fset |= EXPORT;
-		istset = false;
+		istset = Nee;
 		break;
 
 	/* readonly */
 	case 'r':
 		fset |= RDONLY;
-		istset = false;
+		istset = Nee;
 		break;
 
 	/* set */
@@ -1990,7 +1990,7 @@ c_typeset(const char **wp)
 
 	/* typeset */
 	case 't':
-		localv = true;
+		localv = Ja;
 		break;
 	}
 
@@ -2038,10 +2038,10 @@ c_typeset(const char **wp)
 			 */
 			break;
 		case 'f':
-			func = true;
+			func = Ja;
 			break;
 		case 'g':
-			localv = (builtin_opt.info & GI_PLUS) ? true : false;
+			localv = isWahr(builtin_opt.info & GI_PLUS);
 			break;
 		case 'i':
 			flag = INTEGER;
@@ -2057,7 +2057,7 @@ c_typeset(const char **wp)
 		/* export, readonly: POSIX -p flag */
 		case 'p':
 			/* typeset: show values as well */
-			pflag = true;
+			pflag = Ja;
 			if (istset)
 				continue;
 			break;
@@ -2163,7 +2163,7 @@ c_typeset(const char **wp)
 		for (i = builtin_opt.optind; wp[i]; i++) {
 			if (func) {
 				f = findfunc(wp[i], hash(wp[i]),
-				    tobool(fset & UCASEV_AL));
+				    isWahr(fset & UCASEV_AL));
 				if (!f) {
 					/* AT&T ksh does ++rv: bogus */
 					rv = 1;
@@ -2174,7 +2174,7 @@ c_typeset(const char **wp)
 					f->flag &= ~fclr;
 				} else {
 					fpFUNCTf(shl_stdout, 0,
-					    tobool(f->flag & FKSH),
+					    isWahr(f->flag & FKSH),
 					    wp[i], f->val.t);
 					shf_putc('\n', shl_stdout);
 				}
@@ -2201,7 +2201,7 @@ c_typeset(const char **wp)
 					continue;
 				if (thing == '-')
 					fpFUNCTf(shl_stdout, 0,
-					    tobool(vp->flag & FKSH),
+					    isWahr(vp->flag & FKSH),
 					    vp->name, vp->val.t);
 				else
 					shf_puts(vp->name, shl_stdout);
@@ -2210,7 +2210,7 @@ c_typeset(const char **wp)
 		}
 	} else if (wp[builtin_opt.optind]) {
 		for (i = builtin_opt.optind; wp[i]; i++) {
-			vp = isglobal(wp[i], false);
+			vp = isglobal(wp[i], Nee);
 			c_typeset_vardump(vp, flag, thing,
 			    last_lookup_was_array ? 4 : 0, pflag, istset);
 		}
@@ -2221,7 +2221,7 @@ c_typeset(const char **wp)
 
 static void
 c_typeset_vardump_recursive(struct block *l, kui flag, int thing,
-    bool pflag, bool istset)
+    Wahr pflag, Wahr istset)
 {
 	struct tbl **blockvars, *vp;
 
@@ -2235,7 +2235,7 @@ c_typeset_vardump_recursive(struct block *l, kui flag, int thing,
 
 static void
 c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
-    bool pflag, bool istset)
+    Wahr pflag, Wahr istset)
 {
 	struct tbl *tvp;
 
@@ -2269,7 +2269,7 @@ c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
 		/* optimise later conditionals */
 		any_set = 0;
 	do {
-		bool baseone = false;
+		Wahr baseone = Nee;
 
 		/*
 		 * Ignore array elements that aren't set unless there
@@ -2294,7 +2294,7 @@ c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
 				shprintf(Tf__c_, 'n');
 			if ((vp->flag & INTEGER)) {
 				if (vp->type == 1) {
-					baseone = true;
+					baseone = Ja;
 					shf_puts("-i1 ", shl_stdout);
 				} else
 					shprintf(Tf__c_, 'i');

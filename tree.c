@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.112 2021/11/12 05:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.113 2022/02/19 21:22:02 tg Exp $");
 
 #define INDENT	8
 
@@ -35,11 +35,11 @@ static struct ioword **iocopy(struct ioword **, Area *);
 static void iofree(struct ioword **, Area *);
 
 /* "foo& ; bar" and "foo |& ; bar" are invalid */
-static bool prevent_semicolon;
+static Wahr prevent_semicolon;
 
 /* here document diversion */
 static unsigned short ptree_nest;
-static bool ptree_hashere;
+static Wahr ptree_hashere;
 static struct shf ptree_heredoc;
 #define ptree_outhere(shf) do {					\
 	if (ptree_hashere) {					\
@@ -49,8 +49,8 @@ static struct shf ptree_heredoc;
 		shf_puts(ptree_thehere, (shf));			\
 		shf_putc('\n', (shf));				\
 		afree(ptree_thehere, ATEMP);			\
-		ptree_hashere = false;				\
-		/*prevent_semicolon = true;*/			\
+		ptree_hashere = Nee;				\
+		/*prevent_semicolon = Ja;*/			\
 	}							\
 } while (/* CONSTCOND */ 0)
 
@@ -73,7 +73,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		return;
 	switch (t->type) {
 	case TCOM:
-		prevent_semicolon = false;
+		prevent_semicolon = Nee;
 		/* special-case 'var=<<EOF' (cf. exec.c:execute) */
 		if (t->args &&
 		    /* we have zero arguments, i.e. no program to run */
@@ -86,7 +86,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		    /* of type "here document" (or "here string") */
 		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE &&
 		    /* the variable assignment begins with a valid varname */
-		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
+		    (ccp = skip_wdvarname(t->vars[0], Ja)) != t->vars[0] &&
 		    /* and has no right-hand side (i.e. "varname=") */
 		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
 		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
@@ -144,7 +144,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	case TBANG:
 		shf_puts("! ", shf);
-		prevent_semicolon = false;
+		prevent_semicolon = Nee;
 		t = t->right;
 		goto Chain;
 	case TDBRACKET:
@@ -228,21 +228,21 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	case TCOPROC:
 		fptreef(shf, indent, "%T|& ", t->left);
-		prevent_semicolon = true;
+		prevent_semicolon = Ja;
 		break;
 	case TASYNC:
 		fptreef(shf, indent, "%T& ", t->left);
-		prevent_semicolon = true;
+		prevent_semicolon = Ja;
 		break;
 	case TFUNCT:
-		fpFUNCTf(shf, indent, tobool(t->u.ksh_func), t->str, t->left);
+		fpFUNCTf(shf, indent, isWahr(t->u.ksh_func), t->str, t->left);
 		break;
 	case TTIME:
 		fptreef(shf, indent, Tf_s_T, Ttime, t->left);
 		break;
 	default:
 		shf_puts("<botch>", shf);
-		prevent_semicolon = false;
+		prevent_semicolon = Nee;
 		break;
 	}
 	if ((ioact = t->ioact) != NULL)
@@ -281,7 +281,7 @@ pioact(struct shf *shf, struct ioword *iop)
 			if (!ptree_hashere) {
 				shf_sopen(NULL, 0, SHF_WR | SHF_DYNAMIC,
 				    &ptree_heredoc);
-				ptree_hashere = true;
+				ptree_hashere = Ja;
 			}
 			shf_putc('\n', &ptree_heredoc);
 			shf_puts(iop->heredoc, &ptree_heredoc);
@@ -317,7 +317,7 @@ pioact(struct shf *shf, struct ioword *iop)
 			wdvarput(shf, iop->ioname, 0, WDS_TPUTS);
 	}
 	shf_putc(' ', shf);
-	prevent_semicolon = false;
+	prevent_semicolon = Nee;
 }
 
 /* variant of fputs for ptreef and wdstrip */
@@ -475,7 +475,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 	int c;
 
 	if (!ptree_nest++)
-		ptree_hashere = false;
+		ptree_hashere = Nee;
 
 	while ((c = ord(*fmt++))) {
 		if (c == '%') {
@@ -536,7 +536,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 			}
 		} else
 			shf_putc(c, shf);
-		prevent_semicolon = false;
+		prevent_semicolon = Nee;
  dont_trash_prevent_semicolon:
 		;
 	}
@@ -776,7 +776,7 @@ iofree(struct ioword **iow, Area *ap)
 }
 
 void
-fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
+fpFUNCTf(struct shf *shf, int i, Wahr isksh, const char *k, struct op *v)
 {
 	if (isksh)
 		fptreef(shf, i, "%s %s %T", Tfunction, k, v);
@@ -998,7 +998,7 @@ uwidthmbT(char *cp, char **dcp)
 #endif
 
 const char *
-uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
+uprntmbs(const char *cp, Wahr esc_caret, struct shf *shf)
 {
 	unsigned char c;
 	unsigned int wc;
@@ -1117,7 +1117,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 		case COMSUB:
 			shf_puts("COMSUB<", shf);
  dumpsub:
-			wp = uprntmbs(wp, false, shf) + 1;
+			wp = uprntmbs(wp, Nee, shf) + 1;
  closeandout:
 			shf_putc('>', shf);
 			break;
@@ -1147,7 +1147,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("OSUBST(", shf);
 			uprntc(*wp++, shf);
 			shf_puts(")[", shf);
-			wp = uprntmbs(wp, false, shf) + 1;
+			wp = uprntmbs(wp, Nee, shf) + 1;
 			shf_putc('|', shf);
 			wp = dumpwdvar_i(shf, wp, 0);
 			break;
