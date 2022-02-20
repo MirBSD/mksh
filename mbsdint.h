@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.2 2022/01/28 03:49:12 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.3 2022/02/20 00:10:38 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 
@@ -213,6 +213,7 @@ mbiCTAS(mbsdint_h) {
 #endif
  /* require pointers and size_t to take up the same amount of space */
  mbiCTA(sizet_voidptr, sizeof(size_t) == sizeof(void *));
+ mbiCTA(sizet_sintptr, sizeof(size_t) == sizeof(int *));
  mbiCTA(sizet_funcptr, sizeof(size_t) == sizeof(void (*)(void)));
 #if 0 /* breaks on LLP64 (e.g. Windows/amd64) */
  mbiCTA(sizet_inulong, sizeof(size_t) <= sizeof(long));
