@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.4 2022/02/23 19:56:30 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.5 2022/02/23 20:08:45 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 
@@ -309,8 +309,8 @@ mbiCTAS(mbsdint_h) {
 		mbiCfail;						\
 	(vl) -= (vr);							\
 } while (/* CONSTCOND */ 0)
-#define mbiCAUmul(vl,vr)	do {					\
-	if (__predict_false((((vl) * (vr)) / (vr)) < (vl)))		\
+#define mbiCAUmul(ut,vl,vr)	do {					\
+	if (__predict_false((ut)((ut)((vl) * (vr)) / (vr)) < (vl)))	\
 		mbiCfail;						\
 	(vl) *= (vr);							\
 } while (/* CONSTCOND */ 0)
