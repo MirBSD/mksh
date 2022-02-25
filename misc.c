@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.344 2022/02/19 21:21:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.345 2022/02/25 21:14:33 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -646,6 +646,9 @@ simplify_gmatch_pattern(const unsigned char *sp)
 #ifndef MKSH_SMALL
 		case ORD('['):
 			if (ISMAGIC(sp[0]) && ord(sp[1]) == ORD('^')) {
+#ifdef MKSH_LEGACY_MODE
+				if (!Flag(FPOSIX)) /* skip warn as /bin/sh */
+#endif
 				/* https://www.austingroupbugs.net/view.php?id=1558 */
 				kwarnf(KWF_WARNING | KWF_PREFIX | KWF_FILELINE |
 				    KWF_BUILTIN | KWF_ONEMSG | KWF_NOERRNO,
