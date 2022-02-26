@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.6 2022/02/26 05:32:56 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.7 2022/02/26 05:38:05 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 
@@ -281,7 +281,7 @@ mbiCTAS(mbsdint_h) {
 				(ut)((ut)(v) & (ut)(HM)))
 #define mbiMA_VZM2U(ut,FM,HM,vz,m) \
 				(((vz) && mbiMM(ut, (FM), (m)) > 0) ? \
-				(ut)(~(ut)(((m) - (ut)1) & (ut)(HM)) & (ut)(FM)) : \
+				mbiMM(ut, (FM), ~(ut)(((m) - (ut)1) & (ut)(HM))) : \
 				(ut)((m) & (ut)(HM)))
 #define mbiMA_VZU2U(ut,FM,vz,u)	mbiMM(ut, (FM), mbiA_VZU2U(ut, (vz), (u)))
 #define mbiMA_U2VZ(ut,FM,SM,v)	(mbiMM(ut, (FM), (v)) > (ut)(SM)) /* SM==HM */
