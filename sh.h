@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.982 2022/02/19 21:22:00 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.983 2022/02/26 05:32:56 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -212,6 +212,21 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KBI(c)	((kui)(KUI(c) & 0xFFU))	/* byte as u_int, truncated */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
 #define K32(u)	((k32)(KUI(u) & 0xFFFFFFFFU))
+
+/*XXX TODO:
+ * arithmetic type need not be long, it can be unsigned int if we can
+ * guarantee that it’s exactly⚠ 32 bit wide; in the !lksh case, never
+ * shall a signed integer be needed; for lksh signed arithmetic, only
+ * I think, the values need to be converted temporarily; !lksh signed
+ * arithmetic is instead done in unsigned; kul → kua (ksl → ksa lksh)
+ */
+#ifdef MKSH_LEGACY_MODE
+#define KUA_HM		((kul)(LONG_MAX))
+#define KUA_FM		((kul)(ULONG_MAX))
+#else
+#define KUA_HM		((kul)0x7FFFFFFFUL)
+#define KUA_FM		((kul)0xFFFFFFFFUL)
+#endif
 
 /* arithmetic types: shell arithmetics */
 

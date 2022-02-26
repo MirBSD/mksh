@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.120 2022/02/19 21:21:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.121 2022/02/26 05:32:55 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -376,14 +376,17 @@ evalexpr(Expr_state *es, unsigned int prec)
 			vr = intvar(es, evalexpr(es, prec - 1));
 
 		/* op calculation */
-#define cmpop(op)	(es->natural ?			\
-	(mksh_uari_t)(vl->val.u op vr->val.u) :		\
-	(mksh_uari_t)(vl->val.i op vr->val.i)		\
-)
 #ifndef MKSH_LEGACY_MODE
 #define ariop(op)	(vl->val.u op vr->val.u)
+#define cmpop(op)	(es->natural ?			\
+	(mksh_uari_t)(vl->val.u op vr->val.u) :		\
+	(mksh_uari_t)mbiKcmp(mksh_uari_t, KUA_HM,	\
+	    vl->val.u, op, vr->val.u))
 #else
-#define ariop(op)	cmpop(op)
+#define ariop(op)	(es->natural ?			\
+	(mksh_uari_t)(vl->val.u op vr->val.u) :		\
+	(mksh_uari_t)(vl->val.i op vr->val.i))
+#define cmpop(op)	ariop(op)
 #endif
 		switch ((int)op) {
 		case O_PLUS:
@@ -400,6 +403,20 @@ evalexpr(Expr_state *es, unsigned int prec)
 			break;
 		case O_DIV:
 		case O_DIVASN:
+			if (vr->val.i == 0) {
+				if (!es->noassign)
+					evalerr(es, ET_STR, "zero divisor");
+				res = vl->val.u; /* dummy value, could be 1 */
+				break;
+			}
+#ifndef MKSH_LEGACY_MODE
+			if (!es->natural)
+				res = mbiKdiv(mksh_uari_t, KUA_HM,
+				    vl->val.u, vr->val.u);
+			else
+#endif
+				res = ariop(/);
+			break;
 		case O_MOD:
 		case O_MODASN:
 			if (vr->val.i == 0) {
@@ -409,36 +426,27 @@ evalexpr(Expr_state *es, unsigned int prec)
 				break;
 			}
 #ifndef MKSH_LEGACY_MODE
-			if (!es->natural) {
-				mksh_uari_t u1, u2;
-
-				mbiVASdivrem(mksh_uari_t, mksh_ari_t,
-				    u1, u2, vl->val.i, vr->val.i);
-				if (op == O_DIV || op == O_DIVASN)
-					res = u1;
-				else
-					res = u2;
-			} else
-#endif
-			  if (op == O_DIV || op == O_DIVASN)
-				res = ariop(/);
+			if (!es->natural)
+				res = mbiKrem(mksh_uari_t, KUA_HM,
+				    vl->val.u, vr->val.u);
 			else
+#endif
 				res = ariop(%);
 			break;
 #ifndef MKSH_LEGACY_MODE
 		case O_ROL:
 		case O_ROLASN:
-			mbiVAUrol(mksh_uari_t, res, vl->val.u, vr->val.u);
+			res = mbiKrol(mksh_uari_t, vl->val.u, vr->val.u);
 			break;
 		case O_ROR:
 		case O_RORASN:
-			mbiVAUror(mksh_uari_t, res, vl->val.u, vr->val.u);
+			res = mbiKror(mksh_uari_t, vl->val.u, vr->val.u);
 			break;
 #endif
 		case O_LSHIFT:
 		case O_LSHIFTASN:
 #ifndef MKSH_LEGACY_MODE
-			mbiVAUshl(mksh_uari_t, res, vl->val.u, vr->val.u);
+			res = mbiKshl(mksh_uari_t, vl->val.u, vr->val.u);
 #else
 			res = ariop(<<);
 #endif
@@ -446,7 +454,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_RSHIFT:
 		case O_RSHIFTASN:
 #ifndef MKSH_LEGACY_MODE
-			mbiVAUshr(mksh_uari_t, res,
+			res = mbiKsar(mksh_uari_t,
 			    !es->natural && vl->val.i < 0,
 			    vl->val.u, vr->val.u);
 #else
@@ -506,6 +514,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 			res = vr->val.u;
 			break;
 		}
+#undef ariop
 #undef cmpop
 
 		if (IS_ASSIGNOP(op)) {
