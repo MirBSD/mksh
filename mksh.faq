@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.32 2022/01/25 06:07:32 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.33 2022/02/28 21:13:04 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -581,6 +581,18 @@ Title: ${@?}: bad substitution
  this extension; for example, trimming <tt>${@#foo}</tt> could be
  applied to <tt>$1</tt> only and <tt>${@?}</tt> can be replaced
  with a test whether <tt>$# -eq 0</tt>.</p>
+----
+ToC: lineno
+Title: error line numbers are… somewhat close
+
+<p>For block constructs (such as <tt>if</tt>) and function calls,
+ the shell currently reports the line number of the call site (the
+ trailing <tt>fi</tt>), not the line with the command where the
+ actual error occurred.</p>
+<p>While unfortunate, the line numbers are currently only updated
+ when reading commands, not tracked through the internal AST. This
+ is not easy to change and therefore will only be fixed as part of
+ introduction of BASH_SOURCE, FUNCNAME, BASH_LINENO, etc.</p>
 ----
 ToC: extensions-to-avoid
 Title: Are there any extensions to avoid?
