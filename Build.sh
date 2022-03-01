@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.823 2022/02/19 21:21:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.824 2022/03/01 19:42:04 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -691,8 +691,8 @@ if test -d $tfn || test -d $tfn.exe; then
 fi
 test x"$use_ach" = x"1" || use_ach=0
 cpp_define MKSH_BUILDSH 1
-rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
-    *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out *.htm
+rmf a.exe* a.out* conftest.* *core core.* ${tfn}* *.bc *.dbg *.ll *.o *.cat? \
+    *.gen Rebuild.sh Makefrag.inc lft no signames.inc test.sh x vv.out *.htm
 
 SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -2920,37 +2920,49 @@ echo tcfn=$buildoutput >>Rebuild.sh
 echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
+	extras='emacsfn.h exprtok.h mbsdint.h mirhash.h mksh.faq rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
 	test 0 = $HAVE_SOME_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do
 		genf=`basename "$file" | sed 's/.opt$/.gen/'`
 		gens="$gens $genf"
-		genq="$genq$nl$genf: $srcdir/Build.sh $srcdir/$file
-			srcfile=$srcdir/$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
+		genq="$genq$nl$genf: \$(SRCDIR)/Build.sh \$(SRCDIR)/$file
+			srcfile=\$(SRCDIR)/$file; BUILDSH_RUN_GENOPT=1; . \$(SRCDIR)/Build.sh"
 	done
+	if test $legacy = 0; then
+		manpage=mksh.1
+	else
+		manpage=lksh.1
+	fi
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building $whatlong $dstversion
 
 PROG=		$buildoutput
-MAN=		mksh.1
+MAN=		$manpage
+FAQ=		FAQ.htm
+SRCDIR=		$srcdir
 SRCS=		$SRCS
 SRCS_FP=	$files
 OBJS_BP=	$objs
 INDSRCS=	$extras
 NONSRCS_INST=	dot.mkshrc \$(MAN)
-NONSRCS_NOINST=	Build.sh Makefile Rebuild.sh check.pl check.t test.sh
+NONSRCS_NOINST=	Build.sh FAQ2HTML.sh Makefile Rebuild.sh check.pl check.t mksh.ico test.sh
 CC=		$CC
 CPPFLAGS=	$CPPFLAGS
 CFLAGS=		$CFLAGS $Cg
 LDFLAGS=	$LDFLAGS
 LIBS=		$LIBS
 
+# for all make variants:
+#all: \$(PROG) \$(FAQ)
+
 .depend \$(OBJS_BP):$gens$genq
 
+FAQ.htm: \$(SRCDIR)/FAQ2HTML.sh \$(SRCDIR)/mksh.faq
+	\$(SHELL) \$(SRCDIR)/FAQ2HTML.sh \$(SRCDIR)/mksh.faq
+
 # not BSD make only:
-#VPATH=		$srcdir
-#all: \$(PROG)
+#VPATH=		\$(SRCDIR)
 #\$(PROG): \$(OBJS_BP)
 #	\$(CC) \$(CFLAGS) \$(LDFLAGS) -o \$@ \$(OBJS_BP) \$(LIBS)
 #\$(OBJS_BP): \$(SRCS_FP) \$(NONSRCS)
@@ -2964,7 +2976,7 @@ LIBS=		$LIBS
 check_categories=$check_categories
 
 # for BSD make only:
-#.PATH: $srcdir
+#.PATH: \$(SRCDIR)
 #.include <bsd.prog.mk>
 EOF
 	$e
