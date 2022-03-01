@@ -1,7 +1,8 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.190 2022/01/28 07:01:55 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.191 2022/03/01 21:55:18 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021,
+#		2022
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -71,6 +72,9 @@ CPPFLAGS+=	-I.
 COPTS+=		-std=c89 -U__STRICT_ANSI__ -Wall
 .endif
 
+TEST_BUILD_ENV:=	TARGET_OS= CPP=
+TEST_BUILD_ENV+=	HAVE_STRING_POOLING=0
+
 USE_PRINTF_BUILTIN?=	0
 .if ${USE_PRINTF_BUILTIN} == 1
 .PATH: ${BSDSRCDIR}/usr.bin/printf
@@ -83,6 +87,7 @@ KSH_ULIMIT2_TEST?=	0
 CPPFLAGS+=	-DKSH_ULIMIT2_TEST -UHAVE_RLIMIT -DHAVE_RLIMIT=0
 LDFLAGS+=	-L${BSDSRCDIR:Q}/contrib/code/Snippets
 LDADD+=		-lulimit
+TEST_BUILD_ENV+=HAVE_RLIMIT=0
 .endif
 
 DEBUGFILE?=	No
@@ -123,9 +128,6 @@ regress: ${PROG} check.pl check.t
 	    -s ${SRCDIR}/check.t -v -p ./${PROG} \
 	    -C ${REGRESS_CATEGORIES}
 
-TEST_BUILD_ENV:=	TARGET_OS= CPP=
-TEST_BUILD_ENV+=	HAVE_STRING_POOLING=0
-
 test-build: .PHONY
 	-rm -rf build-dir
 	mkdir -p build-dir
@@ -134,8 +136,8 @@ test-build: .PHONY
 .endif
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
-	    LIBS= NOWARN=-Wno-error ${TEST_BUILD_ENV} /bin/sh \
-	    ${SRCDIR}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
+	    LIBS=${LDADD:Q} NOWARN=-Wno-error ${TEST_BUILD_ENV} \
+	    /bin/sh ${SRCDIR:Q}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
 
 CLEANFILES+=	lksh.cat1
 test-build-lksh: .PHONY
