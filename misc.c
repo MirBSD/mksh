@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.345 2022/02/25 21:14:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.346 2022/03/01 21:56:04 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -1289,12 +1289,10 @@ ascpstrcmp(const void *pstr1, const void *pstr2)
 void
 ksh_getopt_reset(Getopt *go, int flags)
 {
+	memset(go, '\0', sizeof(Getopt));
 	go->optind = 1;
 	go->optarg = NULL;
-	go->p = 0;
 	go->flags = flags;
-	go->info = 0;
-	go->buf[1] = '\0';
 }
 
 /**
