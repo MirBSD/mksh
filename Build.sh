@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.824 2022/03/01 19:42:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.825 2022/03/01 19:56:49 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2976,6 +2976,7 @@ FAQ.htm: \$(SRCDIR)/FAQ2HTML.sh \$(SRCDIR)/mksh.faq
 check_categories=$check_categories
 
 # for BSD make only:
+#CPPFLAGS+=	-I\$(.CURDIR)
 #.PATH: \$(SRCDIR)
 #.include <bsd.prog.mk>
 EOF
