@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.250 2022/02/19 21:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.251 2022/03/02 19:15:05 tg Exp $");
 
 /*
  * string expansion
@@ -2114,8 +2114,10 @@ valsub(struct op *t, Area *ap)
 {
 	char *cp;
 	struct tbl * volatile vp;
+	struct block * volatile l;
 	int i;
 
+	l = e->loc;
 	newenv(E_FUNC);
 	newblock();
 	vp = local(TREPLY, Nee);
@@ -2123,6 +2125,8 @@ valsub(struct op *t, Area *ap)
 		execute(t, XXCOM, NULL);
 		i = LRETURN;
 	}
+	l->argc = e->loc->argc;
+	l->argv = e->loc->argv;
 	strdupx(cp, str_val(vp), ap);
 	quitenv(NULL);
 	/* see CFUNC case in exec.c:comexec() */
@@ -2131,12 +2135,18 @@ valsub(struct op *t, Area *ap)
 
 	return (cp);
 }
+
 static void
 funsub(struct op *t)
 {
+	struct block * volatile l;
+
+	l = e->loc;
 	newenv(E_FUNC);
 	newblock();
 	if (!kshsetjmp(e->jbuf))
 		execute(t, XXCOM | XERROK, NULL);
+	l->argc = e->loc->argc;
+	l->argv = e->loc->argv;
 	quitenv(NULL);
 }

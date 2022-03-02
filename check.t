@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.895 2022/02/08 20:53:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.896 2022/03/02 19:15:02 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/02/08
+	KSH R59 2022/03/02
 description:
 	Check base version of full shell
 stdin:
@@ -13016,6 +13016,27 @@ expected-stdout:
 	1 <1>
 expected-stderr:
 	ERR
+---
+name: funsub-valsub-1
+description:
+	This is what AT&T ksh93 does for shift
+stdin:
+	"$__progname" -c 'echo a. "$@"; : "${ shift;}"; echo b. "$@"' sh1 1a 1b
+	"$__progname" -c 'echo a. "$@"; : "${|shift;}"; echo b. "$@"' sh2 2a 2b
+	"$__progname" -c 'echo a. "$@"; : "${|shift;shift;}"; echo b. "$@"' sh3 3a 3b
+	echo >&2 =1
+	"$__progname" -c 'echo a. "$@"; : "${|shift;shift;shift;}"; echo b. "$@"' sh4 4a 4b
+	echo >&2 =2
+expected-stdout:
+	a. 1a 1b
+	b. 1b
+	a. 2a 2b
+	b. 2b
+	a. 3a 3b
+	b.
+	a. 4a 4b
+expected-stderr-pattern:
+	/^=1\n[^\n]*nothing to shift[^\n]*\n=2$/
 ---
 name: event-subst-3
 description:
