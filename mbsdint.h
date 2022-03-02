@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.7 2022/02/26 05:38:05 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.8 2022/03/02 23:51:12 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 
@@ -64,9 +64,9 @@
 	/* runtime only, but see mbiCTA_TYPE_NOTF */
 #define mbiTYPE_ISF(type)	((double)0.5 == (double)(type)0.5)
 	/* compile-time and runtime */
-#define mbiTYPE_ISU(type)	((type)-1 > 0)
+#define mbiTYPE_ISU(type)	((type)-1 > (type)0)
 /* limits of types */
-#define mbiTYPE_UMAX(type)	((type)~(type)0)
+#define mbiTYPE_UMAX(type)	((type)~(type)0U)
 #define mbiTYPE_UBITS(type)	mbiMASK_BITS(mbiTYPE_UMAX(type))
 /* calculation by Hallvard B Furuseth (from comp.lang.c), up to 2039 bits */
 #define mbiMASK_BITS(maxv)	((unsigned int)((maxv) / ((maxv) % 255 + 1) / \
@@ -94,6 +94,7 @@
 				    mbi_maskchkF(v), mbi_maskchkF(v >> 4))
 #define mbi_maskchkF(v)		(v == 0xF || v == 7 || v == 3 || v == 1 || !v)
 
+#ifndef MBSDINT_H_SKIP_CTAS
 /* compile-time assertions for mbsdint.h */
 mbiCTAS(mbsdint_h) {
  /* compiler (in)sanity, from autoconf */
@@ -108,6 +109,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(signed char) == 1 &&
 	sizeof(unsigned char) == 1 &&
 	mbiMASK_CHK(SCHAR_MAX) && mbiMASK_CHK(UCHAR_MAX) &&
+	mbiTYPE_UBITS(unsigned char) >= 8 && (SCHAR_MIN) < 0 &&
 	((SCHAR_MIN) == -(SCHAR_MAX) || (SCHAR_MIN)+1 == -(SCHAR_MAX)) &&
 	mbiTYPE_UBITS(unsigned char) == (unsigned int)(CHAR_BIT));
  mbiCTA(basic_short,
@@ -115,6 +117,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(short) <= (279 / CHAR_BIT) &&
 	sizeof(unsigned short) <= (279 / CHAR_BIT) &&
 	mbiMASK_CHK(SHRT_MAX) && mbiMASK_CHK(USHRT_MAX) &&
+	mbiTYPE_UBITS(unsigned short) >= 16 && (SHRT_MIN) < 0 &&
 	((SHRT_MIN) == -(SHRT_MAX) || (SHRT_MIN)+1 == -(SHRT_MAX)) &&
 	sizeof(short) >= sizeof(signed char) &&
 	sizeof(unsigned short) >= sizeof(unsigned char) &&
@@ -124,6 +127,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(int) <= (279 / CHAR_BIT) &&
 	sizeof(unsigned int) <= (279 / CHAR_BIT) &&
 	mbiMASK_CHK(INT_MAX) && mbiMASK_CHK(UINT_MAX) &&
+	mbiTYPE_UBITS(unsigned int) >= 16 && (INT_MIN) < 0 &&
 	((INT_MIN) == -(INT_MAX) || (INT_MIN)+1 == -(INT_MAX)) &&
 	sizeof(int) >= sizeof(short) &&
 	sizeof(unsigned int) >= sizeof(unsigned short) &&
@@ -133,6 +137,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(long) <= (279 / CHAR_BIT) &&
 	sizeof(unsigned long) <= (279 / CHAR_BIT) &&
 	mbiMASK_CHK(LONG_MAX) && mbiMASK_CHK(ULONG_MAX) &&
+	mbiTYPE_UBITS(unsigned long) >= 32 && (LONG_MIN) < 0 &&
 	((LONG_MIN) == -(LONG_MAX) || (LONG_MIN)+1 == -(LONG_MAX)) &&
 	sizeof(long) >= sizeof(int) &&
 	sizeof(unsigned long) >= sizeof(unsigned int) &&
@@ -143,6 +148,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(long long) <= (279 / CHAR_BIT) &&
 	sizeof(unsigned long long) <= (279 / CHAR_BIT) &&
 	mbiMASK_CHK(LLONG_MAX) && mbiMASK_CHK(ULLONG_MAX) &&
+	mbiTYPE_UBITS(unsigned long long) >= 32 && (LLONG_MIN) < 0 &&
 	((LLONG_MIN) == -(LLONG_MAX) || (LLONG_MIN)+1 == -(LLONG_MAX)) &&
 	sizeof(long long) >= sizeof(long) &&
 	sizeof(unsigned long long) >= sizeof(unsigned long) &&
@@ -154,6 +160,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(intmax_t) <= (279 / CHAR_BIT) &&
 	sizeof(uintmax_t) <= (279 / CHAR_BIT) &&
 	mbiMASK_CHK(INTMAX_MAX) && mbiMASK_CHK(UINTMAX_MAX) &&
+	mbiTYPE_UBITS(uintmax_t) >= 32 && (INTMAX_MIN) < 0 &&
 	((INTMAX_MIN) == -(INTMAX_MAX) || (INTMAX_MIN)+1 == -(INTMAX_MAX)) &&
 #ifdef LLONG_MIN
 	sizeof(intmax_t) >= sizeof(long long) &&
@@ -173,7 +180,7 @@ mbiCTAS(mbsdint_h) {
 #ifdef SIZE_MAX
 	mbiMASK_CHK(SIZE_MAX) &&
 	mbiMASK_BITS(SIZE_MAX) <= mbiTYPE_UBITS(size_t) &&
-	((SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)) &&
+	((mbiHUGE_U)(SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)) &&
 #endif
 	mbiTYPE_UBITS(size_t) <= mbiMASK_BITS(mbiHUGE_UMAX));
  mbiCTA_TYPE_NOTF(ptrdiff_t);
@@ -183,7 +190,7 @@ mbiCTAS(mbsdint_h) {
 	!mbiTYPE_ISU(ptrdiff_t) &&
 #ifdef PTRDIFF_MAX
 	mbiMASK_CHK(PTRDIFF_MAX) &&
-	((PTRDIFF_MAX) == (mbiHUGE_S)(ptrdiff_t)(PTRDIFF_MAX)) &&
+	((mbiHUGE_S)(PTRDIFF_MAX) == (mbiHUGE_S)(ptrdiff_t)(PTRDIFF_MAX)) &&
 #endif
 	1);
  /* UGH! off_t is POSIX, with no _MIN/_MAX constants… WTF‽ */
@@ -193,7 +200,7 @@ mbiCTAS(mbsdint_h) {
 	sizeof(ssize_t) == sizeof(size_t) &&
 	!mbiTYPE_ISU(ssize_t) &&
 	mbiMASK_CHK(SSIZE_MAX) &&
-	((SSIZE_MAX) == (mbiHUGE_S)(ssize_t)(SSIZE_MAX)) &&
+	((mbiHUGE_S)(SSIZE_MAX) == (mbiHUGE_S)(ssize_t)(SSIZE_MAX)) &&
 #ifdef SIZE_MAX
 	mbiMASK_BITS(SSIZE_MAX) <= mbiMASK_BITS(SIZE_MAX) &&
 #endif
@@ -220,74 +227,232 @@ mbiCTAS(mbsdint_h) {
 #endif
  /* assume ptrdiff_t and (s)size_t will fit each other */
  mbiCTA(sizet_ptrdiff, sizeof(size_t) == sizeof(ptrdiff_t));
+#ifdef SSIZE_MAX
+ mbiCTA(sizet_ssize, sizeof(size_t) == sizeof(ssize_t));
+#endif
 };
+#endif /* !MBSDINT_H_SKIP_CTAS */
 
 /*
- * calculations where the unsigned type is used as backing store,
- * doing the two’s complement conversion manually (to avoid UB/IB);
- * (M=N-1), see above, is required for these to work (symmetrically)
+ * various arithmetics, optionally masking
  *
- * ut = unsigned type (e.g. unsigned long); st = signed type (e.g. long)
- * SM = signed max (e.g. LONG_MAX); v = value
- * m = magnitude (≥ 0 value); vz = signbit (0:value; 1:-value)
- * HM = half mask (e.g. (ut)0x7FFFUL); FM = full mask (e.g. (ut)0xFFFFUL)
+ * key:	O = operation, A = arithmetic, M* = masking
+ *	U = unsigned, S = signed, m = magnitude
+ *	VZ = sign (Vorzeichen) 0=positive, 1=negative
+ *	v = value, ut = unsigned type, st = signed type
+ *	w = boolean value, y = yes, n = no
+ *	CA = checked arithmetics, define mbiCfail
+ *	K = k̲alculations for unsigned mantwo’s k̲omplement vars
  *
- * Note: most of these will UB at the most negative value (0x80̅) if the
- * signed type implements sign-and-magnitude or one’s complement…
+ * masks: SM = signed maximum (e.g. LONG_MAX), equivalent to…
+ *	  HM = half mask (usually FM >> 1 or 0x7FFFFFFFUL)
+ *	  FM = full mask (e.g. ULONG_MAX or 0xFFFFFFFFUL)
+ *	  tM = type-corresponding mask
+ *
+ * Where unsigned values may be either properly unsigned or
+ * manually represented in two’s complement (M=N-1 above),
+ * signed values are the host’s (and conversion will UB for
+ * -type_MAX-1 on one’s complement or sign-and-magnitude,
+ * so don’t use that without checking), unsigned magnitude
+ * ranges from 0 to type_MAX+1, and we try pretty hard to
+ * avoid UB and (with one exception, below, casting into
+ * smaller-width signed integers, checked to be safe, but
+ * an implementation-defined signal may be raised, which is
+ * then the caller’s responsibility) IB.
+ *
+ * Every operation needs casting applied, as the type may
+ * have lower integer rank than (signed) int. Additional
+ * masking may be used to guarantee bit widths in the result
+ * even when the executing type is wider. In conversion, if
+ * unsigned and magnitude both exist, magnitude is halfmasked
+ * whereas unsigned is fullmasked with vz acting as neg op.
  */
 
-/* 1. casting between unsigned(two’s complement) and signed(native) */
-#define mbiA_U2S(ut,st,SM,v)	(mbiA_U2VZ(ut, (SM), (v)) ? \
-				(st)(-(st)(~(v)) - (st)1) : \
-				(st)(v))
-#define mbiA_S2U(ut,st,v)	(mbiA_S2VZ(v) ? \
-				(ut)(~(ut)(-((v) + (st)1))) : \
-				(ut)(v))
+/* basic building blocks: arithmetics cast helpers */
 
-/* 2. converting between signed(native) and signbit(vz) plus magnitude */
-#define mbiA_VZM2S(ut,st,vz,m)	(((vz) && (m) > 0) ? \
-				(st)(-(st)((m) - (ut)1) - (st)1) : \
-				(st)(m))
+#define mbiUI(v)		(0UL + (v))
+#define mbiUP(ut,v)		mbiUI((ut)(v))
+#define mbiSP(st,v)		(0 + ((st)(v)))
+
+/* basic building blocks: masking */
+
+#define mbiMM(ut,tM,v)		mbiOU(ut, (v), &, (tM))
+
+/* basic building blocks: operations */
+
+/* 1. unary */
+#define mbiOS1(st,op,v)		((st)(op mbiSP(st, (v))))
+#define mbiOU1(ut,op,v)		((ut)(op mbiUP(ut, (v))))
+#define mbiMO1(ut,tM,op,v)	mbiMM(ut, (tM), mbiOU1(ut, op, (v)))
+
+/* 2. binary or comparison */
+#define mbiOS(st,l,op,r)	((st)(mbiSP(st, (l)) op mbiSP(st, (r))))
+#define mbiOU(ut,l,op,r)	((ut)(mbiUP(ut, (l)) op mbiUP(ut, (r))))
+#define mbiMO(ut,tM,l,op,r)	mbiMM(ut, (tM), mbiOU(ut, (l), op, (r)))
+
+#define mbiOshl(ut,l,r)		((ut)(mbiUP(ut, (l)) << (r)))
+#define mbiOshr(ut,l,r)		((ut)(mbiUP(ut, (l)) >> (r)))
+
+#define mbiCOS(st,l,op,r)	(!!(mbiSP(st, (l)) op mbiSP(st, (r))))
+#define mbiCOU(ut,l,op,r)	(!!(mbiUP(ut, (l)) op mbiUP(ut, (r))))
+
+/* 3. ternary */
+#define mbiOT(t,w,j,n)		((w) ? (t)(j) : (t)(n))
+#define mbiMOT(ut,tM,w,j,n)	mbiMM(ut, (tM), mbiOT(t, (w), (j), (n)))
+
+/* manual two’s complement in unsigned arithmetics */
+
+/* 1. obtain sign of encoded value */
 #define mbiA_S2VZ(v)		((v) < 0)
-#define mbiA_S2M(ut,st,v)	(mbiA_S2VZ(v) ? \
-				(ut)((ut)(-((v) + (st)1)) + (ut)1) : \
-				(ut)(v))
-/* unsigned(two’s complement) and signbit(vz) plus magnitude */
-#define mbiA_VZM2U(ut,SM,vz,m)	(((vz) && (m) > 0) ? \
-				(ut)(~(ut)(((m) - (ut)1) & (ut)(SM))) : \
-				(ut)((m) & (ut)(SM)))
-/* magnitude cut off ↑ vs wrapping around ↓ */
-#define mbiA_VZU2U(ut,vz,m)	((vz) ? \
-				(ut)-((ut)(m)) : (ut)(m))
-#define mbiA_U2VZ(ut,SM,v)	((v) > (ut)(SM))
-#define mbiA_U2M(ut,SM,v)	(mbiA_U2VZ(ut, (SM), (v)) ? \
-				(ut)-((ut)(v)) : (ut)(v))
-/* note: the above 4 are nōn-2s-complement-safe */
+#define mbiA_U2VZ(ut,SM,v)	mbiCOU(ut, (v), >, (SM))
+/* masking; recall SM==HM */
+#define mbiMA_U2VZ(ut,FM,SM,v)	mbiCOU(ut, mbiMM(ut, (FM), (v)), >, (SM))
 
-/* 3. masking arithmetics in possibly-longer type */
-#define mbiMM(ut,FM,v)		((ut)((ut)(v) & (ut)(FM)))
-#define mbiMA_U2S(ut,st,FM,HM,v) \
-				(mbiMA_U2VZ(ut, (FM), (HM), (v)) ? \
-				(st)(-(st)(~(v) & (ut)(HM)) - (st)1) : \
-				(st)((v) & (ut)(HM)))
+/* 2. casting between unsigned(two’s complement) and signed(native) */
+#define mbiA_U2S(ut,st,SM,v)						\
+		mbiOT(st,						\
+		 mbiA_U2VZ(ut, (SM), (v)),				\
+		 mbiOS(st,						\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiOU1(ut, ~, (v))					\
+		  ),							\
+		  -,							\
+		  1							\
+		 ),							\
+		 (v)							\
+		)
+#define mbiMA_U2S(ut,st,FM,HM,v)					\
+		mbiOT(st,						\
+		 mbiMA_U2VZ(ut, (FM), (HM), (v)),			\
+		 mbiOS(st,						\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiMO1(ut, (HM), ~, (v))				\
+		  ),							\
+		  -,							\
+		  1							\
+		 ),							\
+		 mbiMM(ut, (HM), (v))					\
+		)
+
+#define mbiA_S2U(ut,st,v)						\
+		mbiOT(ut,						\
+		 mbiA_S2VZ(v),						\
+		 mbiOU1(ut,						\
+		  ~							\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiOS(st, (v), +, 1)					\
+		  )							\
+		 ),							\
+		 (v)							\
+		)
 #define mbiMA_S2U(ut,st,FM,v)	mbiMM(ut, (FM), mbiA_S2U(ut, st, (v)))
-#define mbiMA_VZM2S(ut,st,FM,HM,vz,m) \
-				(((vz) && mbiMM(ut, (FM), (m)) > 0) ? \
-				(st)(-(st)(((m) - (ut)1) & (ut)(HM)) - (st)1) : \
-				(st)((m) & (ut)(HM)))
-#define mbiMA_S2VZ(v)		((v) < 0)
-#define mbiMA_S2M(ut,st,HM,v)	(mbiMA_S2VZ(v) ? \
-				(ut)((ut)((ut)(-((v) + (st)1)) & (ut)(HM)) + (ut)1) : \
-				(ut)((ut)(v) & (ut)(HM)))
-#define mbiMA_VZM2U(ut,FM,HM,vz,m) \
-				(((vz) && mbiMM(ut, (FM), (m)) > 0) ? \
-				mbiMM(ut, (FM), ~(ut)(((m) - (ut)1) & (ut)(HM))) : \
-				(ut)((m) & (ut)(HM)))
+
+/* 3. converting from signed(native) or unsigned(manual) to magnitude */
+#define mbiA_S2M(ut,st,v)						\
+		mbiOT(ut,						\
+		 mbiA_S2VZ(v),						\
+		 mbiOU(ut,						\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiOS(st, (v), +, 1)					\
+		  ),							\
+		  +,							\
+		  1U							\
+		 ),							\
+		 (v)							\
+		)
+#define mbiMA_S2M(ut,st,HM,v)						\
+		mbiOT(ut,						\
+		 mbiA_S2VZ(v),						\
+		 mbiOU(ut,						\
+		  mbiMM(ut, (HM),					\
+		   mbiOS1(st,						\
+		    -,							\
+		    mbiOS(st, (v), +, 1)				\
+		   ),							\
+		  ),							\
+		  +,							\
+		  1U							\
+		 ),							\
+		 mbiMM(ut, (HM), (v))					\
+		)
+
+#define mbiA_U2M(ut,SM,v)						\
+		mbiOT(ut,						\
+		 mbiA_U2VZ(ut, (SM), (v)),				\
+		 mbiOU1(ut, -, (v)),					\
+		 (v)							\
+		)
+#define mbiMA_U2M(ut,FM,HM,v)						\
+		mbiOT(ut,						\
+		 mbiMA_U2VZ(ut, (FM), (HM), (v)),			\
+		 mbiOU(ut,						\
+		  mbiMO1(ut, (HM), ~, (v)),				\
+		  +,							\
+		  1U							\
+		 ),							\
+		 mbiMM(ut, (HM), (v))					\
+		)
+
+/* 4a. reverse: signbit plus magnitude to signed(native) */
+#define mbiA_VZM2S(ut,st,vz,m)						\
+		mbiOT(st,						\
+		 (vz) && ((m) > 0U),					\
+		 mbiOS(st,						\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiOU(ut, (m), -, 1U)				\
+		  ),							\
+		  -,							\
+		  1							\
+		 ),							\
+		 (m)							\
+		)
+#define mbiMA_VZM2S(ut,st,FM,HM,vz,m)					\
+		mbiOT(st,						\
+		 (vz) && (mbiMM(ut, (FM), (m)) > 0U),			\
+		 mbiOS(st,						\
+		  mbiOS1(st,						\
+		   -,							\
+		   mbiMO(ut, (HM), (m), -, 1U)				\
+		  ),							\
+		  -,							\
+		  1							\
+		 ),							\
+		 mbiMM(ut, (HM), (m))					\
+		)
+
+/* 4b. same: signbit and magnitude(masked) to unsigned(two’s complement) */
+#define mbiA_VZM2U(ut,SM,vz,m)						\
+		mbiOT(ut,						\
+		 (vz) && ((m) > 0U),					\
+		 mbiOU1(ut,						\
+		  ~,							\
+		  mbiMO(ut, (SM), (m), -, 1U)				\
+		 ),							\
+		 mbiMM(ut, (SM), (m))					\
+		)
+#define mbiMA_VZM2U(ut,FM,HM,vz,m)					\
+		mbiOT(ut,						\
+		 (vz) && (mbiMM(ut, (FM), (m)) > 0U),			\
+		 mbiMO1(ut, (FM),					\
+		  ~,							\
+		  mbiMO(ut, (HM), (m), -, 1U)				\
+		 ),							\
+		 mbiMM(ut, (HM), (m))					\
+		)
+
+/* 4c. signbit and unsigned to unsigned(two’s complement), basically NEG */
+#define mbiA_VZU2U(ut,vz,m)						\
+		mbiOT(ut,						\
+		 (vz),							\
+		 mbiOU1(ut, -, (m)),					\
+		 (m)							\
+		)
 #define mbiMA_VZU2U(ut,FM,vz,u)	mbiMM(ut, (FM), mbiA_VZU2U(ut, (vz), (u)))
-#define mbiMA_U2VZ(ut,FM,SM,v)	(mbiMM(ut, (FM), (v)) > (ut)(SM)) /* SM==HM */
-#define mbiMA_U2M(ut,FM,HM,v)	(mbiMA_U2VZ(ut, (FM), (HM), (v)) ? \
-				(ut)((ut)((ut)~(v) & (ut)(HM)) + (ut)1) : \
-				(ut)((ut)(v) & (ut)(HM)))
 
 /*
  * UB-safe overflow/underflow-checking integer arithmetics
@@ -295,33 +460,37 @@ mbiCTAS(mbsdint_h) {
  * Before using, #define mbiCfail to the action that should be
  * taken on check (e.g. "goto fail" or "return (0)"); make sure
  * to #undef mbiCfail before the end of the function body though!
- *
- * There is IB on some signed operations, but that is only either
- * the result (which is checked) is implementation-defined, thus
- * safe, or an implementation-defined signal is raised, which is
- * the caller’s problem ☻
  */
 
+/* 0. internal helpers */
+#define mbi_halftmax(stmax)	\
+	((((1 ? 0 : (stmax)) + 1) << (mbiMASK_BITS(stmax) / 2U)) - 1)
+/* awful: must constant-evaluate if ut is a signed type */
+#define mbi_halftype(ut)	(!mbiTYPE_ISU(ut) ? 07 : \
+	((ut)(mbiOshl(ut, 1U, mbiTYPE_UBITS(ut) / 2U) - 1U)))
+
 /* 1. for unsigned types checking afterwards is OK */
-#define mbiCAUinc(vl)		mbiCAUadd(vl, 1)
-#define mbiCAUdec(vl)		mbiCAUsub(vl, 1)
+#define mbiCAUinc(vl)		mbiCAUadd(vl, 1U)
+#define mbiCAUdec(vl)		mbiCAUsub(vl, 1U)
 #define mbiCAUadd(vl,vr)	do {					\
-	(vl) += (vr);							\
-	if (__predict_false((vl) < (vr)))				\
+	(vl) += mbiUI(vr);						\
+	if (__predict_false(mbiUI(vl) < mbiUI(vr)))			\
 		mbiCfail;						\
 } while (/* CONSTCOND */ 0)
 #define mbiCAUsub(vl,vr)	do {					\
-	if (__predict_false((vl) < (vr)))				\
+	if (__predict_false(mbiUI(vl) < mbiUI(vr)))			\
 		mbiCfail;						\
-	(vl) -= (vr);							\
+	(vl) -= mbiUI(vr);						\
 } while (/* CONSTCOND */ 0)
 #define mbiCAUmul(ut,vl,vr)	do {					\
-	if (__predict_false((ut)((ut)((vl) * (vr)) / (vr)) < (vl)))	\
+	if (__predict_false(((ut)(vl) > mbi_halftype(ut) ||		\
+	    (ut)(vr) > mbi_halftype(ut)) && (vr) == 0 &&		\
+	    mbiOU(ut, mbiTYPE_UMAX(ut), /, (ut)(vr)) < (ut)(vl)))	\
 		mbiCfail;						\
 	(vl) *= (vr);							\
 } while (/* CONSTCOND */ 0)
 
-/* 2. for signed types; lim is a prefix (e.g. SHRT) */
+/* 2. for signed types; lim is the prefix (e.g. SHRT) */
 #define mbiCASinc(lim,vl)	do {					\
 	if (__predict_false((vl) == lim ## _MAX))			\
 		mbiCfail;						\
@@ -332,27 +501,60 @@ mbiCTAS(mbsdint_h) {
 		mbiCfail;						\
 	--(vl);								\
 } while (/* CONSTCOND */ 0)
-#define mbiCASadd(lim,vl,vr)	do {					\
+/* CAP means vr is positive */
+#define mbiCAPadd(lim,vl,vr)	do {					\
 	if (__predict_false((vl) > (lim ## _MAX - (vr))))		\
 		mbiCfail;						\
 	(vl) += (vr);							\
 } while (/* CONSTCOND */ 0)
-#define mbiCASsub(lim,vl,vr)	do {					\
+#define mbiCAPsub(lim,vl,vr)	do {					\
 	if (__predict_false((vl) < (lim ## _MIN + (vr))))		\
 		mbiCfail;						\
 	(vl) -= (vr);							\
 } while (/* CONSTCOND */ 0)
+#define mbiCAPmul(lim,vl,vr)	do {					\
+	if (__predict_false(((vl) < 0 ||				\
+	    (vl) > mbi_halftmax(lim ## _MAX) ||				\
+	    (vr) > mbi_halftmax(lim ## _MAX)) &&			\
+	    (vr) != 0 && ((vl) < 0 ?					\
+	    (vl) < (lim ## _MIN / (vr)) :				\
+	    (vl) > (lim ## _MAX / (vr)))))				\
+		mbiCfail;						\
+	(vl) *= (vr);							\
+} while (/* CONSTCOND */ 0)
+/* CAS for add/sub/mul may have negative vr */
+#define mbiCASadd(lim,vl,vr)	do {					\
+	if (__predict_false((vr) < 0 ?					\
+	    (vl) < (lim ## _MIN - (vr)) :				\
+	    (vl) > (lim ## _MAX - (vr))))				\
+		mbiCfail;						\
+	(vl) += (vr);							\
+} while (/* CONSTCOND */ 0)
+#define mbiCASsub(lim,vl,vr)	do {					\
+	if (__predict_false((vr) < 0 ?					\
+	    (vl) > (lim ## _MAX + (vr)) :				\
+	    (vl) < (lim ## _MIN + (vr))))				\
+		mbiCfail;						\
+	(vl) -= (vr);							\
+} while (/* CONSTCOND */ 0)
 #define mbiCASmul(lim,vl,vr)	do {					\
-	if (__predict_false((lim ## _MAX / (vr)) < (vl) ||		\
-	    (lim ## _MIN / (vr)) > (vl)))				\
+	if (__predict_true((vr) >= 0) ? __predict_false(((vl) < 0 ||	\
+	    (vl) > mbi_halftmax(lim ## _MAX) ||				\
+	    (vr) > mbi_halftmax(lim ## _MAX)) &&			\
+	    (vr) != 0 && ((vl) < 0 ?					\
+	    (vl) < (lim ## _MIN / (vr)) :				\
+	    (vl) > (lim ## _MAX / (vr)))) :				\
+	    /* vr < 0 */ __predict_false((vl) < 0 ?			\
+	    (vl) < (lim ## _MAX / (vr)) : /* vl >= 0, vr < 0 */		\
+	    (vr) != -1 && (vl) > (lim ## _MIN / (vr))))			\
 		mbiCfail;						\
 	(vl) *= (vr);							\
 } while (/* CONSTCOND */ 0)
 
-/* 3. signed narrowing assign; this is IB */
+/* 3. signed narrowing assign; this is checked IB */
 #define mbiCASlet(dsttype,vl,srctype,vr) do {				\
 	(vl) = (dsttype)(vr);						\
-	if (__predict_false((srctype)(vl) != (vr)))			\
+	if (__predict_false((srctype)(vl) != (srctype)(vr)))		\
 		mbiCfail;						\
 } while (/* CONSTCOND */ 0)
 
@@ -365,60 +567,57 @@ mbiCTAS(mbsdint_h) {
  */
 
 /* compare < <= > >= */
-#define mbiK_signbit(ut,HM)	((ut)((ut)(HM) + (ut)1))
-#define mbiK_signflip(ut,HM,v)	((ut)((v) ^ mbiK_signbit(ut, (HM))))
-#define mbiKcmp(ut,HM,vl,op,vr)	\
-	(mbiK_signflip(ut, (HM), (vl)) op mbiK_signflip(ut, (HM), (vr)))
+#define mbiK_signbit(ut,HM)	mbiOU(ut, (HM), +, 1)
+#define mbiK_signflip(ut,HM,v)	mbiOU(ut, (v), ^, mbiK_signbit(ut, (HM)))
+#define mbiKcmp(ut,HM,vl,op,vr)	mbiCOU(ut, \
+		mbiK_signflip(ut, (HM), (vl)), \
+		op, \
+		mbiK_signflip(ut, (HM), (vr)))
 #define mbiMKcmp(ut,FM,HM,vl,op,vr) \
 	mbiKcmp(ut, (HM), mbiMM(ut, (FM), (vl)), op, mbiMM(ut, (FM), (vr)))
 
 /* rotate and shift */
-#define mbiK_s1(ut,vl,vr)	(ut)(vl), mbiK_s2(ut, (vr))
-#define mbiK_s2(ut,vr)		(vr) & (mbiTYPE_UBITS(ut) - 1U), \
-	mbiTYPE_UBITS(ut) - ((vr) & (mbiTYPE_UBITS(ut) - 1U))
-#define mbiK_s9(ut,vl,cl,rv)	((cl) ? (ut)(rv) : (ut)(vl))
-#define mbiK_rl(ut,vl,cl,CL)	mbiK_s9(ut, (vl), (cl), \
-	(ut)((vl) << (cl)) | (ut)((vl) >> (CL)))
-#define mbiK_rr(ut,vl,cl,CL)	mbiK_s9(ut, (vl), (cl), \
-	(ut)((vl) >> (cl)) | (ut)((vl) << (CL)))
-#define mbiK_sl(ut,vl,cl,CL)	mbiK_s9(ut, (vl), (cl), \
-	(vl) << (cl))
-#define mbiK_sr(ut,vl,cl,CL,vz)	mbiK_s9(ut, (vl), (cl), \
-	(vz) ? (ut)~(ut)((ut)~(vl) >> (cl)) : (ut)((vl) >> (cl)))
-#define mbiK_rol(ut,args)	mbiK_rl(ut, args)
-#define mbiK_ror(ut,args)	mbiK_rr(ut, args)
-#define mbiK_shl(ut,args)	mbiK_sl(ut, args)
-#define mbiK_sar(ut,args,vz)	mbiK_sr(ut, args, vz)
-#define mbiKrol(ut,vl,vr)	mbiK_rol(ut, mbiK_s1(ut, (vl), (vr)))
-#define mbiKror(ut,vl,vr)	mbiK_ror(ut, mbiK_s1(ut, (vl), (vr)))
-#define mbiKshl(ut,vl,vr)	mbiK_shl(ut, mbiK_s1(ut, (vl), (vr)))
+#define mbiKrol(ut,vl,vr)	mbiK_sr(ut, mbiK_rol, (vl), (vr), void)
+#define mbiKror(ut,vl,vr)	mbiK_sr(ut, mbiK_ror, (vl), (vr), void)
+#define mbiKshl(ut,vl,vr)	mbiK_sr(ut, mbiK_shl, (vl), (vr), void)
 /* let vz be sgn(vl) */
-#define mbiKsar(ut,vz,vl,vr)	mbiK_sar(ut, mbiK_s1(ut, (vl), (vr)), (vz))
-#define mbiKshr(ut,vl,vr)	mbiK_sar(ut, mbiK_s1(ut, (vl), (vr)), 0)
-#define mbiMK_s1(ut,vl,vr)	mbiMM(ut, (FM), (vl)), mbiK_s2(ut, (vr))
-#define mbiMKrol(ut,FM,vl,vr)	mbiMM(ut, (FM), \
-	mbiK_rol(ut, mbiMK_s1(ut, (FM), (vl), (vr))))
-#define mbiMKror(ut,FM,vl,vr)	mbiMM(ut, (FM), \
-	mbiK_ror(ut, mbiMK_s1(ut, (FM), (vl), (vr))))
-#define mbiMKshl(ut,FM,vl,vr)	mbiMM(ut, (FM), \
-	mbiK_shl(ut, mbiMK_s1(ut, (FM), (vl), (vr))))
-#define mbiMKsar(ut,FM,vz,l,r)	mbiMM(ut, (FM), \
-	mbiK_sar(ut, mbiMK_s1(ut, (FM), (vl), (vr)), (vz)))
-#define mbiMKshr(ut,FM,vl,vr)	mbiMM(ut, (FM), \
-	mbiK_sar(ut, mbiMK_s1(ut, (FM), (vl), (vr)), 0)
+#define mbiKsar(ut,vz,vl,vr)	mbiK_sr(ut, mbiK_sar, (vl), (vr), (vz))
+#define mbiKshr(ut,vl,vr)	mbiK_sr(ut, mbiK_sar, (vl), (vr), 0)
+#define mbiMKrol(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_rol, (vl), (vr), void)
+#define mbiMKror(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_ror, (vl), (vr), void)
+#define mbiMKshl(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_shl, (vl), (vr), void)
+#define mbiMKsar(ut,FM,vz,l,r)	mbiMK_sr(ut, (FM), mbiK_sar,  (l),  (r), (vz))
+#define mbiMKshr(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_sar, (vl), (vr), 0)
+/* implementation */
+#define mbiMK_sr(ut,FM,n,l,r,z)	mbiMM(ut, (FM), mbiK_sr(ut, n, \
+				    mbiMM(ut, (FM), (l)), (r), (z)))
+#define mbiK_sr(ut,n,vl,vr,vz)	mbiK_srI(ut, n, (vl), \
+				    mbiUI(vr) & (mbiTYPE_UBITS(ut) - 1U), \
+				    !(vz))
+#define mbiK_srI(ut,n,ax,cl,zx)	mbiOT(ut, (cl), n(ut, ax, (cl), \
+				    mbiTYPE_UBITS(ut) - (cl), zx), 0)
+#define mbiK_shl(ut,ax,cl,CL,z)	mbiOshl(ut, ax, cl)
+#define mbiK_sar(ut,ax,cl,CL,z)	mbiOT(ut, z, mbiOshr(ut, ax, cl), \
+				    mbiOU1(ut, ~, mbiOshr(ut, \
+				    mbiOU1(ut, ~, ax), cl)))
+#define mbiK_rol(ut,ax,cl,CL,z)	\
+	mbiOU(ut, mbiOshl(ut, ax, cl), |, mbiOshr(ut, ax, CL))
+#define mbiK_ror(ut,ax,cl,CL,z)	\
+	mbiOU(ut, mbiOshr(ut, ax, cl), |, mbiOshl(ut, ax, CL))
 
 /* division and remainder */
 #define mbiKdiv(ut,SM,vl,vr)		mbiA_VZU2U(ut, \
 	mbiA_U2VZ(ut, (SM), (vl)) ^ mbiA_U2VZ(ut, (SM), (vr)), \
-	mbiA_U2M(ut, (SM), (vl)) / mbiA_U2M(ut, (SM), (vr)))
-#define mbiKrem(ut,SM,vl,vr)		((ut)((vl) - \
-	(ut)(mbiKdiv(ut, (SM), (vl), (vr)) * (vr))))
+	mbiUI(mbiA_U2M(ut, (SM), (vl))) / mbiUI(mbiA_U2M(ut, (SM), (vr))))
 #define mbiMK_div(ut,FM,HM,vl,vr)	mbiA_VZU2U(ut, \
 	mbiMA_U2VZ(ut, (FM), (HM), (vl)) ^ mbiMA_U2VZ(ut, (FM), (HM), (vr)), \
-	mbiMA_U2M(ut, (FM), (HM), (vl)) / mbiMA_U2M(ut, (FM), (HM), (vr)))
+	mbiUI(mbiMA_U2M(ut, (FM), (HM), (vl))) / mbiUI(mbiMA_U2M(ut, (FM), (HM), (vr))))
 #define mbiMKdiv(ut,FM,HM,vl,vr)	mbiMM(ut, (FM), \
 	mbiMK_div(ut, (FM), (HM), (vl), (vr)))
-#define mbiMKrem(ut,FM,HM,vl,vr)	mbiMM(ut, (FM), (vl) - \
-	(ut)(mbiMK_div(ut, (FM), (HM), (vl), (vr)) * (vr)))
+#define mbiK_rem(ut,vl,vr,vdiv)		mbiOU(ut, vl, -, mbiOU(ut, vdiv, *, vr))
+#define mbiKrem(ut,SM,vl,vr)		mbiK_rem(ut, (vl), (vr), \
+					    mbiKdiv(ut, (SM), (vl), (vr)))
+#define mbiMKrem(ut,FM,HM,vl,vr)	mbiMM(ut, (FM), mbiK_rem(ut, (vl), (vr), \
+					    mbiMK_div(ut, (FM), (HM), (vl), (vr))))
 
 #endif /* !SYSKERN_MBSDINT_H */

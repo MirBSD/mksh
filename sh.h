@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.983 2022/02/26 05:32:56 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.984 2022/03/02 23:51:12 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -197,7 +197,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2022/02/08"
+#define MKSH_VERSION "R59 2022/03/02"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -231,13 +231,13 @@ typedef signed long ksl;		/* signed long, arithmetic */
 /* arithmetic types: shell arithmetics */
 
 /* “cast” between unsigned / signed long */
-#define KUL2SL(ul)	mbiA_U2S(kul, ksl, LONG_MAX, ul)
-#define KSL2UL(sl)	mbiA_S2U(kul, ksl, sl)
+#define KUL2SL(ul)	mbiA_U2S(kul, ksl, LONG_MAX, (ul))
+#define KSL2UL(sl)	mbiA_S2U(kul, ksl, (sl))
 
 /* convert between signed and sign variable plus magnitude */
-#define KNEGUL2SL(n,ul)	mbiA_VZM2S(kul, ksl, n, ul)
+#define KNEGUL2SL(n,ul)	mbiA_VZM2S(kul, ksl, (n), (ul))
 /* n = sl < 0; //mbiA_S2VZ(sl); */
-#define KSL2NEGUL(sl)	mbiA_S2M(kul, ksl, sl)
+#define KSL2NEGUL(sl)	mbiA_S2M(kul, ksl, (sl))
 
 /* new arithmetics tbd, using mbiMA_* */
 
@@ -2831,7 +2831,7 @@ void set_ifs(const char *);
 /*
  * %#o produces the longest output: '0' + w/3 + NUL
  * %#x produces '0x' + w/4 + NUL which is at least as long (w=8)
- * %+d produces sign + w/log₂(10) + NUL
+ * %+d produces sign + w/log₂(10) + NUL which takes more than octal obviously
  */
 #define NUMBUFSZ (1U + (mbiTYPE_UBITS(kul) + 2U) / 3U + /* NUL */ 1U)
 #define NUMBUFLEN(base,result) ((base) + NUMBUFSZ - (result) - 1U)

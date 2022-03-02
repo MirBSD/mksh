@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.413 2022/02/19 21:21:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.414 2022/03/02 23:51:11 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -118,9 +118,7 @@ mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
     mbiMASK_BITS(SCHAR_MAX) == 7U);
 
 /* POSIX guarantees a 32-bit int */
-mbiCTA(int_32bit, mbiTYPE_UBITS(unsigned int) >= 32U &&
-    mbiMASK_BITS(INT_MAX) >= 31U);
-/* which implies unsigned long has at least 32 bit width, too */
+mbiCTA(int_32bit, mbiTYPE_UBITS(unsigned int) >= 32U);
 
 /* the next assertion is probably not really needed */
 mbiCTA(short_is_2_char, sizeof(short) == 2);
