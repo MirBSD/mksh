@@ -5,9 +5,10 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.10 2022/03/06 01:48:55 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.11 2022/03/06 01:52:59 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
+/* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <limits.h>

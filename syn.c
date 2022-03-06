@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.142 2022/02/19 21:22:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.143 2022/03/06 01:52:57 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -86,7 +86,7 @@ static int symbol;			/* yylex value */
 #define ACCEPT		(reject = Nee)
 #define token(cf)	((reject ? 0 : (symbol = yylex(cf))), ACCEPT, symbol)
 #define tpeek(cf)	((reject ? 0 : (symbol = yylex(cf))), REJECT, symbol)
-#define musthave(c,cf)	do { 					\
+#define musthave(c,cf)	do {					\
 	if ((unsigned int)token(cf) != (unsigned int)(c))	\
 		syntaxerr(NULL);				\
 } while (/* CONSTCOND */ 0)
