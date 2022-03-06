@@ -18,7 +18,8 @@
  * of said person’s immediate fault when using the work as intended.
  *-
  * This file provides BAFH1-0 (Better Avalanche for the Jenkins Hash)
- * as macro bodies operating on “register k32” variables (from sh.h).
+ * as macro bodies operating on “register k32” variables (from sh.h),
+ * which must be of u_int (or higher) rank.
  *-
  * Little quote gem:
  *	We are looking into it. Changing the core
@@ -32,7 +33,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.14 2022/01/27 14:15:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.15 2022/03/06 01:48:55 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -45,10 +46,6 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.14 2022/01/27 14:15:41 tg Exp $");
  *
  * • BAFHUpdateOctet(ctx,val) compresses the unsigned 8-bit quantity
  *   into the hash context using Jenkins’ one-at-a-time algorithm.
- *
- * • BAFHror(eax,cl) evaluates to the unsigned 32-bit integer “eax”,
- *   rotated right by “cl” ∈ [1; 31] (no casting, be careful!) where
- *   “eax” is K32()d and “cl” must be within range.
  *
  * • BAFHFinish(ctx) avalanches the context around so every sub-byte
  *   depends on all input octets; afterwards, the context variable’s
@@ -66,36 +63,32 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.14 2022/01/27 14:15:41 tg Exp $");
  * • BAFHUpdateStr(ctx,buf) is equivalent to using len=strlen(buf).
  *
  * All macros may use ctx multiple times in their expansion, but all
- * other arguments are always evaluated at most once except BAFHror.
+ * other arguments are always evaluated at most once.
  */
 
 #define BAFHInit(h) do {					\
-	(h) = 1U;						\
+	(h) = K32(1U);						\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateOctet(h,b) do {				\
-	(h) = K32(K32(h) + KBI(b));				\
+	(h) = K32(KUI(h) + KBI(b));				\
 	(h) = K32((h) + K32((h) << 10));			\
 	(h) = K32((h) ^ K32((h) >> 6));				\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHror(eax,cl) K32(K32(K32(eax) >> (cl)) | K32(K32(eax) << (32 - (cl))))
-
-#define BAFHFinish__impl(h,v,d)					\
+#define BAFHFinish(h) BAFHFinish__impl((h), BAFHFinish_v)
+#define BAFHFinish__impl(h,v) do {				\
+	register k32 v;						\
+								\
 	v = K32(K32(h) >> 7) & 0x01010101U;			\
 	v = K32(v + K32(v << 1));				\
 	v = K32(v + K32(v << 3));				\
 	v = K32(v ^ (K32(K32(h) << 1) & 0xFEFEFEFEU));		\
 								\
-	v = K32(v ^ BAFHror(v, 8));				\
-	v = K32(v ^ (h = BAFHror(h, 8)));			\
-	v = K32(v ^ (h = BAFHror(h, 8)));			\
-	d = K32(v ^ BAFHror(h, 8));
-
-#define BAFHFinish(h) do {					\
-	register k32 BAFHFinish_v;				\
-								\
-	BAFHFinish__impl((h), BAFHFinish_v, (h))		\
+	v = K32(v ^ mbiMKror(k32, K32_FM, v, 8));		\
+	v = K32(v ^ (h = mbiMKror(k32, K32_FM, h, 8)));		\
+	v = K32(v ^ (h = mbiMKror(k32, K32_FM, h, 8)));		\
+	h = K32(v ^ mbiMKror(k32, K32_FM, h, 8));		\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateMem(h,p,z) do {				\

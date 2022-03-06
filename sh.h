@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.984 2022/03/02 23:51:12 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.985 2022/03/06 01:48:56 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -123,6 +123,10 @@
 #ifdef MIRBSD_BOOTFLOPPY
 #include <wchar.h>
 #endif
+#undef MBSDINT_H_SKIP_CTAS
+#ifndef MKSH_DO_MBI_CTAS
+#define MBSDINT_H_SKIP_CTAS
+#endif
 #include "mbsdint.h"
 
 /* monkey-patch known-bad offsetof versions to quell a warning */
@@ -202,7 +206,7 @@
 /* shell types */
 typedef unsigned char kby;		/* byte */
 typedef unsigned int kui;		/* wchar; kby or EOF; ⊇k32; etc. */
-/* main.c cta:int_32bit guaranteed */
+/* main.c cta:int_32bit guaranteed; u_int rank also guaranteed */
 typedef unsigned int k32;		/* 32-bit arithmetic (hashes etc.) */
 /* for use with/without 32-bit masking */
 typedef unsigned long kul;		/* long, arithmetic */
@@ -213,6 +217,9 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
 #define K32(u)	((k32)(KUI(u) & 0xFFFFFFFFU))
 
+#define K32_HM		0x7FFFFFFFUL
+#define K32_FM		0xFFFFFFFFUL
+
 /*XXX TODO:
  * arithmetic type need not be long, it can be unsigned int if we can
  * guarantee that it’s exactly⚠ 32 bit wide; in the !lksh case, never
@@ -221,11 +228,11 @@ typedef signed long ksl;		/* signed long, arithmetic */
  * arithmetic is instead done in unsigned; kul → kua (ksl → ksa lksh)
  */
 #ifdef MKSH_LEGACY_MODE
-#define KUA_HM		((kul)(LONG_MAX))
-#define KUA_FM		((kul)(ULONG_MAX))
+#define KUA_HM		LONG_MAX
+#define KUA_FM		ULONG_MAX
 #else
-#define KUA_HM		((kul)0x7FFFFFFFUL)
-#define KUA_FM		((kul)0xFFFFFFFFUL)
+#define KUA_HM		K32_HM
+#define KUA_FM		K32_FM
 #endif
 
 /* arithmetic types: shell arithmetics */
@@ -2372,7 +2379,7 @@ typedef union {
 #define KEYWORD		BIT(3)	/* recognise keywords */
 #define LETEXPR		BIT(4)	/* get expression inside (( )) */
 #define CMDASN		BIT(5)	/* parse x[1 & 2] as one word, for typeset */
-#define HEREDOC 	BIT(6)	/* parsing a here document body */
+#define HEREDOC		BIT(6)	/* parsing a here document body */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */

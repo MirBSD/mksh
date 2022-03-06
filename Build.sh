@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.826 2022/03/01 20:38:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.827 2022/03/06 01:48:52 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1934,7 +1934,7 @@ if test 1 = $i; then
 fi
 
 # “on demand” means: GCC version >= 4
-fd='if to rely on compiler for string pooling'
+fd='whether to rely on compiler for string pooling'
 ac_cache string_pooling || case $HAVE_STRING_POOLING in
 2) fx=' (on demand, cached)' ;;
 i1) fv=1 ;;
@@ -2100,6 +2100,20 @@ rmf lft*	# end of large file support test
 #
 # Environment: types
 #
+HAVE_MBI_CTAS=x
+ac_testn mbi_ctas '' 'if integer types are sane enough' <<-'EOF'
+	#include <sys/types.h>
+	#if HAVE_STDINT_H
+	#include <stdarg.h>
+	#include <stdint.h>
+	#endif
+	#undef MBSDINT_H_SKIP_CTAS
+	#include "mbsdint.h"
+	#include <unistd.h>
+	int main(void) { return (isatty(0)); }
+EOF
+test 1 = $HAVE_MBI_CTAS || exit 1
+
 ac_test can_inttypes '' "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <limits.h>
@@ -2156,13 +2170,16 @@ if test $cm = makefile; then
 	: nothing to check
 else
 	HAVE_LINK_WORKS=x
-	ac_testinit link_works '' 'checking if the final link command may succeed'
+	ac_testinit link_works '' 'if the final link command may succeed'
 	fv=1
 	cat >conftest.c <<-EOF
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
+		#define MKSH_DO_MBI_CTAS
 		#include "sh.h"
 		__RCSID("$srcversion");
+		__IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
+		__IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 		int main(void) {
 			struct timeval tv;
 			printf("Hello, World!\\n");

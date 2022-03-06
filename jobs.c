@@ -27,7 +27,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.153 2022/02/19 21:21:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.154 2022/03/06 01:48:55 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1299,7 +1299,7 @@ j_waitj(Job *j,
 			vp->u.array = (void *)vt;
 			vp = (void *)vt;
 			vp->areap = vp_pipest->areap;
-			vp->ua.index = num = K32(num + 1);
+			vp->ua.index = num = K32(num + 1U);
 			vp->flag = DEFINED | ISSET | INTEGER | RDONLY |
 			    ARRAY | INT_U | AINDEX;
  got_array:

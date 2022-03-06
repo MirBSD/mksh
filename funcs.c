@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.402 2022/02/19 21:21:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.403 2022/03/06 01:48:54 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1989,7 +1989,7 @@ c_read(const char **wp)
 				vq->flag |= AINDEX;
 		} else {
 			vq = arraysearch(vp, idx);
-			idx = K32(idx + 1);
+			idx = K32(idx + 1U);
 		}
 	} else {
 		vq = global(*wp);

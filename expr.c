@@ -22,9 +22,10 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+#define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.121 2022/02/26 05:32:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.122 2022/03/06 01:48:53 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
