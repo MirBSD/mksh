@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.5 2022/02/19 21:22:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.6 2022/04/01 03:53:16 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -183,6 +183,12 @@ struct limits {
 static void print_ulimit(const struct limits *, int);
 static int set_ulimit(const struct limits *, const char *, int);
 
+/*
+ * UGH! Strictly speaking this is UB in C. Need to figure out whether
+ * it is worth the botherance to fix this (union) or to test for C99+
+ * flexible array member using it when present, maybe keeping this if
+ * not… :~
+ */
 static const struct limits * const rlimits[] = {
 #define RLIMITS_ITEMS
 #include LIMITS_GEN
