@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.251 2022/03/02 19:15:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.252 2022/04/22 02:04:39 tg Exp $");
 
 /*
  * string expansion
@@ -1124,13 +1124,6 @@ expand(
 			/* mark any special second pass chars */
 			if (!quote)
 				switch (ord(c)) {
-#ifndef MKSH_SMALL
-				case ORD('^'):
-					/*
-					 * https://www.austingroupbugs.net/view.php?id=1558
-					 * same as below, in the future, maybe… ugh!
-					 */
-#endif
 				case ORD('['):
 				case ORD('!'):
 				case ORD('-'):
