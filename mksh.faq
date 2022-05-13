@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.34 2022/05/13 21:17:10 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.35 2022/05/13 21:52:21 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -413,7 +413,7 @@ Title: I want Esc+d to delete the entire word, not just to the right from the cu
  <pre>
 	bind '^[^D=delete-word-forward'
 	bind -m '^[d=aa^B^[^H^[^D'
- </pre>
+</pre>
 </div><p class="boxfoot">If your shell is sufficiently recent to
  do so and you want to delete by <a href="#ctrl-w-bash">bigwords</a>,
  you do not need the first redefinition and simply swap the deletion
@@ -427,6 +427,61 @@ starting with what was already entered. mksh separates the shortcuts:
 Cursor Up goes up one command and PgUp searches the history as described
 above. You can, of course, rebind:<br />
 <tt>bind '^XA=search-history-up'</tt>
+----
+ToC: amend-git-branch
+Title: Display the current git branch in the prompt
+
+<p style="font-size:small;">Originally posted as wlog entry and
+ for Plänet Debian and Plänet Commanline on 2012-07-14T22:17:01Z</p>
+<p class="boxhead">Originally <a
+ href="http://web.archive.org/web/20161008060953/http://www.perrier.eu.org/weblog/2012/07/15#cool-prompt">posted
+ by bubulle</a> on Planet Debian, a shell prompt that displays the
+ current git branch, in colour on some terminals, after the current
+ working directory. The following snippet does similar things for
+ <a href="@@RELPATH@@mksh.htm">mksh</a> users, except it doesn’t
+ redefine your prompt but amend it — just throw it at the bottom of
+ your <tt>~/.mkshrc</tt> before that last line beginning with a colon
+ (copy from <a href="https://evolvis.org/plugins/scmgit/cgi-bin/gitweb.cgi?p=alioth/mksh.git;a=blob;f=debian/.mkshrc;hb=HEAD"><tt>/etc/skel/.mkshrc</tt></a>
+ if you haven’t done that yet):</p><div class="boxtext">
+ <pre>
+	function parse_git_branch {
+		git branch 2&gt;/dev/null | sed -n '/^\* \(.*\)/s//(\1)/p'
+	}
+
+	function amend_prompt_with_git {
+		[[ -o utf8-mode ]]; local u=$?
+		set +U
+		local p q='$(parse_git_branch)' r
+
+		if [[ $TERM = @(xterm-color|xterm|screen*) ]]; then
+			if [[ ${PS1:1:1} = $'\r' ]]; then
+				p=${PS1:0:1}
+			else
+				p=$'\001'
+				PS1=$p$'\r'$PS1
+			fi
+			q=$p$'\e[1;33m'$p$q$p$'\e[0m'$p
+		fi
+
+		p=${PS1%%*( )[#$]*( )}
+		if [[ $p != "$PS1" ]]; then
+			# prompt ends with space + #-or-$ + space, we can amend
+			r=${PS1: ${#p}}
+			PS1=$p$q$r
+		fi
+
+		(( u )) || set -U
+	}
+	amend_prompt_with_git
+	unset -f amend_prompt_with_git
+</pre>
+</div><p class="boxfoot">The indirection by use of a function is not
+ strictly necessary but allows the use of locals. I took the liberty
+ of adding an asterisk after “screen” to match the GNU/Linux nonsense
+ of having <tt>TERM=screen.xterm</tt> or somesuch.</p>
+<p>The insertion point is right before the trailing space plus (either
+ dollar or number sign) plus space, i.e. after the cwd from the default
+ prompt. YMMV so you may need to customise that, or ask me to help.</p>
 ----
 ToC: current
 Title: Can mksh set the title of the window according to the command running?
@@ -511,7 +566,7 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
 		*) set +U ;;
 		esac ;;
 	esac
- </pre>
+</pre>
 </div><p class="boxfoot">This only applies to mksh before R60 without
  locale tracking and is obsolete as of R60’s release, except for backwards
  compatibility.</p>
@@ -547,7 +602,7 @@ Title: What differences in function-local scopes are there?
 		\\builtin alias unset=unset_compat
 		;;
 	esac
- </pre>
+</pre>
 </div><p class="boxfoot">When a local variable is created (e.g. using
  <tt>local</tt>, <tt>typeset</tt>, <tt>integer</tt> or
  <tt>\\builtin typeset</tt>) it does not, like in other shells, inherit
@@ -586,7 +641,7 @@ Title: How can I do local arrays?
 	echo ${a[*]}		# shows the outer array before…
 	foo
 	echo ${a[*]}		# …and after the function ran
- </pre>
+</pre>
 </div><p class="boxfoot">This also works with <tt>a=(…)</tt> and
  in POSIX-style functions <tt>foo() { …; }</tt> (in mksh, although
  not in AT&amp;T ksh which uses a different scope model) and with
@@ -640,7 +695,7 @@ Title: Something is going wrong with my while...read loop
 <div class="boxtext">
  <pre>
 	bar | baz | while read foo; do ...; done
- </pre>
+</pre>
 </div><p class="boxfoot">Note that <tt>exit</tt> in the inner loop will
  also only exit the subshell and not the original shell. Likewise, if the
  code is inside a function, <tt>return</tt> in the inner loop will only
@@ -651,7 +706,7 @@ Title: Something is going wrong with my while...read loop
 	bar | baz |&amp;
 	while read -p foo; do ...; done
 	exec 3&gt;&amp;p; exec 3&gt;&amp;-
- </pre>
+</pre>
 </div><p class="boxfoot">If <tt>read</tt> is run in a way such as
  <tt>while read foo; do ...; done</tt> then leading whitespace will be
  removed (IFS) and backslashes processed. You might want to use
@@ -665,7 +720,7 @@ Title: Something is going wrong with my while...read loop
 	    while IFS= read -d '' -pr filename; do
 		print -r -- "found &lt;${filename#./}&gt;"
 	done
- </pre>
+</pre>
 </div>
 ----
 ToC: command-alias
@@ -729,7 +784,7 @@ Title: Some integer variables are 0?
  <pre>
 	foo=1+1 mksh -c 'integer foo; print $foo'
 	foo=1+1 mksh -c 'integer foo=$foo; print $foo'
- </pre>
+</pre>
 </div><p class="boxfoot">… will lose the value in the first line,
  while the second line explicitly “untaints”, to use a Perl term,
  the content. Purely numeric values will pass, though.</p>
@@ -794,7 +849,7 @@ Title: I use “set -eo pipefail” and my code unexpectedly errors out
 	for x in 1 2; do
 		false &amp;&amp; echo $x
 	done | cat
- </pre>
+</pre>
 </div><p class="boxfoot">This is because, while the <tt>&amp;&amp;</tt>
  ensures that the inner command’s failure is not taken, it sets the entire
  <tt>for</tt>‥<tt>done</tt> loop’s errorlevel, which is passed on by
