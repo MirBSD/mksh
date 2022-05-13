@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.33 2022/02/28 21:13:04 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.34 2022/05/13 21:17:10 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -395,8 +395,29 @@ If you want it to only delete the line up to the cursor, use:<br />
 ToC: ctrl-w-bash
 Title: ^W (Ctrl-W) deletes a word, not a bigword
 
-If you want it to delete more, with R60 you can use:<br />
+If you want it to delete more, with R59d+ you can use:<br />
 <tt>bind '^W=delete-bigword-backward'</tt>
+----
+ToC: esc-d-whole-word
+Title: I want Esc+d to delete the entire word, not just to the right from the cursor
+
+<p class="boxhead">This is not possible with a simple editing
+ command; however, you can use a macro definition to create a
+ matching effect. First, you need to bind the current definition
+ of Esc+d, i.e. <tt>delete-word-forward</tt>, to something else;
+ Esc+Ctrl-D is currently unused, so we’ll use that. Then you’ll
+ define a macro that inserts two letters and moves one back (to
+ work at the beginning and end of words safely), then run both
+ delete word backward and forward:</p>
+<div class="boxtext">
+ <pre>
+	bind '^[^D=delete-word-forward'
+	bind -m '^[d=aa^B^[^H^[^D'
+ </pre>
+</div><p class="boxfoot">If your shell is sufficiently recent to
+ do so and you want to delete by <a href="#ctrl-w-bash">bigwords</a>,
+ you do not need the first redefinition and simply swap the deletion
+ commands:<br /><tt>bind -m '^[d=aa^B^[H^[D'</tt></p>
 ----
 ToC: cur-up-zsh
 Title: Cursor Up behaves differently from zsh
