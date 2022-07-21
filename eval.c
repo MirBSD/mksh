@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.252 2022/04/22 02:04:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.253 2022/07/21 02:47:05 tg Exp $");
 
 /*
  * string expansion
@@ -1081,23 +1081,24 @@ expand(
 			if ((word == IFS_WORD) || (word == IFS_QUOTE) || (c &&
 			    (word == IFS_IWS || word == IFS_NWS) &&
 			    !ctype(c, C_IFSWS))) {
+				size_t dlen;
  emit_word:
 				if (f & DOHERESTR)
 					*dp++ = '\n';
 				*dp++ = '\0';
+				dlen = Xlength(ds, dp);
 				cp = Xclose(ds, dp);
 				if (fdo & DOBRACE)
 					/* also does globbing */
 					alt_expand(wp, cp, cp,
-					    cp + Xlength(ds, (dp - 1)),
+					    cp + dlen - 1,
 					    fdo | (f & DOMARKDIRS));
 				else if (fdo & DOGLOB)
 					glob(cp, wp, isWahr(f & DOMARKDIRS));
 				else if ((f & DOPAT) || !(fdo & DOMAGIC))
 					XPput(*wp, cp);
 				else
-					XPput(*wp, debunk(cp, cp,
-					    strlen(cp) + 1));
+					XPput(*wp, debunk(cp, cp, dlen));
 				fdo = 0;
 				saw_eq = Nee;
 				/* must be 1/0 */
