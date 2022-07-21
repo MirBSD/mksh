@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.254 2022/07/21 03:18:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.255 2022/07/21 03:57:41 tg Exp $");
 
 /*
  * string expansion
@@ -90,6 +90,9 @@ static char *homedir(char *);
 static void alt_expand(XPtrV *, char *, char *, char *, int);
 static int utflen(const char *);
 static void utfincptr(const char *, mksh_ari_t *);
+
+/* null (sh.h) */
+char null_string[4] = { 0, 0, 0, 0 };
 
 /* UTFMODE functions */
 static int
@@ -1663,12 +1666,6 @@ trimsub(char *str, char *pat, int how)
 {
 	char *end = strnul(str);
 	char *p, c;
-
-#ifdef DEBUG
-	/* ASAN/GCC workaround */
-	if (end == str)
-		return (str);
-#endif
 
 	switch (how & (STYPE_CHAR | STYPE_DBL)) {
 	case ORD('#'):
