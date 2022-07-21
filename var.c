@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.265 2022/02/19 21:22:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.266 2022/07/21 01:46:24 tg Exp $");
 
 /*-
  * Variables
@@ -493,8 +493,8 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		size_t cursz;
 		if ((vq->flag&ALLOC)) {
 			cursz = strlen(vq->val.s) + 1;
-#ifndef MKSH_SMALL
-			/* debugging */
+#if defined(__MirBSD__) && defined(DEBUG)
+			/* this is C UB (pointer comparison out of object) */
 			if (s >= vq->val.s && s < (vq->val.s + cursz)) {
 				kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
 				    "setstr: %s=%s: assigning to self",
