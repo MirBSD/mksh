@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.348 2022/07/21 01:37:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.349 2022/07/21 01:49:32 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -68,7 +68,7 @@ static int make_path(const char *, const char *, char **, XString *, int *);
 char *
 Xcheck_grow(XString *xsp, const char *xp, size_t more)
 {
-	const char *old_beg = xsp->beg;
+	size_t old_ofs = xp - xsp->beg;
 
 	if (more < xsp->len)
 		more = xsp->len;
@@ -76,7 +76,7 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 	checkoktoadd(more, xsp->len + X_EXTRA);
 	xsp->beg = aresize(xsp->beg, (xsp->len += more) + X_EXTRA, xsp->areap);
 	xsp->end = xsp->beg + xsp->len;
-	return (xsp->beg + (xp - old_beg));
+	return (xsp->beg + old_ofs);
 }
 
 #define SHFLAGS_DEFNS
