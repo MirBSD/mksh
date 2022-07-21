@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.347 2022/04/22 02:04:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.348 2022/07/21 01:37:48 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -499,8 +499,9 @@ parse_args(const char **argv,
 		}
 	}
 	/* lone ‘-’ (or ‘+’)? */
-	if (argv[go.optind] && argv[go.optind][1] == '\0' &&
+	if (argv[go.optind] &&
 	    ctype(argv[go.optind][0], C_MINUS | C_PLUS) &&
+	    argv[go.optind][1] == '\0' &&
 	    !(go.info & GI_MINUSMINUS)) {
 		/* POSIX: lone hyphen-minus sh first arg ignored */
 		if (what == OF_SET && isch(argv[go.optind][0], '-')) {
