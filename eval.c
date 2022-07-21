@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.253 2022/07/21 02:47:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.254 2022/07/21 03:18:57 tg Exp $");
 
 /*
  * string expansion
@@ -1663,6 +1663,12 @@ trimsub(char *str, char *pat, int how)
 {
 	char *end = strnul(str);
 	char *p, c;
+
+#ifdef DEBUG
+	/* ASAN/GCC workaround */
+	if (end == str)
+		return (str);
+#endif
 
 	switch (how & (STYPE_CHAR | STYPE_DBL)) {
 	case ORD('#'):
