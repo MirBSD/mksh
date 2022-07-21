@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.129 2022/02/19 21:22:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.130 2022/07/21 02:38:25 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -388,7 +388,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		shf->flags &= ~SHF_READING;
 	}
 	if (shf->flags & SHF_STRING) {
-		unsigned char *nbuf;
+		size_t rp, wp;
 
 		/*
 		 * Note that we assume SHF_ALLOCS is not set if
@@ -399,13 +399,14 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return (-1);
 		/* allocate more space for buffer */
-		nbuf = aresize2(shf->buf, 2, shf->wbsize, shf->areap);
-		shf->rp = nbuf + (shf->rp - shf->buf);
-		shf->wp = nbuf + (shf->wp - shf->buf);
+		rp = shf->rp - shf->buf;
+		wp = shf->wp - shf->buf;
+		shf->buf = aresize2(shf->buf, 2, shf->wbsize, shf->areap);
+		shf->rp = shf->buf + rp;
+		shf->wp = shf->buf + wp;
 		shf->rbsize += shf->wbsize;
 		shf->wnleft += shf->wbsize;
 		shf->wbsize <<= 1;
-		shf->buf = nbuf;
 	} else {
 		if (shf->flags & SHF_WRITING) {
 			ssize_t n, ntowrite = shf->wp - shf->buf;
