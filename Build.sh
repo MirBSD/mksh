@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.827 2022/03/06 01:48:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.828 2022/07/21 00:37:13 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -646,7 +646,7 @@ do
 	:-g)
 		# checker, debug, valgrind build
 		add_cppflags -DDEBUG
-		Cg=YES
+		Cg=' '
 		;;
 	:-j)
 		pm=1
