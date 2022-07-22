@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.899 2022/07/22 01:13:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.900 2022/07/22 01:14:28 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020, 2021
+#	      2019, 2020, 2021, 2022
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/04/21
+	KSH R59 2022/07/21
 description:
 	Check base version of full shell
 stdin:
@@ -14097,26 +14097,26 @@ stdin:
 		set +U
 		local c s="$*" t=
 		[[ -n $s ]] || { s=$(cat;print .); s=${s%.}; }
-		local -i i=0 n=${#s} p=0 v x
+		local -i i=-1 n=${#s} p=0 v x
 		local -i16 o
 	
-		while (( i < n )); do
-			c=${s:(i++):1}
+		while ((# ++i < n )); do
+			c=${s:i:1}
 			case $c {
 			(=)	break ;;
-			([A-Z])	(( v = 1#$c - 65 )) ;;
-			([a-z])	(( v = 1#$c - 71 )) ;;
-			([0-9])	(( v = 1#$c + 4 )) ;;
+			([A-Z])	((# v = 1#$c - 65 )) ;;
+			([a-z])	((# v = 1#$c - 71 )) ;;
+			([0-9])	((# v = 1#$c + 4 )) ;;
 			(+)	v=62 ;;
 			(/)	v=63 ;;
 			(*)	continue ;;
 			}
-			(( x = (x << 6) | v ))
+			((# x = (x << 6) | v ))
 			case $((p++)) {
 			(0)	continue ;;
-			(1)	(( o = (x >> 4) & 255 )) ;;
-			(2)	(( o = (x >> 2) & 255 )) ;;
-			(3)	(( o = x & 255 ))
+			(1)	((# o = (x >> 4) & 255 )) ;;
+			(2)	((# o = (x >> 2) & 255 )) ;;
+			(3)	((# o = x & 255 ))
 				p=0
 				;;
 			}

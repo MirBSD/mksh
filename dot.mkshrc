@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.140 2022/02/09 13:14:27 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.141 2022/07/22 01:14:30 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -389,31 +389,31 @@ function Lb64decode {
 	else
 		\\builtin read -rN-1 s || \\builtin return $?
 	fi
-	\\builtin typeset -i i=0 j=0 n=${#s} p=0 v x
+	\\builtin typeset -i i=-1 j=0 n=${#s} p=0 v x
 	\\builtin typeset -i16 o
 
-	while (( i < n )); do
-		c=${s:(i++):1}
+	while ((# ++i < n )); do
+		c=${s:i:1}
 		case $c {
 		(=)	\\builtin break ;;
-		([A-Z])	(( v = 1#$c - 65 )) ;;
-		([a-z])	(( v = 1#$c - 71 )) ;;
-		([0-9])	(( v = 1#$c + 4 )) ;;
+		([A-Z])	((# v = 1#$c - 65 )) ;;
+		([a-z])	((# v = 1#$c - 71 )) ;;
+		([0-9])	((# v = 1#$c + 4 )) ;;
 		(+)	v=62 ;;
 		(/)	v=63 ;;
 		(*)	\\builtin continue ;;
 		}
-		(( x = (x << 6) | v ))
+		((# x = (x << 6) | v ))
 		case $((p++)) {
 		(0)	\\builtin continue ;;
-		(1)	(( o = (x >> 4) & 255 )) ;;
-		(2)	(( o = (x >> 2) & 255 )) ;;
-		(3)	(( o = x & 255 ))
+		(1)	((# o = (x >> 4) & 255 )) ;;
+		(2)	((# o = (x >> 2) & 255 )) ;;
+		(3)	((# o = x & 255 ))
 			p=0
 			;;
 		}
 		t+=\\x${o#16#}
-		(( ++j & 4095 )) && \\builtin continue
+		((# ++j & 4095 )) && \\builtin continue
 		\\builtin print -n -- "$t"
 		t=
 	done
