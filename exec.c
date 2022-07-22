@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.239 2022/07/22 00:11:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.240 2022/07/22 00:15:22 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -491,8 +491,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	volatile int rv = 0;
 	const char *cp;
 	const char **lastp;
-	/* Must be static (XXX but why?) */
-	static struct op texec;
 	int type_flags;
 	Wahr resetspec;
 	int fcflags = FC_BI | FC_FUNC | FC_PATH;
@@ -503,6 +501,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	volatile kui old_inuse;
 	const char * volatile old_kshname;
 	volatile kby old_flags[FNFLAGS];
+	struct op texec;
 
 	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
