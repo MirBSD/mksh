@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.238 2022/02/19 21:21:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.239 2022/07/22 00:11:25 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -500,6 +500,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	int optc;
 	const char *exec_argv0 = NULL;
 	Wahr exec_clrenv = Nee;
+	volatile kui old_inuse;
+	const char * volatile old_kshname;
+	volatile kby old_flags[FNFLAGS];
 
 	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
@@ -703,11 +706,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		break;
 
 	/* function call */
-	case CFUNC: {
-		volatile kui old_inuse;
-		const char * volatile old_kshname;
-		volatile kby old_flags[FNFLAGS];
-
+	case CFUNC:
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;
 
@@ -831,7 +830,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			    Tunexpected_type, Tunwind, Tfunction, i);
 		}
 		break;
-	}
 
 	/* executable command */
 	case CEXEC:
