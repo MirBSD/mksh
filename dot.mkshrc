@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.141 2022/07/22 01:14:30 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.142 2022/07/22 01:15:33 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -57,7 +57,7 @@ function _dot_mkshrc_cat_for_readNa {
 		\\builtin read -raN-1 s <<<"$*" || \\builtin return $?
 		\\builtin unset s[${#s[*]}-1]
 	elif [[ -t 0 ]]; then
-		s=$(\cat || \builtin exit $?; \\builtin print .) || \
+		s=$(\cat || \\builtin exit $?; \\builtin print .) || \
 		    \\builtin return $?
 		\\builtin read -raN-1 s <<<"$s" || \\builtin return $?
 		\\builtin unset s[${#s[*]}-1]
