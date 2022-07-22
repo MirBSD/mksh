@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.240 2022/07/22 00:15:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.241 2022/07/22 00:19:15 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -501,7 +501,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	volatile kui old_inuse;
 	const char * volatile old_kshname;
 	volatile kby old_flags[FNFLAGS];
-	struct op texec;
+	static struct op texec; /* static for use by child process */
 
 	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
