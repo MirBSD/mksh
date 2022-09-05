@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.830 2022/09/05 22:53:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.831 2022/09/05 23:41:36 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -221,7 +221,8 @@ do_genopt() {
 	done | {
 		echo "$o_hdr"
 		echo "#ifndef $o_sym$o_gen"
-		echo "#else"
+		echo "#endif"
+		echo "#ifdef $o_sym"
 		cat
 		echo "#undef $o_sym"
 		echo "#endif"
