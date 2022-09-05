@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.990 2022/07/22 01:15:33 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.991 2022/09/05 22:53:28 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -38,10 +38,21 @@
 #undef MKSH_USE_AUTOCONF_H
 #endif
 
+#ifdef MKSH_FIXUP_struct_timeval
+#define _STRUCT_TIMEVAL /* for HP-UX 9 */
+#include <sys/types.h>	/* for time_t */
+struct timeval {
+	time_t	tv_sec;		/* HP-UX 9: ulong (time_t=long) */
+	long	tv_usec;
+};
+#endif
+
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+#ifndef MKSH_FIXUP_struct_timeval
 #include <sys/types.h>
+#endif
 #if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 #include <sys/time.h>
 #include <time.h>

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.829 2022/09/05 20:53:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.830 2022/09/05 22:53:26 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -962,6 +962,8 @@ HP-UX)
 	B.09.*)
 		: "${CC=c89}"
 		add_cppflags -D_HPUX_SOURCE
+		cpp_define MKSH_FIXUP_struct_timeval 1
+		cpp_define MBSDINT_H_SMALL_SYSTEM 1
 		;;
 	esac
 	;;
