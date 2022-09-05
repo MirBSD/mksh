@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.349 2022/07/21 01:49:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.350 2022/09/05 23:48:46 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -2629,8 +2629,10 @@ chvt(const Getopt *go)
 #endif
 				if (WIFSIGNALED(status)) {
 					status = WTERMSIG(status);
-					dv = status > 0 && status < ksh_NSIG ?
-					    ksh_sigmess(status) : NULL;
+					if (status > 0 && status < ksh_NSIG)
+						dv = ksh_sigmess(status);
+					else
+						dv = NULL;
 					if (ksh_sigmessf(dv))
 						dv = "Signalled";
 					kwarnf(KWF_PREFIX | KWF_TWOMSG |
