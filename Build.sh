@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.828 2022/07/21 00:37:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.829 2022/09/05 20:53:13 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -827,7 +827,7 @@ NEXTSTEP)
 	    grep 'NeXT Mach [0-9][0-9.]*:' | \
 	    sed 's/^.*NeXT Mach \([0-9][0-9.]*\):.*$/\1/'`
 	;;
-BeOS|QNX|SCO_SV)
+BeOS|HP-UX|QNX|SCO_SV)
 	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 esac
@@ -958,6 +958,12 @@ Harvey)
 	: "${HAVE_CAN_FSTACKPROTECTORSTRONG=0}"
 	;;
 HP-UX)
+	case $TARGET_OSREV in
+	B.09.*)
+		: "${CC=c89}"
+		add_cppflags -D_HPUX_SOURCE
+		;;
+	esac
 	;;
 Interix)
 	ccpc='-X '
@@ -1458,6 +1464,11 @@ gcc)
 	;;
 hpcc)
 	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	case $TARGET_OS,$TARGET_OSREV in
+	HP-UX,B.09.*)
+		: "${HAVE_ATTRIBUTE_EXTENSION=0}"
+		;;
+	esac
 	;;
 iar)
 	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
