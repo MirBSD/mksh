@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.12 2022/04/01 02:04:32 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.14 2022/09/05 21:54:40 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -17,6 +17,15 @@
 #include <sys/cdefs.h>
 #include <sys/limits.h>
 #include <sys/stddef.h>
+#endif
+
+/* define to 1 or 2 to shorten some macros, for old systems */
+#if !defined(MBSDINT_H_SMALL_SYSTEM)
+#define mbiMASK_bitmax		279
+#elif (MBSDINT_H_SMALL_SYSTEM) >= 2
+#define mbiMASK_bitmax		62
+#else
+#define mbiMASK_bitmax		93
 #endif
 
 /* should be in <sys/cdefs.h> via <limits.h> */
@@ -39,6 +48,8 @@
 #define mbiCTA(name,cond)	char cta_ ## name [(cond) ? 1 : -1]
 /* special CTAs */
 #define mbiCTA_TYPE_NOTF(type)	char ctati_ ## type [((type)0.5 == 0) ? 1 : -1]
+#define mbiCTA_TYPE_MBIT(nm,ty)	char ctatm_ ## nm [\
+	(sizeof(ty) <= (mbiMASK_bitmax / (CHAR_BIT))) ? 1 : -1]
 
 /* largest integer */
 #if defined(INTMAX_MIN)
@@ -73,11 +84,12 @@
 #define mbiMASK_BITS(maxv)	((unsigned int)((maxv) / ((maxv) % 255 + 1) / \
 				255 % 255 * 8 + 7 - 86 / ((maxv) % 255 + 12)))
 
-/* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 bits */
+/* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 (or less) bits */
 #define mbiMASK_CHK(v)		((v) > 0 ? mbi_maskchk31_1((v)) : 0)
 #define mbi_maskchks(v,m,o,n)	(v <= m ? o : ((v & m) == m) && n)
 #define mbi_maskchk31s(v,n)	mbi_maskchks(v, 0x7FFFFFFFUL, \
 				    mbi_maskchk16(v), n)
+#if !defined(MBSDINT_H_SMALL_SYSTEM)
 #define mbi_maskchk31_1(v)	mbi_maskchk31s(v, mbi_maskchk31_2(v >> 31))
 #define mbi_maskchk31_2(v)	mbi_maskchk31s(v, mbi_maskchk31_3(v >> 31))
 #define mbi_maskchk31_3(v)	mbi_maskchk31s(v, mbi_maskchk31_4(v >> 31))
@@ -86,6 +98,12 @@
 #define mbi_maskchk31_6(v)	mbi_maskchk31s(v, mbi_maskchk31_7(v >> 31))
 #define mbi_maskchk31_7(v)	mbi_maskchk31s(v, mbi_maskchk31_8(v >> 31))
 #define mbi_maskchk31_8(v)	mbi_maskchk31s(v, mbi_maskchk31_9(v >> 31))
+#elif (MBSDINT_H_SMALL_SYSTEM) >= 2
+#define mbi_maskchk31_1(v)	mbi_maskchk31s(v, mbi_maskchk31_9(v >> 31))
+#else
+#define mbi_maskchk31_1(v)	mbi_maskchk31s(v, mbi_maskchk31_8(v >> 31))
+#define mbi_maskchk31_8(v)	mbi_maskchk31s(v, mbi_maskchk31_9(v >> 31))
+#endif
 #define mbi_maskchk31_9(v)	(v <= 0x7FFFFFFFUL && mbi_maskchk16(v))
 #define mbi_maskchk16(v)	mbi_maskchks(v, 0xFFFFU, \
 				    mbi_maskchk8(v), mbi_maskchk8(v >> 16))
@@ -109,58 +127,66 @@ mbiCTAS(mbsdint_h) {
 	mbiTYPE_UMAX(unsigned char) == (UCHAR_MAX) &&
 	sizeof(signed char) == 1 &&
 	sizeof(unsigned char) == 1 &&
-	mbiMASK_CHK(SCHAR_MAX) && mbiMASK_CHK(UCHAR_MAX) &&
 	mbiTYPE_UBITS(unsigned char) >= 8 && (SCHAR_MIN) < 0 &&
 	((SCHAR_MIN) == -(SCHAR_MAX) || (SCHAR_MIN)+1 == -(SCHAR_MAX)) &&
 	mbiTYPE_UBITS(unsigned char) == (unsigned int)(CHAR_BIT));
+ mbiCTA(basic_char_smask, mbiMASK_CHK(SCHAR_MAX));
+ mbiCTA(basic_char_umask, mbiMASK_CHK(UCHAR_MAX));
+ mbiCTA_TYPE_MBIT(short, short);
+ mbiCTA_TYPE_MBIT(ushort, unsigned short);
+ mbiCTA_TYPE_MBIT(int, int);
+ mbiCTA_TYPE_MBIT(uint, unsigned int);
+ mbiCTA_TYPE_MBIT(long, long);
+ mbiCTA_TYPE_MBIT(ulong, unsigned long);
+#ifdef LLONG_MIN
+ mbiCTA_TYPE_MBIT(llong, long long);
+ mbiCTA_TYPE_MBIT(ullong, unsigned long long);
+#endif
+#ifdef INTMAX_MIN
+ mbiCTA_TYPE_MBIT(imax, intmax_t);
+ mbiCTA_TYPE_MBIT(uimax, uintmax_t);
+#endif
  mbiCTA(basic_short,
 	mbiTYPE_UMAX(unsigned short) == (USHRT_MAX) &&
-	sizeof(short) <= (279 / CHAR_BIT) &&
-	sizeof(unsigned short) <= (279 / CHAR_BIT) &&
-	mbiMASK_CHK(SHRT_MAX) && mbiMASK_CHK(USHRT_MAX) &&
 	mbiTYPE_UBITS(unsigned short) >= 16 && (SHRT_MIN) < 0 &&
 	((SHRT_MIN) == -(SHRT_MAX) || (SHRT_MIN)+1 == -(SHRT_MAX)) &&
 	sizeof(short) >= sizeof(signed char) &&
 	sizeof(unsigned short) >= sizeof(unsigned char) &&
 	sizeof(short) == sizeof(unsigned short));
+ mbiCTA(basic_short_smask, mbiMASK_CHK(SHRT_MAX));
+ mbiCTA(basic_short_umask, mbiMASK_CHK(USHRT_MAX));
  mbiCTA(basic_int,
 	mbiTYPE_UMAX(unsigned int) == (UINT_MAX) &&
-	sizeof(int) <= (279 / CHAR_BIT) &&
-	sizeof(unsigned int) <= (279 / CHAR_BIT) &&
-	mbiMASK_CHK(INT_MAX) && mbiMASK_CHK(UINT_MAX) &&
 	mbiTYPE_UBITS(unsigned int) >= 16 && (INT_MIN) < 0 &&
 	((INT_MIN) == -(INT_MAX) || (INT_MIN)+1 == -(INT_MAX)) &&
 	sizeof(int) >= sizeof(short) &&
 	sizeof(unsigned int) >= sizeof(unsigned short) &&
 	sizeof(int) == sizeof(unsigned int));
+ mbiCTA(basic_int_smask, mbiMASK_CHK(INT_MAX));
+ mbiCTA(basic_int_umask, mbiMASK_CHK(UINT_MAX));
  mbiCTA(basic_long,
 	mbiTYPE_UMAX(unsigned long) == (ULONG_MAX) &&
-	sizeof(long) <= (279 / CHAR_BIT) &&
-	sizeof(unsigned long) <= (279 / CHAR_BIT) &&
-	mbiMASK_CHK(LONG_MAX) && mbiMASK_CHK(ULONG_MAX) &&
 	mbiTYPE_UBITS(unsigned long) >= 32 && (LONG_MIN) < 0 &&
 	((LONG_MIN) == -(LONG_MAX) || (LONG_MIN)+1 == -(LONG_MAX)) &&
 	sizeof(long) >= sizeof(int) &&
 	sizeof(unsigned long) >= sizeof(unsigned int) &&
 	sizeof(long) == sizeof(unsigned long));
+ mbiCTA(basic_long_smask, mbiMASK_CHK(LONG_MAX));
+ mbiCTA(basic_long_umask, mbiMASK_CHK(ULONG_MAX));
 #ifdef LLONG_MIN
  mbiCTA(basic_quad,
 	mbiTYPE_UMAX(unsigned long long) == (ULLONG_MAX) &&
-	sizeof(long long) <= (279 / CHAR_BIT) &&
-	sizeof(unsigned long long) <= (279 / CHAR_BIT) &&
-	mbiMASK_CHK(LLONG_MAX) && mbiMASK_CHK(ULLONG_MAX) &&
 	mbiTYPE_UBITS(unsigned long long) >= 32 && (LLONG_MIN) < 0 &&
 	((LLONG_MIN) == -(LLONG_MAX) || (LLONG_MIN)+1 == -(LLONG_MAX)) &&
 	sizeof(long long) >= sizeof(long) &&
 	sizeof(unsigned long long) >= sizeof(unsigned long) &&
 	sizeof(long long) == sizeof(unsigned long long));
+ mbiCTA(basic_quad_smask, mbiMASK_CHK(LLONG_MAX));
+ mbiCTA(basic_quad_umask, mbiMASK_CHK(ULLONG_MAX));
 #endif
 #ifdef INTMAX_MIN
  mbiCTA(basic_imax,
 	mbiTYPE_UMAX(uintmax_t) == (UINTMAX_MAX) &&
-	sizeof(intmax_t) <= (279 / CHAR_BIT) &&
-	sizeof(uintmax_t) <= (279 / CHAR_BIT) &&
-	mbiMASK_CHK(INTMAX_MAX) && mbiMASK_CHK(UINTMAX_MAX) &&
 	mbiTYPE_UBITS(uintmax_t) >= 32 && (INTMAX_MIN) < 0 &&
 	((INTMAX_MIN) == -(INTMAX_MAX) || (INTMAX_MIN)+1 == -(INTMAX_MAX)) &&
 #ifdef LLONG_MIN
@@ -171,6 +197,8 @@ mbiCTAS(mbsdint_h) {
 	sizeof(uintmax_t) >= sizeof(unsigned long) &&
 #endif
 	sizeof(intmax_t) == sizeof(uintmax_t));
+ mbiCTA(basic_imax_smask, mbiMASK_CHK(INTMAX_MAX));
+ mbiCTA(basic_imax_umask, mbiMASK_CHK(UINTMAX_MAX));
 #endif
  /* size_t is C but ssize_t is POSIX */
  mbiCTA_TYPE_NOTF(size_t);
@@ -178,43 +206,45 @@ mbiCTAS(mbsdint_h) {
 	sizeof(size_t) >= sizeof(unsigned int) &&
 	sizeof(size_t) <= sizeof(mbiHUGE_U) &&
 	mbiTYPE_ISU(size_t) &&
+	mbiTYPE_UBITS(size_t) <= mbiMASK_BITS(mbiHUGE_UMAX));
 #ifdef SIZE_MAX
+ mbiCTA(basic_sizet_max,
 	mbiMASK_CHK(SIZE_MAX) &&
 	mbiMASK_BITS(SIZE_MAX) <= mbiTYPE_UBITS(size_t) &&
-	((mbiHUGE_U)(SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)) &&
+	((mbiHUGE_U)(SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)));
 #endif
-	mbiTYPE_UBITS(size_t) <= mbiMASK_BITS(mbiHUGE_UMAX));
  mbiCTA_TYPE_NOTF(ptrdiff_t);
  mbiCTA(basic_ptrdifft,
 	sizeof(ptrdiff_t) >= sizeof(int) &&
 	sizeof(ptrdiff_t) <= sizeof(mbiHUGE_S) &&
-	!mbiTYPE_ISU(ptrdiff_t) &&
+	!mbiTYPE_ISU(ptrdiff_t));
 #ifdef PTRDIFF_MAX
+ mbiCTA(basic_ptrdifft_max,
 	mbiMASK_CHK(PTRDIFF_MAX) &&
-	((mbiHUGE_S)(PTRDIFF_MAX) == (mbiHUGE_S)(ptrdiff_t)(PTRDIFF_MAX)) &&
+	((mbiHUGE_S)(PTRDIFF_MAX) == (mbiHUGE_S)(ptrdiff_t)(PTRDIFF_MAX)));
 #endif
-	1);
  /* UGH! off_t is POSIX, with no _MIN/_MAX constants… WTF‽ */
 #ifdef SSIZE_MAX
  mbiCTA_TYPE_NOTF(ssize_t);
  mbiCTA(basic_ssizet,
 	sizeof(ssize_t) == sizeof(size_t) &&
 	!mbiTYPE_ISU(ssize_t) &&
-	mbiMASK_CHK(SSIZE_MAX) &&
 	((mbiHUGE_S)(SSIZE_MAX) == (mbiHUGE_S)(ssize_t)(SSIZE_MAX)) &&
 #ifdef SIZE_MAX
 	mbiMASK_BITS(SSIZE_MAX) <= mbiMASK_BITS(SIZE_MAX) &&
 #endif
 	mbiMASK_BITS(SSIZE_MAX) < mbiTYPE_UBITS(size_t));
+ mbiCTA(basic_ssizet_mask, mbiMASK_CHK(SSIZE_MAX));
 #endif
 #ifdef UINTPTR_MAX
  mbiCTA(basic_uintptr,
 	sizeof(uintptr_t) >= sizeof(ptrdiff_t) &&
 	sizeof(uintptr_t) >= sizeof(size_t) &&
-	mbiTYPE_ISU(uintptr_t) && mbiMASK_CHK(UINTPTR_MAX) &&
+	mbiTYPE_ISU(uintptr_t) &&
 	mbiMASK_BITS(UINTPTR_MAX) == mbiTYPE_UBITS(uintptr_t) &&
 	((mbiHUGE_U)(UINTPTR_MAX) == (mbiHUGE_U)(uintptr_t)(UINTPTR_MAX)) &&
 	mbiTYPE_UBITS(uintptr_t) <= mbiMASK_BITS(mbiHUGE_UMAX));
+ mbiCTA(basic_uintptr_mask, mbiMASK_CHK(UINTPTR_MAX));
 #endif
  /* C99 §6.2.6.2(1, 2, 6) permits M ≤ N, but M < N is normally desired */
  /* here require signed/unsigned types to have same width (M=N-1) */
