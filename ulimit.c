@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.7 2022/09/06 00:07:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.8 2022/09/06 00:22:23 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -222,6 +222,7 @@ c_ulimit(const char **wp)
 			all = Ja;
 			break;
 		case ORD('?'):
+ unknown_opt:
 			bi_errorf("usage: ulimit [-%s] [value]", rlimits_opts);
 			return (1);
 		default:
@@ -253,8 +254,9 @@ c_ulimit(const char **wp)
 		/* silently accept */
 		return (0);
 #endif
-	kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO, "ulimit: %c", what);
-	return (1);
+	ksh_getopt_opterr(what, wp[0], Tunknown_option);
+	goto unknown_opt;
+
  found:
 	if (wp[builtin_opt.optind]) {
 		if (wp[builtin_opt.optind + 1])
