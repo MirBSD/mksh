@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021
+ *		 2019, 2020, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.6 2022/04/01 03:53:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.7 2022/09/06 00:07:35 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -228,6 +228,21 @@ c_ulimit(const char **wp)
 			what = optc;
 		}
 
+	if (all) {
+		if (wp[builtin_opt.optind]) {
+ unexpected_args:
+			bi_errorf(Ttoo_many_args);
+			return (1);
+		}
+		while (i < NELEM(rlimits)) {
+			shprintf("-%c: %-20s  ", rlimits[i]->optchar,
+			    rlimits[i]->name);
+			print_ulimit(rlimits[i], how);
+			++i;
+		}
+		return (0);
+	}
+
 	while (i < NELEM(rlimits)) {
 		if (rlimits[i]->optchar == what)
 			goto found;
@@ -236,24 +251,17 @@ c_ulimit(const char **wp)
 #ifndef RLIMIT_CORE
 	if (what == ORD('c'))
 		/* silently accept */
-		return 0;
+		return (0);
 #endif
 	kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO, "ulimit: %c", what);
 	return (1);
  found:
 	if (wp[builtin_opt.optind]) {
-		if (all || wp[builtin_opt.optind + 1]) {
-			bi_errorf(Ttoo_many_args);
-			return (1);
-		}
+		if (wp[builtin_opt.optind + 1])
+			goto unexpected_args;
 		return (set_ulimit(rlimits[i], wp[builtin_opt.optind], how));
 	}
-	if (!all)
-		print_ulimit(rlimits[i], how);
-	else for (i = 0; i < NELEM(rlimits); ++i) {
-		shprintf("-%c: %-20s  ", rlimits[i]->optchar, rlimits[i]->name);
-		print_ulimit(rlimits[i], how);
-	}
+	print_ulimit(rlimits[i], how);
 	return (0);
 }
 
