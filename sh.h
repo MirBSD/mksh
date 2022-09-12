@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.992 2022/09/12 23:53:47 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.993 2022/09/12 23:57:14 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -406,6 +406,7 @@ extern int ksh_getrusage(int, struct rusage *);
 #ifdef MAXPATHLEN
 #define PATH_MAX	MAXPATHLEN
 #else
+/*XXX wrong! pathconf(2) needs to be used instead */
 #define PATH_MAX	1024
 #endif
 #endif
