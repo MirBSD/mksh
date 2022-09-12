@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.266 2022/07/21 01:46:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.267 2022/09/12 23:53:49 tg Exp $");
 
 /*-
  * Variables
@@ -1082,7 +1082,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 		/* trivial string appending */
 		len = strlen(vp->val.s);
 		tlen = strlen(val) + 1;
-		vp->val.s = aresize(vp->val.s, len + tlen, vp->areap);
+		vp->val.s = aresize1(vp->val.s, len, tlen, vp->areap);
 		memcpy(vp->val.s + len, val, tlen);
 	} else if (val != NULL) {
  vassign:
@@ -1646,9 +1646,9 @@ arraysearch(struct tbl *vp, k32 idx)
 	} else
 		news = NULL;
 	if (!news) {
-		len = strlen(vp->name);
+		len = strlen(vp->name) + 1;
 		/* no need to checkoktoadd, it comes from a vp->name */
-		news = alloc(offsetof(struct tbl, name[0]) + ++len, vp->areap);
+		news = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
 		memcpy(news->name, vp->name, len);
 	}
 	news->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;

@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.415 2022/09/05 22:53:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.416 2022/09/12 23:53:46 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -1637,8 +1637,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
 	/* add "/shXXXXXX.tmp" plus NUL */
 	len = strlen(dir);
-	checkoktoadd(len, offsetof(struct temp, tffn[0]) + 14U);
-	cp = alloc(offsetof(struct temp, tffn[0]) + 14U + len, ap);
+	cp = alloc1(offsetof(struct temp, tffn[0]) + 14U, len, ap);
 
 	tp = (void *)cp;
 	tp->shf = NULL;
@@ -1808,9 +1807,8 @@ ktenter(struct table *tp, const char *n, k32 h)
 	}
 
 	/* create new tbl entry */
-	len = strlen(n);
-	checkoktoadd(len, offsetof(struct tbl, name[0]) + 1U);
-	p = alloc(offsetof(struct tbl, name[0]) + ++len, tp->areap);
+	len = strlen(n) + 1;
+	p = alloc1(offsetof(struct tbl, name[0]), len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;

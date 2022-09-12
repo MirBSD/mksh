@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.130 2022/07/21 02:38:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.131 2022/09/12 23:53:49 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -58,7 +58,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd, eno;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = alloc(sizeof(struct shf) + bsize, ATEMP);
+	shf = alloc1(sizeof(struct shf), bsize, ATEMP);
 	shf->areap = ATEMP;
 	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
@@ -146,7 +146,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 	} else {
 		unsigned char *cp;
 
-		cp = alloc(sizeof(struct shf) + bsize, ATEMP);
+		cp = alloc1(sizeof(struct shf), bsize, ATEMP);
 		shf = (void *)cp;
 		shf->buf = cp + sizeof(struct shf);
 		sflags |= SHF_ALLOCS;

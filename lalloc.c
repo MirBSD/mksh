@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016, 2021
+ * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016, 2021, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.32 2022/02/19 21:21:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.33 2022/09/12 23:53:46 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -55,7 +55,7 @@ remalloc(void *ptr, size_t size)
 {
 	struct lalloc_item *lp, *lold = ptr;
 
-	size = (size + 4095U) & (size_t)~(size_t)4095;
+	size = (size_t)(size + 4095U) & (size_t)~(size_t)4095U;
 
 	if (lold && lold->len >= size)
 		return (ptr);
@@ -129,6 +129,13 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 #endif
 		}
 	return (ap);
+}
+
+void *
+aresize1(void *ptr, size_t len1, size_t len2, Area *ap)
+{
+	checkoktoadd(len1, len2);
+	return (aresize(ptr, len1 + len2, ap));
 }
 
 /* pre-initio() */

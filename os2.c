@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2015, 2017, 2020
  *	KO Myung-Hun <komh@chollian.net>
- * Copyright (c) 2017, 2020
+ * Copyright (c) 2017, 2020, 2022
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 #include <klibc/startup.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.17 2022/02/19 21:21:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.18 2022/09/12 23:53:47 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -518,8 +518,8 @@ add_temp(const char *name)
 	struct temp *tp;
 	size_t len;
 
-	len = strlen(name);
-	tp = alloc(offsetof(struct temp, tffn[0]) + ++len, APERM);
+	len = strlen(name) + 1;
+	tp = alloc1(offsetof(struct temp, tffn[0]), len, APERM);
 	memcpy(tp->tffn, name, len);
 	tp->next = templist;
 	templist = tp;
@@ -581,8 +581,7 @@ getdrvwd(char **cpp, unsigned int drvltr)
 	}
 
 	/* allocate 'X:/' plus sz plus NUL */
-	checkoktoadd((size_t)sz, (size_t)4);
-	cp = aresize(*cpp, (size_t)sz + (size_t)4, ATEMP);
+	cp = aresize1(*cpp, sz, 4, ATEMP);
 	cp[0] = ksh_toupper(drvltr);
 	cp[1] = ':';
 	cp[2] = '/';

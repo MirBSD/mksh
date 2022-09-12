@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.403 2022/03/06 01:48:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.404 2022/09/12 23:53:45 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -689,7 +689,7 @@ do_whence(const char **wp, int fcflags, Wahr vflag, Wahr iscommand)
 					    current_wd : Tdot;
 					size_t xlen = strlen(xcwd);
 					size_t clen = strlen(tp->val.s) + 1;
-					char *xp = alloc(xlen + 1 + clen, ATEMP);
+					char *xp = alloc1(xlen + 1U, clen, ATEMP);
 
 					memcpy(xp, xcwd, xlen);
 					if (mksh_cdirsep(xp[xlen - 1]))

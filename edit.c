@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.398 2022/02/19 21:21:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.399 2022/09/12 23:53:43 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4306,11 +4306,7 @@ vi_cmd(int argcnt, const char *cmd)
 				nlen = strlen(ap->val.s) + 1;
 				olen = !macro.p ? 2 :
 				    macro.len - (macro.p - macro.buf);
-				/*
-				 * at this point, it's fairly reasonable that
-				 * nlen + olen + 2 doesn't overflow
-				 */
-				nbuf = alloc(nlen + 1 + olen, AEDIT);
+				nbuf = alloc1(nlen + 1, olen, AEDIT);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];
 				if (macro.p) {

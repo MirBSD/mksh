@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.186 2022/02/19 21:21:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.187 2022/09/12 23:53:46 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -665,7 +665,7 @@ histsave(int *lnp, const char *cmd, int svmode, Wahr ignoredups)
 
 		nenq = strlen(enqueued);
 		ncmd = strlen(c);
-		enqueued = aresize(enqueued, nenq + 1 + ncmd + 1, APERM);
+		enqueued = aresize1(enqueued, nenq + 1, ncmd + 1, APERM);
 		enqueued[nenq] = '\n';
 		memcpy(enqueued + nenq + 1, c, ncmd + 1);
 		afree(c, APERM);

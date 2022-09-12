@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.255 2022/07/21 03:57:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.256 2022/09/12 23:53:45 tg Exp $");
 
 /*
  * string expansion
@@ -2082,7 +2082,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 			else if ((ord(*p) == ORD(/*{*/ '}') && --count == 0) ||
 			    (*p == ',' && count == 1)) {
 				char *news;
-				int l1, l2, l3;
+				size_t l1, l2, l3;
 
 				/*
 				 * addition safe since these operate on
