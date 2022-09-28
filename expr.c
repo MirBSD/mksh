@@ -25,7 +25,7 @@
 #define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.122 2022/03/06 01:48:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.123 2022/09/28 17:21:01 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -889,7 +889,7 @@ ksh_access(const char *fn, int mode)
 }
 
 #ifndef MIRBSD_BOOTFLOPPY
-/* From: X11/xc/programs/xterm/wcwidth.c,v 1.10 */
+/* From: X11/xc/programs/xterm/wcwidth.c,v 1.17 */
 
 struct mb_ucsrange {
 	unsigned short beg;
@@ -900,14 +900,14 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val);
 
 /*
- * Generated from the UCD 13.0.0 - see /usr/share/doc/legal/LICENCE-BSD - by
+ * Generated from the UCD 15.0.0 - see /usr/share/doc/legal/LICENCE-BSD - by
  * MirOS: contrib/code/Snippets/eawparse,v 1.15 2020/06/15 20:31:13 tg Exp $
  */
 
 /*-
- * Parts Copyright © 1991–2020 Unicode, Inc. All rights reserved.
- * Distributed under the Terms of Use in
- *     https://www.unicode.org/copyright.html.
+ * Parts Copyright © 1991–2022 Unicode, Inc. All rights reserved.
+ * Distributed under the Terms of Use in:
+ *	https://www.unicode.org/copyright.html
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of the Unicode data files and any associated documentation
@@ -965,7 +965,8 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0825, 0x0827 },
 	{ 0x0829, 0x082D },
 	{ 0x0859, 0x085B },
-	{ 0x08D3, 0x08E1 },
+	{ 0x0898, 0x089F },
+	{ 0x08CA, 0x08E1 },
 	{ 0x08E3, 0x0902 },
 	{ 0x093A, 0x093A },
 	{ 0x093C, 0x093C },
@@ -1006,6 +1007,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0BCD, 0x0BCD },
 	{ 0x0C00, 0x0C00 },
 	{ 0x0C04, 0x0C04 },
+	{ 0x0C3C, 0x0C3C },
 	{ 0x0C3E, 0x0C40 },
 	{ 0x0C46, 0x0C48 },
 	{ 0x0C4A, 0x0C4D },
@@ -1031,7 +1033,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0E47, 0x0E4E },
 	{ 0x0EB1, 0x0EB1 },
 	{ 0x0EB4, 0x0EBC },
-	{ 0x0EC8, 0x0ECD },
+	{ 0x0EC8, 0x0ECE },
 	{ 0x0F18, 0x0F19 },
 	{ 0x0F35, 0x0F35 },
 	{ 0x0F37, 0x0F37 },
@@ -1056,7 +1058,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x1160, 0x11FF },
 	{ 0x135D, 0x135F },
 	{ 0x1712, 0x1714 },
-	{ 0x1732, 0x1734 },
+	{ 0x1732, 0x1733 },
 	{ 0x1752, 0x1753 },
 	{ 0x1772, 0x1773 },
 	{ 0x17B4, 0x17B5 },
@@ -1064,7 +1066,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x17C6, 0x17C6 },
 	{ 0x17C9, 0x17D3 },
 	{ 0x17DD, 0x17DD },
-	{ 0x180B, 0x180E },
+	{ 0x180B, 0x180F },
 	{ 0x1885, 0x1886 },
 	{ 0x18A9, 0x18A9 },
 	{ 0x1920, 0x1922 },
@@ -1080,7 +1082,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x1A65, 0x1A6C },
 	{ 0x1A73, 0x1A7C },
 	{ 0x1A7F, 0x1A7F },
-	{ 0x1AB0, 0x1AC0 },
+	{ 0x1AB0, 0x1ACE },
 	{ 0x1B00, 0x1B03 },
 	{ 0x1B34, 0x1B34 },
 	{ 0x1B36, 0x1B3A },
@@ -1103,8 +1105,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x1CED, 0x1CED },
 	{ 0x1CF4, 0x1CF4 },
 	{ 0x1CF8, 0x1CF9 },
-	{ 0x1DC0, 0x1DF9 },
-	{ 0x1DFB, 0x1DFF },
+	{ 0x1DC0, 0x1DFF },
 	{ 0x200B, 0x200F },
 	{ 0x202A, 0x202E },
 	{ 0x2060, 0x2064 },
