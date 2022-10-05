@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.994 2022/09/28 17:21:01 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.995 2022/10/05 23:42:53 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -3058,7 +3058,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 
 #ifdef __OS2__
 #define binopen2(path,flags)		__extension__({			\
-	int binopen2_fd = open((path), (flags) | O_BINARY);		\
+	int binopen2_fd = open((path), (flags) | O_BINARY, 0);		\
 	if (binopen2_fd >= 0)						\
 		setmode(binopen2_fd, O_BINARY);				\
 	(binopen2_fd);							\
@@ -3070,7 +3070,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	(binopen3_fd);							\
 })
 #else
-#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
+#define binopen2(path,flags)		open((path), (flags) | O_BINARY, 0)
 #define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #endif
 

@@ -27,7 +27,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.154 2022/03/06 01:48:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.155 2022/10/05 23:42:52 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -603,7 +603,7 @@ exchild(struct op *t, int flags,
 			setsig(&sigtraps[SIGQUIT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
 			if ((!(flags & (XPIPEI | XCOPROC))) &&
-			    ((forksleep = open("/dev/null", 0)) > 0)) {
+			    ((forksleep = open("/dev/null", 0, 0)) > 0)) {
 				ksh_dup2(forksleep, 0, Ja);
 				close(forksleep);
 			}
