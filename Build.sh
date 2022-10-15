@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.831 2022/09/05 23:41:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.832 2022/10/15 21:36:35 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1430,10 +1430,9 @@ bcc)
 	;;
 clang)
 	# does not work with current "ccc" compiler driver
-	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS --version"
 	# one of these two works, for now
 	vv '|' "${CLANG-clang} -version"
-	vv '|' "${CLANG-clang} --version"
 	# ensure compiler and linker are in sync unless overridden
 	case $CCC_CC:$CCC_LD in
 	:*)	;;
