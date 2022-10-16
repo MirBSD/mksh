@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.995 2022/10/05 23:42:53 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.996 2022/10/16 00:11:08 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -668,6 +668,7 @@ extern int __cdecl setegid(gid_t);
 #define HAS(v,f)	(((v) & (f)) == (f))
 #define IS(v,f,t)	(((v) & (f)) == (t))
 /* array sizing */
+#undef NELEM
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 
 /*
