@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.832 2022/10/15 21:36:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.833 2022/12/01 23:55:25 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -918,8 +918,6 @@ GNU)
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
 	cpp_define SETUID_CAN_FAIL_WITH_EAGAIN 1
-	# define MKSH__NO_PATH_MAX to use Hurd-only functions
-	cpp_define MKSH__NO_PATH_MAX 1
 	;;
 GNU/kFreeBSD)
 	case $CC in
@@ -963,7 +961,6 @@ HP-UX)
 	B.09.*)
 		: "${CC=c89}"
 		add_cppflags -D_HPUX_SOURCE
-		cpp_define MKSH_FIXUP_struct_timeval 1
 		cpp_define MBSDINT_H_SMALL_SYSTEM 1
 		;;
 	esac
@@ -2349,6 +2346,12 @@ ac_test rlim_t rlimit 0 <<-'EOF'
 	int main(void) { return (((int)(rlim_t)0) + isatty(0)); }
 EOF
 
+ac_test get_current_dir_name <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { return (!get_current_dir_name()); }
+EOF
+
 ac_test getrusage <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -2621,6 +2624,16 @@ if test 1 = "$HAVE_ST_MTIM"; then
 	HAVE_ST_MTIMENSEC=1
 fi
 ac_cppflags ST_MTIMENSEC
+
+ac_test intconstexpr_rsize_max '' 'whether RSIZE_MAX is an integer constant expression' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int tstarr[((int)(RSIZE_MAX) & 1) + 1] = {0};
+	mbiCTAS(conftest_c) { mbiCTA(rsizemax_check,
+	    ((mbiHUGE_U)(RSIZE_MAX) == (mbiHUGE_U)(size_t)(RSIZE_MAX)));
+	};
+	int main(void) { return (isatty(0)); }
+EOF
 
 #
 # other checks

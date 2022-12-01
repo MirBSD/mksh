@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.996 2022/10/16 00:11:08 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.997 2022/12/01 23:55:34 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -38,21 +38,10 @@
 #undef MKSH_USE_AUTOCONF_H
 #endif
 
-#ifdef MKSH_FIXUP_struct_timeval
-#define _STRUCT_TIMEVAL /* for HP-UX 9 */
-#include <sys/types.h>	/* for time_t */
-struct timeval {
-	time_t	tv_sec;		/* HP-UX 9: ulong (time_t=long) */
-	long	tv_usec;
-};
-#endif
-
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-#ifndef MKSH_FIXUP_struct_timeval
 #include <sys/types.h>
-#endif
 #if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 #include <sys/time.h>
 #include <time.h>
@@ -212,7 +201,7 @@ struct timeval {
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2022/09/28"
+#define MKSH_VERSION "R59 2022/12/01"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -398,34 +387,10 @@ extern int ksh_getrusage(int, struct rusage *);
 		}							\
 	} while (/* CONSTCOND */ 0)
 #endif
-
-#ifdef MKSH__NO_PATH_MAX
-#undef PATH_MAX
-#else
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define PATH_MAX	MAXPATHLEN
-#else
-/*XXX wrong! pathconf(2) needs to be used instead */
-#define PATH_MAX	1024
-#endif
-#endif
-#endif
-
-/* limit maximum object size so we can express pointer differences w/o UB */
-#if !defined(SIZE_MAX)
-#ifdef PTRDIFF_MAX
-#define mksh_MAXSZ	((size_t)PTRDIFF_MAX)
-#else
-#define mksh_MAXSZ	((size_t)(((size_t)-1) >> 1))
-#endif
-#elif !defined(PTRDIFF_MAX)
-/* can we limit? maybe but also maybe not */
-#define mksh_MAXSZ	SIZE_MAX
-#elif SIZE_MAX <= PTRDIFF_MAX
-#define mksh_MAXSZ	SIZE_MAX
-#else
-#define mksh_MAXSZ	((size_t)PTRDIFF_MAX)
+#ifndef timercmp
+#define timercmp(tvp,uvp,cmp) (((tvp)->tv_sec == (uvp)->tv_sec) ?	\
+	    ((tvp)->tv_usec cmp (uvp)->tv_usec) :			\
+	    ((tvp)->tv_sec cmp (uvp)->tv_sec))
 #endif
 
 /* if this breaks, see sh.h,v 1.954 commit message and diff */
@@ -911,7 +876,7 @@ typedef kby ksh_fdsave;
 #define free_ossetmode(p)	free(p)
 #endif
 
-#ifdef MKSH__NO_PATH_MAX
+#if HAVE_GET_CURRENT_DIR_NAME
 /* GNU libc: get_current_dir_name(3) -> free(3) */
 #define free_gnu_gcdn(p)	free(p)
 #endif
@@ -2495,8 +2460,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notok2mul(max,val,c)	(((val) != 0) && ((c) != 0) && \
 				    (((max) / (c)) < (val)))
 #define notok2add(max,val,c)	((val) > ((max) - (c)))
-#define notoktomul(val,cnst)	notok2mul(mksh_MAXSZ, (val), (cnst))
-#define notoktoadd(val,cnst)	notok2add(mksh_MAXSZ, (val), (cnst))
+#define notoktomul(val,cnst)	notok2mul(mbiSIZEMAX, (val), (cnst))
+#define notoktoadd(val,cnst)	notok2add(mbiSIZEMAX, (val), (cnst))
 #define checkoktoadd(val,cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
@@ -2740,6 +2705,7 @@ struct tbl **ktsort(struct table *);
 void DF(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 #endif
+const char *ksh_getwd(void);
 /* misc.c */
 size_t option(const char *);
 char *getoptions(void);
@@ -2765,7 +2731,6 @@ void strip_nuls(char *, size_t)
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(__buffer__, 2, 3);
 int reset_nonblock(int);
-char *ksh_get_wd(void);
 char *do_realpath(const char *);
 void simplify_path(char *);
 void set_current_wd(const char *);

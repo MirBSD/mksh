@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.351 2022/09/12 23:53:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.352 2022/12/01 23:55:33 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -1837,34 +1837,6 @@ reset_nonblock(int fd)
 	return (1);
 }
 
-/* getcwd(3) equivalent, allocates from ATEMP but doesn't resize */
-char *
-ksh_get_wd(void)
-{
-#ifdef MKSH__NO_PATH_MAX
-	char *rv, *cp;
-
-	if ((cp = get_current_dir_name())) {
-		if (mksh_abspath(cp))
-			strdupx(rv, cp, ATEMP);
-		else
-			rv = NULL;
-		free_gnu_gcdn(cp);
-	} else
-		rv = NULL;
-#else
-	char *rv;
-
-	if (!getcwd((rv = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX) ||
-	    !mksh_abspath(rv)) {
-		afree(rv, ATEMP);
-		rv = NULL;
-	}
-#endif
-
-	return (rv);
-}
-
 #ifndef ELOOP
 #define ELOOP		E2BIG
 #endif
@@ -1874,19 +1846,9 @@ do_realpath(const char *upath)
 {
 	char *xp, *ip, *tp, *ipath, *ldest = NULL;
 	XString xs;
-	size_t pos, len;
+	size_t pos, len, ldestlen = 1U;
 	ssize_t llen;
 	struct stat sb;
-#ifdef MKSH__NO_PATH_MAX
-	off_t ldestlen = 0;
-#define pathlen ((size_t)sb.st_size)
-#define pathcnd ((ldestlen < 1) || ((ldestlen - 1) < sb.st_size))
-#define ldestsz ((size_t)ldestlen)
-#else
-#define pathlen ((size_t)PATH_MAX)
-#define pathcnd (!ldest)
-#define ldestsz (pathlen + 1U)
-#endif
 	/* max. recursion depth */
 	int symlinks = 32;
 
@@ -1902,11 +1864,12 @@ do_realpath(const char *upath)
 		strpathx(ipath, ldest, upath + 2, 0);
 #endif
 	} else {
+		const char *tcp;
+
 		/* upath is a relative pathname, prepend cwd */
-		if ((tp = ksh_get_wd()) == NULL)
+		if ((tcp = ksh_getwd()) == NULL)
 			return (NULL);
-		strpathx(ipath, tp, upath, 1);
-		afree(tp, ATEMP);
+		strpathx(ipath, tcp, upath, 1);
 	}
 
 	/* ipath and upath are in memory at the same time -> unchecked */
@@ -1983,25 +1946,24 @@ do_realpath(const char *upath)
 				goto notfound;
 			}
 
-			/* get symlink(7) target */
-			if (pathcnd) {
-#ifdef MKSH__NO_PATH_MAX
-				/* same as notoktoadd(pathlen, 1) but adapted */
-				if ((uintmax_t)sb.st_size >= (uintmax_t)mksh_MAXSZ) {
+			/* need to resize link target buffer? */
+			if ((mbiHUGE_U)sb.st_size > (mbiHUGE_U)(ldestlen - 1U)) {
+				/* like notoktoadd() */
+				if ((mbiHUGE_U)sb.st_size >= (mbiHUGE_U)mbiSIZEMAX) {
 					errno = ENAMETOOLONG;
 					goto notfound;
 				}
-				ldestlen = sb.st_size + 1; /* <= mksh_MAXSZ */
-#endif
-				/* ldestsz == pathlen + 1 */
-				ldest = aresize(ldest, ldestsz, ATEMP);
+				ldestlen = (size_t)sb.st_size + 1U;
+				/* assert(ldestlen <= mbiSIZEMAX) */
+				ldest = aresize(ldest, ldestlen, ATEMP);
 			}
-			errno = ENAMETOOLONG; /* for > pathlen case */
-			llen = readlink(Xstring(xs, xp), ldest, ldestsz);
-			if (llen < 0 || (size_t)llen > pathlen)
+			/* get symlink(7) target */
+			errno = ENAMETOOLONG; /* for overflow case */
+			llen = readlink(Xstring(xs, xp), ldest, ldestlen);
+			if (llen == -1 || (size_t)llen >= ldestlen)
 				/* oops... */
 				goto notfound;
-			ldest[llen] = '\0';
+			ldest[(size_t)llen] = '\0';
 
 			/*
 			 * restart if symlink target is an absolute path,
@@ -2093,9 +2055,6 @@ do_realpath(const char *upath)
 	Xfree(xs, xp);
 	errno = symlinks;
 	return (NULL);
-
-#undef pathlen
-#undef pathcnd
 }
 
 /**
@@ -2326,17 +2285,14 @@ simplify_path(char *p)
 void
 set_current_wd(const char *nwd)
 {
-	char *allocd = NULL;
-
 	if (nwd == NULL) {
-		allocd = ksh_get_wd();
-		nwd = allocd ? allocd : null;
+		nwd = ksh_getwd();
+		if (nwd == NULL)
+			nwd = null;
 	}
 
 	afree(current_wd, APERM);
 	strdupx(current_wd, nwd, APERM);
-
-	afree(allocd, ATEMP);
 }
 
 int
@@ -2442,12 +2398,8 @@ c_cd(const char **wp)
 	}
 #endif
 
-#ifdef MKSH__NO_PATH_MAX
 	/* only a first guess; make_path will enlarge xs if necessary */
-	XinitN(xs, 1024, ATEMP);
-#else
-	XinitN(xs, PATH_MAX, ATEMP);
-#endif
+	XinitN(xs, 384U, ATEMP);
 
 	cdpath = str_val(global("CDPATH"));
 	do {

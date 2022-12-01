@@ -1,14 +1,16 @@
 /*-
  * MirBSD sanitisation attempt for C integer madness
  *
- * Published under Ⓕ CC0
+ * © mirabilos Ⓕ CC0 or The MirOS Licence
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.14 2022/09/05 21:54:40 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.15 2022/12/01 23:55:32 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
+
+/* -DHAVE_INTCONSTEXPR_RSIZE_MAX=1 if RSIZE_MAX is an integer constexpr */
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <limits.h>
@@ -20,6 +22,7 @@
 #endif
 
 /* define to 1 or 2 to shorten some macros, for old systems */
+/* or 3 for environments with very small address space (< 32 bits) */
 #if !defined(MBSDINT_H_SMALL_SYSTEM)
 #define mbiMASK_bitmax		279
 #elif (MBSDINT_H_SMALL_SYSTEM) >= 2
@@ -112,6 +115,33 @@
 #define mbi_maskchk4(v)		mbi_maskchks(v, 0xFU, \
 				    mbi_maskchkF(v), mbi_maskchkF(v >> 4))
 #define mbi_maskchkF(v)		(v == 0xF || v == 7 || v == 3 || v == 1 || !v)
+
+/* limit maximum object size so we can express pointer differences w/o UB */
+#if defined(HAVE_INTCONSTEXPR_RSIZE_MAX) && (HAVE_INTCONSTEXPR_RSIZE_MAX != 0)
+/* trust but verify operating environment */
+#define mbiRSZCHK	RSIZE_MAX
+#define mbiSIZEMAX	((size_t)RSIZE_MAX)
+#elif !defined(SIZE_MAX)
+#ifdef PTRDIFF_MAX
+#define mbiRSZCHK	PTRDIFF_MAX
+#define mbiSIZEMAX	((size_t)PTRDIFF_MAX)
+#elif defined(MBSDINT_H_SMALL_SYSTEM) && ((MBSDINT_H_SMALL_SYSTEM) >= 3)
+#define mbiSIZEMAX	mbiTYPE_UMAX(size_t)
+#else
+#define mbiSIZEMAX	((size_t)(mbiTYPE_UMAX(size_t) >> 1))
+#endif /* !PTRDIFF_MAX !MBSDINT_H_SMALL_SYSTEM>=3 */
+#elif !defined(PTRDIFF_MAX) || ((SIZE_MAX) == (PTRDIFF_MAX))
+#if defined(MBSDINT_H_SMALL_SYSTEM) && ((MBSDINT_H_SMALL_SYSTEM) >= 3)
+#define mbiSIZEMAX	((size_t)SIZE_MAX)
+#else
+#define mbiSIZEMAX	((size_t)(((size_t)SIZE_MAX) >> 1))
+#endif
+#elif (SIZE_MAX) < (PTRDIFF_MAX)
+#define mbiSIZEMAX	((size_t)SIZE_MAX)
+#else
+#define mbiRSZCHK	PTRDIFF_MAX
+#define mbiSIZEMAX	((size_t)PTRDIFF_MAX)
+#endif
 
 #ifndef MBSDINT_H_SKIP_CTAS
 /* compile-time assertions for mbsdint.h */
@@ -212,6 +242,11 @@ mbiCTAS(mbsdint_h) {
 	mbiMASK_CHK(SIZE_MAX) &&
 	mbiMASK_BITS(SIZE_MAX) <= mbiTYPE_UBITS(size_t) &&
 	((mbiHUGE_U)(SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)));
+#endif
+ /* note mbiSIZEMAX is not necessarily a mask (0b0*1+) */
+#ifdef mbiRSZCHK
+ mbiCTA(smax_check, ((mbiHUGE_U)(mbiRSZCHK) == (mbiHUGE_U)(size_t)(mbiRSZCHK)));
+#undef mbiRSZCHK
 #endif
  mbiCTA_TYPE_NOTF(ptrdiff_t);
  mbiCTA(basic_ptrdifft,

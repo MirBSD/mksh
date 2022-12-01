@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.404 2022/09/12 23:53:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.405 2022/12/01 23:55:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -226,7 +226,8 @@ c_pwd(const char **wp)
 {
 	int optc;
 	Wahr physical = isWahr(Flag(FPHYSICAL));
-	char *p, *allocd = NULL;
+	const char *p;
+	char *allocd = NULL;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -250,7 +251,7 @@ c_pwd(const char **wp)
 	/* LINTED use of access */
 	if (p && access(p, R_OK) < 0)
 		p = NULL;
-	if (!p && !(p = allocd = ksh_get_wd())) {
+	if (!p && !(p = ksh_getwd())) {
 		bi_errorf(Tf_sD_s, "can't determine current directory",
 		    cstrerror(errno));
 		return (1);
@@ -1714,12 +1715,12 @@ c_read(const char **wp)
 		FD_ZERO(&fdset);
 		FD_SET((unsigned int)fd, &fdset);
 		mksh_TIME(tv);
-		timersub(&tvlim, &tv, &tv);
-		if (tv.tv_sec < 0) {
+		if (timercmp(&tvlim, &tv, <)) {
 			/* timeout expired globally */
 			rv = 3;
 			goto c_read_out;
 		}
+		timersub(&tvlim, &tv, &tv);
 
 		switch (select(fd + 1, &fdset, NULL, NULL, &tv)) {
 		case 1:

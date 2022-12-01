@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.901 2022/09/28 17:20:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.902 2022/12/01 23:55:27 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/09/28
+	KSH R59 2022/12/01
 description:
 	Check base version of full shell
 stdin:
@@ -3482,23 +3482,23 @@ stdin:
 	# Background eval so main shell doesn't do parsing
 	eval '
 		foo() {
-			cat <<- EOF
-			hi
+			sed -e "s/^/N: /" -e "s/\\.[a-z]*\$//" <<-EOF
+			hi$1
 			EOF
 		}
-		foo
+		foo 1
 		# sleep so eval can die
-		(sleep 1; foo) &
-		(sleep 1; foo) &
-		foo
+		(sleep 1; foo 3.a) &
+		(sleep 1; foo 3.b) &
+		foo 2
 	    ' &
-	sleep 5
+	sleep 3
 	echo Left overs: *
 expected-stdout:
-	hi
-	hi
-	hi
-	hi
+	N: hi1
+	N: hi2
+	N: hi3
+	N: hi3
 	Left overs: *
 ---
 name: heredoc-quoting-unsubst

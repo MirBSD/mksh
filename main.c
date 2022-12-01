@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.416 2022/09/12 23:53:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.417 2022/12/01 23:55:32 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -107,6 +107,12 @@ extern const char Tpipest[];
 static struct env env;
 struct env *e = &env;
 
+/* buffer */
+#if !HAVE_GET_CURRENT_DIR_NAME
+static size_t getwd_bufsz = 448U;
+#endif
+static char *getwd_bufp = NULL;
+
 /* many compile-time assertions */
 mbiCTAS(main_c) {
 
@@ -124,11 +130,6 @@ mbiCTA(int_32bit, mbiTYPE_UBITS(unsigned int) >= 32U);
 mbiCTA(short_is_2_char, sizeof(short) == 2);
 /* the next assertion is probably not really needed */
 mbiCTA(int_is_4_char, sizeof(int) == 4);
-
-#ifdef MKSH_FIXUP_struct_timeval
-/* HP-UX 9 */
-mbiCTA(timet_fixup_size_ok, sizeof(time_t) == sizeof(unsigned long));
-#endif
 
 #ifndef MKSH_LEGACY_MODE
 mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
@@ -308,6 +309,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ainit(&aperm);
 	/* max. name length: -2147483648 = 11 (+ NUL) */
 	vtemp = alloc(offsetof(struct tbl, name[0]) + 12U, APERM);
+#if !HAVE_GET_CURRENT_DIR_NAME
+	getwd_bufp = alloc(getwd_bufsz + 1U, APERM);
+	getwd_bufp[getwd_bufsz] = '\0';
+#endif
 
 	/* set up base environment */
 	env.type = E_NONE;
@@ -2120,3 +2125,38 @@ rpl_memmove(void *dst, const void *src, size_t len)
 	return (dst);
 }
 #endif
+
+const char *
+ksh_getwd(void)
+{
+#if HAVE_GET_CURRENT_DIR_NAME
+	free_gnu_gcdn(getwd_bufp);
+	getwd_bufp = get_current_dir_name();
+	if (getwd_bufp && !mksh_abspath(getwd_bufp)) {
+		free_gnu_gcdn(getwd_bufp);
+		getwd_bufp = NULL;
+		errno = EACCES;
+	}
+#else
+ redo:
+	if (getcwd(getwd_bufp, getwd_bufsz)) {
+		if (mksh_abspath(getwd_bufp))
+			goto done;
+		errno = EACCES;
+		return (NULL);
+	}
+	if (errno == ERANGE) {
+		if (notoktomul(getwd_bufsz, 2U)) {
+			errno = ENAMETOOLONG;
+			return (NULL);
+		}
+		getwd_bufsz <<= 1;
+		getwd_bufp = aresize(getwd_bufp, getwd_bufsz + 1U, APERM);
+		getwd_bufp[getwd_bufsz] = '\0';
+		goto redo;
+	}
+	return (NULL);
+ done:
+#endif
+	return (getwd_bufp);
+}

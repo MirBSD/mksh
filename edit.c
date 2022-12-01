@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.399 2022/09/12 23:53:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.400 2022/12/01 23:55:29 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4303,10 +4303,10 @@ vi_cmd(int argcnt, const char *cmd)
 						if (*++p == cmd[1])
 							return (-1);
 				/* insert alias into macro buffer */
-				nlen = strlen(ap->val.s) + 1;
+				nlen = strlen(ap->val.s) + 1U;
 				olen = !macro.p ? 2 :
 				    macro.len - (macro.p - macro.buf);
-				nbuf = alloc1(nlen + 1, olen, AEDIT);
+				nbuf = alloc1(nlen + 1U, olen, AEDIT);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];
 				if (macro.p) {
