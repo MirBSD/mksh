@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.187 2022/09/12 23:53:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.188 2022/12/02 03:20:49 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -825,7 +825,7 @@ hist_persist_init(void)
 				goto hist_trunc_dont;
 			}
 			if (fstat(histfd, &sb) >= 0 &&
-			    chown(nhname, sb.st_uid, sb.st_gid)) {
+			    fchown(fd, sb.st_uid, sb.st_gid)) {
 				/* abort the truncation then, meh. */
 				goto hist_trunc_abort;
 			}
