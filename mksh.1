@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.534 2022/01/30 19:08:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.535 2022/12/13 17:16:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 30 2022 $
+.Dd $Mdocdate: December 13 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5131,15 +5131,16 @@ or
 .Dq Li \-n .
 Use tests like
 .Dq Li if \&[ x\&"$foo\&" = x"bar" \&]
-instead, or the double-bracket operator (see
-.Ic \&[[
-above):
+instead, or the double-bracket construct
+.Pq see Ic \&[[ No above :
 .Dq Li if \&[[ $foo = bar \&]]
 or, to avoid pattern matching,
 .Dq Li if \&[[ $foo = \&"$bar" \&]] ;
 the
 .Ic \&[[ ... \&]]
 construct is not only more secure to use but also often faster.
+Similarily, operators need to be quoted as usual for
+.Nm test No / Nm \&[ .
 .Pp
 .It Xo
 .Ic time
