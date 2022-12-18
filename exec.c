@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.241 2022/07/22 00:19:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.242 2022/12/18 03:20:03 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -68,9 +68,18 @@ execute(struct op * volatile t,
 	if (xerrok == NULL)
 		xerrok = &dummy;
 
-	if ((flags&XFORK) && !(flags&XEXEC) && t->type != TPIPE)
-		/* run in sub-process */
-		return (exchild(t, flags & ~XTIME, xerrok, -1));
+	if (flags & XFORK)
+		switch (t->type) {
+		case TPIPE:
+			break;
+		default:
+			if (flags & XEXEC)
+				break;
+			/* FALLTHROUGH */
+		case TTIME:
+			/* run in sub-process */
+			return (exchild(t, flags & ~XTIME, xerrok, -1));
+		}
 
 	newenv(E_EXEC);
 	if (trap)

@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.405 2022/12/01 23:55:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.406 2022/12/18 03:20:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -218,8 +218,6 @@ static Test_op ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, Wahr);
 static void ptest_error(Test_env *, int, const char *);
 static void kill_fmt_entry(char *, size_t, unsigned int, const void *);
-static void p_time(struct shf *, Wahr, long, int, int,
-    const char *, const char *);
 
 int
 c_pwd(const char **wp)
@@ -2333,18 +2331,13 @@ c_unset(const char **wp)
 	return (rv);
 }
 
-static void
-p_time(struct shf *shf, Wahr posix, long tv_sec, int tv_usec, int width,
-    const char *prefix, const char *suffix)
-{
-	tv_usec /= 10000;
-	if (posix)
-		shf_fprintf(shf, "%s%*ld.%02d%s", prefix, width,
-		    tv_sec, tv_usec, suffix);
-	else
-		shf_fprintf(shf, "%s%*ldm%02d.%02ds%s", prefix, width,
-		    tv_sec / 60, (int)(tv_sec % 60), tv_usec, suffix);
-}
+#define p_time_sN(shf,tv,pfx) shf_fprintf((shf), \
+	    "%s%ld.%02d\n", (pfx), (long)(tv).tv_sec, \
+	    (int)((tv).tv_usec / 10000))
+#define p_time_ms(shf,w,tv,sfx) shf_fprintf((shf), \
+	    "%*ldm%02d.%02ds%s", (w), \
+	    (long)((tv).tv_sec / 60), (int)((tv).tv_sec % 60), \
+	    (int)((tv).tv_usec / 10000), (sfx))
 
 int
 c_times(const char **wp MKSH_A_UNUSED)
@@ -2353,17 +2346,13 @@ c_times(const char **wp MKSH_A_UNUSED)
 
 	if (ksh_getrusage(RUSAGE_SELF, &usage))
 		bi_errorf("getrusage: %s", cstrerror(errno));
-	p_time(shl_stdout, Nee, usage.ru_utime.tv_sec,
-	    usage.ru_utime.tv_usec, 0, null, T1space);
-	p_time(shl_stdout, Nee, usage.ru_stime.tv_sec,
-	    usage.ru_stime.tv_usec, 0, null, "\n");
+	p_time_ms(shl_stdout, 0, usage.ru_utime, T1space);
+	p_time_ms(shl_stdout, 0, usage.ru_stime, Tnl);
 
 	if (ksh_getrusage(RUSAGE_CHILDREN, &usage))
 		bi_errorf("getrusage: %s", cstrerror(errno));
-	p_time(shl_stdout, Nee, usage.ru_utime.tv_sec,
-	    usage.ru_utime.tv_usec, 0, null, T1space);
-	p_time(shl_stdout, Nee, usage.ru_stime.tv_sec,
-	    usage.ru_stime.tv_usec, 0, null, "\n");
+	p_time_ms(shl_stdout, 0, usage.ru_utime, T1space);
+	p_time_ms(shl_stdout, 0, usage.ru_stime, Tnl);
 
 	return (0);
 }
@@ -2424,27 +2413,21 @@ timex(struct op *t, int f, volatile int *xerrok)
 		timeradd(&systime, &j_systime, &systime);
 	}
 
-	if (!(tf & TF_NOREAL)) {
-		timersub(&tv1, &tv0, &tv1);
-		if (tf & TF_POSIX)
-			p_time(shl_out, Ja, tv1.tv_sec, tv1.tv_usec,
-			    5, Treal_sp1, "\n");
-		else
-			p_time(shl_out, Nee, tv1.tv_sec, tv1.tv_usec,
-			    5, null, Treal_sp2);
+	if (tf & TF_POSIX) {
+		if (!(tf & TF_NOREAL)) {
+			timersub(&tv1, &tv0, &tv1);
+			p_time_sN(shl_out, tv1, Treal_sp1);
+		}
+		p_time_sN(shl_out, usrtime, Tuser_sp1);
+		p_time_sN(shl_out, systime, "sys ");
+	} else {
+		if (!(tf & TF_NOREAL)) {
+			timersub(&tv1, &tv0, &tv1);
+			p_time_ms(shl_out, 5, tv1, Treal_sp2);
+		}
+		p_time_ms(shl_out, 5, usrtime, Tuser_sp2);
+		p_time_ms(shl_out, 5, systime, " system\n");
 	}
-	if (tf & TF_POSIX)
-		p_time(shl_out, Ja, usrtime.tv_sec, usrtime.tv_usec,
-		    5, Tuser_sp1, "\n");
-	else
-		p_time(shl_out, Nee, usrtime.tv_sec, usrtime.tv_usec,
-		    5, null, Tuser_sp2);
-	if (tf & TF_POSIX)
-		p_time(shl_out, Ja, systime.tv_sec, systime.tv_usec,
-		    5, "sys  ", "\n");
-	else
-		p_time(shl_out, Nee, systime.tv_sec, systime.tv_usec,
-		    5, null, " system\n");
 	shf_flush(shl_out);
 
 	return (rv);

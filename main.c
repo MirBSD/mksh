@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.417 2022/12/01 23:55:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.418 2022/12/18 03:20:05 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -930,7 +930,7 @@ shell(Source * volatile s, volatile int level)
 	case LSHELL:
 		if (interactive) {
 			if (i == LINTR)
-				shellf("\n");
+				shellf(Tnl);
 			/*
 			 * Reset any eof that was read as part of a
 			 * multiline command.

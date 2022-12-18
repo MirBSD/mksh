@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.997 2022/12/01 23:55:34 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.998 2022/12/18 03:20:06 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -201,7 +201,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2022/12/01"
+#define MKSH_VERSION "R59 2022/12/18"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -1058,6 +1058,7 @@ extern char null_string[4];	/* backing, initialised */
 #endif
 
 #ifndef HAVE_STRING_POOLING /* helpers for pooled strings */
+#define Tnl (Tf_s_s_sN + 8)
 #define T1space (Treal_sp2 + 5)
 #define TC_IFSWS (TinitIFS + 4)
 EXTERN const char TinitIFS[] E_INIT("IFS= \t\n");
@@ -1210,6 +1211,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sN (Tf_s_s_sN + 6)
 #define Tf_sD_s (Tf_s_sD_s + 3)
 #else /* helpers for string pooling */
+#define Tnl "\n"
 #define T1space " "
 #define TC_IFSWS " \t\n"
 #define TinitIFS "IFS= \t\n"
