@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.35 2022/05/13 21:52:21 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.36 2022/12/24 01:49:46 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -192,6 +192,23 @@ ToC: selinux-androidiocy
 Title: I forbid stat(2) in my SELinux policy, and some things do not work!
 
 Don’t break Unix. Read up on the GIGO principle. Duh.
+----
+ToC: printf-c
+Title: Which revision of printf.c do I use?
+
+<p>If you have to add printf(1) as an extra, nōn-standard, builtin,
+ use <tt>src/usr.bin/printf/printf.c,v</tt> revision…</p>
+<ul>
+ <li>r1.25 or newer for mksh CVS HEAD (R59d/R60+)</li>
+ <li>r1.22 for mksh R59c</li>
+</ul>
+<p>… and add <tt>USE_PRINTF_BUILTIN=1</tt> to the <tt>Build.sh</tt>
+ environment. Do note that this can no longer be used as “speed hack”
+ because as of R51, if an external printf(1) exists, it is preferred,
+ as the OS’ own implementations will often have extensions, and they
+ usually will have floating point support (which the one embedded in
+ mksh cannot provide). It mostly exists for invocations where no such
+ utility is in <tt>$PATH</tt> but scripts are targetting POSIX.</p>
 ----
 ToC: makefile
 Title: Why doesn’t this use a Makefile to build?
@@ -878,4 +895,6 @@ Title: How do I contact you (to say thanks, for bugreports and questions)?
  great places for that; <a href="https://launchpad.net/mksh">Launchpad</a>,
  an external gratis service provided by a company, can also be used if you
  like web-based issue trackers better.</p>
+<p>The primary developer can be reached via Fediverse at
+ <tt>@mirabilos@toot.mirbsd.org</tt> (bonus, alpha status).</p>
 ----

@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.407 2022/12/18 03:42:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.408 2022/12/24 01:49:00 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -84,7 +84,9 @@ c_false(const char **wp MKSH_A_UNUSED)
 /*
  * A leading = means assignments before command are kept.
  * A leading * means a POSIX special builtin.
- * A leading ^ means declaration utility, - forwarder.
+ * A leading ^ means declaration utility, - declaration forwarder.
+ * A leading ~ means external utilities override this, ! with flags only.
+ * A leading # means is set or shift (for argc/argv bookkeeping).
  */
 const struct builtin mkshbuiltins[] = {
 	{Tsgdot, c_dot},
