@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.264 2022/02/19 21:21:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.265 2022/12/25 03:51:05 tg Exp $");
 
 /*
  * states while lexing word
@@ -603,13 +603,14 @@ yylex(int cf)
 						*wp++ = QCHAR;
 						*wp++ = c2;
 					} else {
+						char ts[4];
+
 						cz = utf_wctomb(ts, c2 - 0x100);
-						ts[cz] = 0;
-						cz = 0;
-						do {
+						c2 = 0;
+						while ((size_t)c2 < cz) {
 							*wp++ = QCHAR;
-							*wp++ = ts[cz];
-						} while (ts[++cz]);
+							*wp++ = ts[c2++];
+						}
 					}
 				}
 			} else if (!statep->ls_flag) {
