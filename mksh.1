@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.535 2022/12/13 17:16:04 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.536 2022/12/28 11:30:01 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 13 2022 $
+.Dd $Mdocdate: December 28 2022 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4170,6 +4170,7 @@ resulting value is printed.
 Empty
 .Ar argument Ns s
 separate input words.
+No backslash expansion.
 .It Fl c
 The output is printed columnised, top to bottom then left to right,
 similar to how tab completion (control character escaping excepted), the
