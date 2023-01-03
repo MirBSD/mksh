@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.265 2022/12/25 03:51:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.266 2023/01/03 14:36:40 tg Exp $");
 
 /*
  * states while lexing word
@@ -597,8 +597,6 @@ yylex(int cf)
 				if (c2 == 0)
 					statep->ls_flag = Ja;
 				if (!statep->ls_flag) {
-					char ts[5];
-
 					if ((unsigned int)c2 < 0x100) {
 						*wp++ = QCHAR;
 						*wp++ = c2;
