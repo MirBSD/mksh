@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.36 2022/12/24 01:49:46 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.37 2023/01/03 17:28:24 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -783,7 +783,7 @@ Title: Didn’t there used to be a sleep(1) builtin?
  a threshold over which fork+exec is cheaper!), isn’t feasible if even at
  all possible.</p>
 <p>The MirOS Project now ships <a href="@@RELPATH@@subprj.htm#sleep">a
- portable sleep</a> which similarily is select(2)-based and capable of
+ portable sleep</a> which similarly is select(2)-based and capable of
  subsecond sleep but in addition supports all GNU extensions related to
  specifying the amount of time to sleep. It will work on <em>at least</em>
  all platforms on which mksh had a builtin before. Please install this
