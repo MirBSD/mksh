@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.998 2022/12/18 03:20:06 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.999 2023/01/08 21:06:28 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -50,8 +50,14 @@
 #elif HAVE_TIME_H
 #include <time.h>
 #endif
+#if HAVE_SYS_BSDTYPES_H
+#include <sys/bsdtypes.h>
+#endif
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
+#if HAVE_SYS_FILE_H
+#include <sys/file.h>
 #endif
 #include <sys/ioctl.h>
 #if HAVE_SYS_SYSMACROS_H
@@ -63,17 +69,32 @@
 #if HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#if HAVE_SYS_PTEM_H
+/* prerequisite */
+#include <sys/stream.h>
+/* struct winsize */
+#include <sys/ptem.h>
+#endif
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
 #include <sys/stat.h>
+#if !HAVE_GETRUSAGE
+#include <sys/times.h>
+#endif
 #include <sys/wait.h>
 #ifdef DEBUG
 #include <assert.h>
 #endif
+#if HAVE_SELECT && HAVE_BSTRING_H
+#include <bstring.h>
+#endif
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if HAVE_GRP_H
+#include <grp.h>
+#endif
 #if HAVE_IO_H
 #include <io.h>
 #endif
@@ -84,8 +105,17 @@
 #include <libutil.h>
 #endif
 #include <limits.h>
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC) || HAVE_POSIX_UTF8_LOCALE
+#include <locale.h>
+#if HAVE_POSIX_UTF8_LOCALE
+#include <langinfo.h>
+#endif
+#endif
 #if HAVE_PATHS_H
 #include <paths.h>
+#endif
+#ifdef MKSH_POLL_FOR_PAUSE
+#include <poll.h>
 #endif
 #ifndef MKSH_NOPWNAM
 #include <pwd.h>
@@ -128,6 +158,10 @@
 #define MBSDINT_H_SKIP_CTAS
 #endif
 #include "mbsdint.h"
+
+#if defined(__OpenBSD__)
+#include <sys/sysctl.h>
+#endif
 
 /* monkey-patch known-bad offsetof versions to quell a warning */
 #if (defined(__KLIBC__) || defined(__dietlibc__)) && \

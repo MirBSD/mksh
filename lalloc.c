@@ -18,12 +18,12 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#include "sh.h"
 #ifdef MKSH_ALLOC_CATCH_UNDERRUNS
 #include <err.h>
 #endif
+#include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.33 2022/09/12 23:53:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.34 2023/01/08 21:06:26 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)

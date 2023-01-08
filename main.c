@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,12 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-#if HAVE_POSIX_UTF8_LOCALE
-#include <locale.h>
-#include <langinfo.h>
-#endif
-
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.419 2023/01/08 19:39:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.420 2023/01/08 21:06:27 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 

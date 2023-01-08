@@ -5,7 +5,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,16 +26,7 @@
 
 #include "sh.h"
 
-#if HAVE_SELECT
-#if HAVE_SYS_BSDTYPES_H
-#include <sys/bsdtypes.h>
-#endif
-#if HAVE_BSTRING_H
-#include <bstring.h>
-#endif
-#endif
-
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.408 2022/12/24 01:49:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.409 2023/01/08 21:06:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*

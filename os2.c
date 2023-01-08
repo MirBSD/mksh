@@ -24,12 +24,12 @@
 #define INCL_DOS
 #include <os2.h>
 
-#include "sh.h"
-
 #include <klibc/startup.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.18 2022/09/12 23:53:47 tg Exp $");
+#include "sh.h"
+
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.19 2023/01/08 21:06:28 tg Exp $");
 
 struct a_s_arg {
 	union {

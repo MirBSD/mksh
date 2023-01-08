@@ -23,11 +23,8 @@
  */
 
 #include "sh.h"
-#ifdef MKSH_POLL_FOR_PAUSE
-#include <poll.h>
-#endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.155 2022/10/05 23:42:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.156 2023/01/08 21:06:26 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg

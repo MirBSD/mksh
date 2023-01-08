@@ -25,11 +25,8 @@
 
 #include "sh.h"
 #include "mirhash.h"
-#if HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.188 2022/12/02 03:20:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.189 2023/01/08 21:06:26 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 

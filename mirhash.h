@@ -31,9 +31,7 @@
 #ifndef MKSH_MIRHASH_H
 #define MKSH_MIRHASH_H
 
-#include <sys/types.h>
-
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.16 2022/03/06 01:52:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.17 2023/01/08 21:06:27 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:

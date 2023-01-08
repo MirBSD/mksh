@@ -25,18 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-#if defined(__OpenBSD__)
-#include <sys/sysctl.h>
-#endif
-
-#if HAVE_SYS_PTEM_H
-/* prerequisite */
-#include <sys/stream.h>
-/* struct winsize */
-#include <sys/ptem.h>
-#endif
-
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.268 2023/01/08 20:00:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.269 2023/01/08 21:06:30 tg Exp $");
 
 /*-
  * Variables

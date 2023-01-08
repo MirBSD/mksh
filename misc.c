@@ -26,14 +26,8 @@
  */
 
 #include "sh.h"
-#if !HAVE_GETRUSAGE
-#include <sys/times.h>
-#endif
-#if HAVE_GRP_H
-#include <grp.h>
-#endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.352 2022/12/01 23:55:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.353 2023/01/08 21:06:28 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
