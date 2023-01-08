@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.267 2022/09/12 23:53:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.268 2023/01/08 20:00:25 tg Exp $");
 
 /*-
  * Variables
@@ -85,7 +85,7 @@ void
 newblock(void)
 {
 	struct block *l;
-	static const char *empty[] = { null };
+	static const char *empty[] = { null, NULL };
 
 	l = alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
