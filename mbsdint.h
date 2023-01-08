@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.16 2023/01/08 21:12:55 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.17 2023/01/08 21:21:07 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -699,7 +699,7 @@ mbiCTAS(mbsdint_h) {
 
 /* nil pointer constant */
 #if (defined(__cplusplus) && (__cplusplus >= 201103L)) || \
-    ((__STDC_VERSION__ - 0) >= 202311L)
+    (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 202311L))
 #define mbi_nil				nullptr
 #else
 #define mbi_nil				(void *)0UL
