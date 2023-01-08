@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.420 2023/01/08 21:06:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.421 2023/01/08 22:15:31 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -730,9 +730,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		    "can't determine current directory");
 
 	if (Flag(FLOGIN))
-		include(MKSH_SYSTEM_PROFILE, 0, NULL, Ja);
+		include(MKSH_SYSTEM_PROFILE, NULL, Ja);
 	if (Flag(FPRIVILEGED)) {
-		include(MKSH_SUID_PROFILE, 0, NULL, Ja);
+		include(MKSH_SUID_PROFILE, NULL, Ja);
 		/* note whether -p was enabled during startup */
 		if (Flag(FPRIVILEGED) == 1)
 			/* allow set -p to setuid() later */
@@ -744,11 +744,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		baseline_flags[(int)FPRIVILEGED] = Flag(FPRIVILEGED);
 	} else {
 		if (Flag(FLOGIN))
-			include(substitute("$HOME/.profile", 0), 0, NULL, Ja);
+			include(substitute("$HOME/.profile", 0), NULL, Ja);
 		if (Flag(FTALKING)) {
 			cp = substitute("${ENV:-" MKSHRC_PATH "}", DOTILDE);
 			if (cp[0] != '\0')
-				include(cp, 0, NULL, Ja);
+				include(cp, NULL, Ja);
 		}
 	}
 	if (restricted_shell) {
@@ -801,7 +801,7 @@ main(int argc, const char *argv[])
 }
 
 int
-include(const char *name, int argc, const char **argv, Wahr intr_ok)
+include(const char *name, const char **argv, Wahr intr_ok)
 {
 	Source *volatile s = NULL;
 	struct shf *shf;
@@ -854,7 +854,9 @@ include(const char *name, int argc, const char **argv, Wahr intr_ok)
 	}
 	if (argv) {
 		e->loc->argv = argv;
-		e->loc->argc = argc;
+		e->loc->argc = 0;
+		while (argv[e->loc->argc])
+			++e->loc->argc;
 	}
 	s = pushs(SFILE, ATEMP);
 	s->u.shf = shf;

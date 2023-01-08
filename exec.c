@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.242 2022/12/18 03:20:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.243 2023/01/08 22:15:30 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -727,7 +727,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			errno = 0;
-			if (include(tp->u.fpath, 0, NULL, Nee) < 0 ||
+			if (include(tp->u.fpath, NULL, Nee) < 0 ||
 			    !(ftp = findfunc(cp, hash(cp), Nee)) ||
 			    !(ftp->flag & ISSET)) {
 				rv = errno;

@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.409 2023/01/08 21:06:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.410 2023/01/08 22:15:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1501,7 +1501,7 @@ int
 c_dot(const char **wp)
 {
 	const char *file, *cp, **argv;
-	int argc, rv, errcode;
+	int rv, errcode;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return (1);
@@ -1524,15 +1524,11 @@ c_dot(const char **wp)
 		argv = wp + builtin_opt.optind;
 		/* preserve $0 */
 		argv[0] = e->loc->argv[0];
-		for (argc = 0; argv[argc + 1]; argc++)
-			;
-	} else {
-		argc = 0;
+	} else
 		argv = NULL;
-	}
 	/* SUSv4: OR with a high value never written otherwise */
 	exstat |= 0x4000;
-	if ((rv = include(file, argc, argv, Nee)) < 0) {
+	if ((rv = include(file, argv, Nee)) < 0) {
 		/* should not happen */
 		bi_errorf(Tf_sD_s, cp, cstrerror(errno));
 		return (1);
