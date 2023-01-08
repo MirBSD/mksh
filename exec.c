@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.243 2023/01/08 22:15:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.244 2023/01/08 22:55:52 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -331,9 +331,12 @@ execute(struct op * volatile t,
 	case TSELECT: {
 		volatile Wahr is_first = Ja;
 
-		ap = (t->vars == NULL) ? e->loc->argv + 1 :
-		    (const char **)eval((const char **)t->vars,
-		    DOBLANK | DOGLOB | DOTILDE);
+		if (t->vars == NULL)
+			/* “for i; do” */
+			ap = cpyargv(NULL, e->loc->argv + 1, ATEMP);
+		else
+			ap = (const char **)eval((const char **)t->vars,
+			    DOBLANK | DOGLOB | DOTILDE);
 		e->type = E_LOOP;
 		while ((i = kshsetjmp(e->jbuf))) {
 			if ((e->flags&EF_BRKCONT_PASS) ||
@@ -1894,4 +1897,31 @@ dbteste_error(Test_env *te, int offset, const char *msg)
 	te->flags |= TEF_ERROR;
 	kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
 	    "dbteste_error: %s (offset %d)", msg, offset);
+}
+
+const char **
+cpyargv(int *i, const char **src, Area *ap)
+{
+	size_t n;
+	const char **wp, **dst;
+
+	wp = src - 1;
+	while (*++wp != NULL)
+		/* nothing */;
+	n = wp - src;
+	if (n < 1 || notoktoadd(n, 1) ||
+	    notok2add((size_t)INT_MAX, n, 1))
+		kerrf(KWF_VERRNO | KWF_INTERNAL | KWF_ERR(0xFF) |
+		    KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG,
+		    EOVERFLOW, "cpyargv");
+	if (i)
+		*i = n - /* kshname */ 1U;
+	dst = alloc2(n + /* NULL */ 1U, sizeof(const char *), ap);
+
+	wp = dst;
+	*wp++ = *src++;
+	while (--n)
+		strdupx(*wp++, *src++, ap);
+	*wp = NULL;
+	return (dst);
 }

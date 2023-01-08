@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.903 2022/12/18 03:20:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.904 2023/01/08 22:55:50 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020, 2021, 2022
+#	      2019, 2020, 2021, 2022, 2023
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2022/12/18
+	KSH R59 2023/01/08
 description:
 	Check base version of full shell
 stdin:
@@ -11617,6 +11617,20 @@ description:
 	A for list which expands to zero items should not execute the body.
 stdin:
 	set foo bar baz ; for out in ; do echo $out ; done
+---
+name: for-without-list
+description:
+	LP#2002250
+stdin:
+	set -- a b
+	for x
+	do
+		echo $x
+		shift $#
+	done
+expected-stdout:
+	a
+	b
 ---
 name: oksh-varfunction-mod1
 description:
