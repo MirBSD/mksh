@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1001 2023/01/08 22:15:32 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1002 2023/01/08 22:53:22 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -2555,6 +2555,7 @@ const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
 void pr_list(struct columnise_opts *, char * const *);
 int herein(struct ioword *, char **);
+const char **cpyargv(int *, const char **, Area *);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, Wahr);
 int v_evaluate(struct tbl *, const char *, volatile int, Wahr);

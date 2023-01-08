@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.410 2023/01/08 22:15:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.411 2023/01/08 22:53:21 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2238,18 +2238,10 @@ c_set(const char **wp)
 		return (2);
 	/* set $# and $* */
 	if (setargs) {
-		const char **owp;
-
 		wp += argi - 1;
-		owp = wp;
 		/* save $0 */
 		wp[0] = l->argv[0];
-		while (*++wp != NULL)
-			strdupx(*wp, *wp, &l->area);
-		l->argc = wp - owp - 1;
-		l->argv = alloc2(l->argc + 2, sizeof(char *), &l->area);
-		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
-			;
+		l->argv = cpyargv(&l->argc, wp, &l->area);
 	}
 	/*-
 	 * POSIX says set exit status is 0, but old scripts that use
