@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.256 2022/09/12 23:53:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.257 2023/01/08 22:54:17 tg Exp $");
 
 /*
  * string expansion
@@ -2105,6 +2105,18 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	return;
 }
 
+static void
+subcpybk(struct block *l)
+{
+	/* did the valsub/funsub change $#/$*? */
+	if (e->loc->argc == l->argc &&
+	    e->loc->argv == l->argv)
+		return;
+
+	/* yes ⇒ copy back to parent Area */
+	l->argv = cpyargv(&l->argc, e->loc->argv, &l->area);
+}
+
 /* helper function due to setjmp/longjmp woes */
 static char *
 valsub(struct op *t, Area *ap)
@@ -2122,9 +2134,8 @@ valsub(struct op *t, Area *ap)
 		execute(t, XXCOM, NULL);
 		i = LRETURN;
 	}
-	l->argc = e->loc->argc;
-	l->argv = e->loc->argv;
 	strdupx(cp, str_val(vp), ap);
+	subcpybk(l);
 	quitenv(NULL);
 	/* see CFUNC case in exec.c:comexec() */
 	if (i != LRETURN)
@@ -2143,7 +2154,6 @@ funsub(struct op *t)
 	newblock();
 	if (!kshsetjmp(e->jbuf))
 		execute(t, XXCOM | XERROK, NULL);
-	l->argc = e->loc->argc;
-	l->argv = e->loc->argv;
+	subcpybk(l);
 	quitenv(NULL);
 }
