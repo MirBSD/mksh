@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.833 2022/12/01 23:55:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.834 2023/01/08 21:13:40 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2413,7 +2413,7 @@ ac_test mmap lock_fcntl 0 'for mmap and munmap' <<-'EOF'
 	#include <stddef.h>
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, (size_t)0,
-	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)NULL ? 1 :
+	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)0UL ? 1 :
 	    munmap(NULL, 0)); }
 EOF
 

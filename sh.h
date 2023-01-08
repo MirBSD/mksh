@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *	       2019, 2020, 2021, 2022
+ *	       2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.999 2023/01/08 21:06:28 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1000 2023/01/08 21:13:41 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -159,9 +159,9 @@
 #endif
 #include "mbsdint.h"
 
-#if defined(__OpenBSD__)
-#include <sys/sysctl.h>
-#endif
+/* monkey-patch nil pointer constant */
+#undef NULL
+#define NULL mbi_nil
 
 /* monkey-patch known-bad offsetof versions to quell a warning */
 #if (defined(__KLIBC__) || defined(__dietlibc__)) && \
