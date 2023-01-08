@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.418 2022/12/18 03:20:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.419 2023/01/08 19:39:45 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -633,7 +633,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	l = e->loc;
 	if (as_builtin) {
-		l->argc = argc;
+		l->argc = argc - 1;
 		l->argv = argv;
 		l->argv[0] = ccp;
 	} else {
