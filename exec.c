@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.244 2023/01/08 22:55:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.245 2023/01/09 18:58:35 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -333,7 +333,7 @@ execute(struct op * volatile t,
 
 		if (t->vars == NULL)
 			/* “for i; do” */
-			ap = cpyargv(NULL, e->loc->argv + 1, ATEMP);
+			ap = cpyargv(NULL, e->loc->argv, ATEMP) + 1;
 		else
 			ap = (const char **)eval((const char **)t->vars,
 			    DOBLANK | DOGLOB | DOTILDE);
