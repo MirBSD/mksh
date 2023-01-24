@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.904 2023/01/08 22:55:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.905 2023/01/24 05:04:58 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6934,7 +6934,7 @@ stdin:
 	echo 23 $(( 0 || 0 )) , $(( 0 || 1 )) , $(( 1 || 0 )) , $(( 1 || 1 )) .
 	echo 24 $(( 5 * 3 )) , $(( 5 * 0 )) .
 	echo 25 $(( 7 / 2 )) .
-	echo 26 $(( 5 % 5 )) , $(( 5 % 4 )) , $(( 5 % 1 )) , $(( 5 % -1 )) , $(( 5 % -2 )) .
+	echo 26 $(( 5 % 5 )) , $(( 5 % 4 )) , $(( 5 % 1 )) :
 	echo 27 $(( 5 + 2 )) , $(( 5 + 0 )) , $(( 5 + -2 )) .
 	echo 28 $(( 5 - 2 )) , $(( 5 - 0 )) , $(( 5 - -2 )) .
 	echo 29 $(( 6 & 4 )) , $(( 6 & 8 )) .
@@ -6971,7 +6971,7 @@ expected-stdout:
 	23 0 , 1 , 1 , 1 .
 	24 15 , 0 .
 	25 3 .
-	26 0 , 1 , 0 , 0 , 1 .
+	26 0 , 1 , 0 :
 	27 7 , 5 , 3 .
 	28 3 , 5 , 7 .
 	29 4 , 0 .
@@ -6982,6 +6982,15 @@ expected-stdout:
 	34 -1 , -2 , 1 , 2 .
 	35 1 , 0 , 1 , 1 .
 	36 5 .
+---
+name: regression-68-nolksh
+description:
+	Things POSIX/C arithmetics don’t guarantee
+category: shell:legacy-no
+stdin:
+	echo '1(26)' , $(( 5 % -1 )) , $(( 5 % -2 )) .
+expected-stdout:
+	1(26) , 0 , 1 .
 ---
 name: regression-69
 description:
