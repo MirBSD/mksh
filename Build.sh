@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.834 2023/01/08 21:13:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.835 2023/01/26 04:32:50 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -244,13 +244,13 @@ echo "For the build logs, demonstrate that /dev/null and /dev/tty exist:"
 ls -l /dev/null /dev/tty
 cat <<EOF
 Flags on entry (plus HAVE_* which are not shown here):
- CC        <$CC>
- CFLAGS    <$CFLAGS>
- CPPFLAGS  <$CPPFLAGS>
- LDFLAGS   <$LDFLAGS>
- LIBS      <$LIBS>
- LDSTATIC  <$LDSTATIC>
- TARGET_OS <$TARGET_OS> TARGET_OSREV <$TARGET_OSREV>
+- CC        <$CC>
+- CFLAGS    <$CFLAGS>
+- CPPFLAGS  <$CPPFLAGS>
+- LDFLAGS   <$LDFLAGS>
+- LIBS      <$LIBS>
+- LDSTATIC  <$LDSTATIC>
+- TARGET_OS <$TARGET_OS> TARGET_OSREV <$TARGET_OSREV>
 
 EOF
 
