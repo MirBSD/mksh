@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.422 2023/01/08 22:52:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.423 2023/01/31 01:05:09 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -571,9 +571,8 @@ main_init(int argc, const char *argv[], Source **sp)
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = Nee;
-			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, s->file);
-			/* mandated by SUSv4 */
-			exstat = 127;
+			kwarnf(KWF_ERR(127) |
+			    KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, s->file);
 			unwind(LERROR);
 		}
 		kshname = s->file;

@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.245 2023/01/09 18:58:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.246 2023/01/31 01:05:09 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -724,9 +724,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (!tp->u.fpath) {
  fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
-				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
-				    KWF_TWOMSG, tp->u2.errnov, cp,
-				    "can't find function definition file");
+				kwarnf(KWF_ERR(rv) | KWF_VERRNO |
+				    KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG,
+				    tp->u2.errnov, cp,
+				    "function definition file");
 				break;
 			}
 			errno = 0;
@@ -745,7 +746,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					cp = tp->u.fpath;
 					goto fpath_error;
 				}
-				kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+				kwarnf0(KWF_ERR(127) |
+				    KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
 				    Tf_sD_s_s, cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
@@ -849,13 +851,14 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+				kwarnf(KWF_ERR(127) |
+				    KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
 				    KWF_NOERRNO, cp, Tinacc_not_found);
 			} else {
 				rv = 126;
-				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
-				    KWF_TWOMSG, tp->u2.errnov, cp,
-				    "can't execute");
+				kwarnf(KWF_ERR(126) | KWF_VERRNO |
+				    KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG,
+				    tp->u2.errnov, cp, "can't execute");
 			}
 			break;
 		}
@@ -916,9 +919,6 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 		ssize_t n;
 
-#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
-		setmode(fd, O_TEXT);
-#endif
 		/* read first couple of octets from file */
 		n = read(fd, buf, sizeof(buf) - 1);
 		close(fd);
@@ -1010,7 +1010,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* UTF-8 BOM */ 0xEFBB && buf[2] == 0xBF) ||
 		    (m == /* UCS-4, may also be general binary */ 0x0000) ||
 		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
-			kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: magic %04X",
 			    tp->str, m);
 #endif
@@ -1038,7 +1038,7 @@ scriptexec(struct op *tp, const char **ap)
 	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the program that was run and the bogus interpreter */
-	kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
+	kerrf(KWF_ERR(127) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
 }
 
 /* actual 'builtin' built-in utility call is handled in comexec() */
