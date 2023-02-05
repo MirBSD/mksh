@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.17 2023/01/08 21:21:07 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.18 2023/02/05 16:55:22 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -377,7 +377,7 @@ mbiCTAS(mbsdint_h) {
 
 /* 3. ternary */
 #define mbiOT(t,w,j,n)		((w) ? (t)(j) : (t)(n))
-#define mbiMOT(ut,tM,w,j,n)	mbiMM(ut, (tM), mbiOT(t, (w), (j), (n)))
+#define mbiMOT(ut,tM,w,j,n)	mbiMM(ut, (tM), mbiOT(ut, (w), (j), (n)))
 
 /* manual two’s complement in unsigned arithmetics */
 
@@ -419,7 +419,7 @@ mbiCTAS(mbsdint_h) {
 		mbiOT(ut,						\
 		 mbiA_S2VZ(v),						\
 		 mbiOU1(ut,						\
-		  ~							\
+		  ~,							\
 		  mbiOS1(st,						\
 		   -,							\
 		   mbiOS(st, (v), +, 1)					\
@@ -451,7 +451,7 @@ mbiCTAS(mbsdint_h) {
 		   mbiOS1(st,						\
 		    -,							\
 		    mbiOS(st, (v), +, 1)				\
-		   ),							\
+		   )							\
 		  ),							\
 		  +,							\
 		  1U							\
