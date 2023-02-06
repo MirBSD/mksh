@@ -1,11 +1,11 @@
 /*-
  * MirBSD sanitisation attempt for C integer madness
  *
- * © mirabilos Ⓕ CC0 or The MirOS Licence
+ * © mirabilos Ⓕ CC0 or The MirOS Licence (MirBSD)
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.18 2023/02/05 16:55:22 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.19 2023/02/06 01:17:20 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -563,7 +563,7 @@ mbiCTAS(mbsdint_h) {
 } while (/* CONSTCOND */ 0)
 #define mbiCAUmul(ut,vl,vr)	do {					\
 	if (__predict_false(((ut)(vl) > mbi_halftype(ut) ||		\
-	    (ut)(vr) > mbi_halftype(ut)) && (vr) == 0 &&		\
+	    (ut)(vr) > mbi_halftype(ut)) && (vr) != 0 &&		\
 	    mbiOU(ut, mbiTYPE_UMAX(ut), /, (ut)(vr)) < (ut)(vl)))	\
 		mbiCfail;						\
 	(vl) *= (vr);							\
@@ -661,22 +661,29 @@ mbiCTAS(mbsdint_h) {
 #define mbiKshl(ut,vl,vr)	mbiK_sr(ut, mbiK_shl, (vl), (vr), void)
 /* let vz be sgn(vl) */
 #define mbiKsar(ut,vz,vl,vr)	mbiK_sr(ut, mbiK_sar, (vl), (vr), (vz))
-#define mbiKshr(ut,vl,vr)	mbiK_sr(ut, mbiK_sar, (vl), (vr), 0)
+#define mbiKshr(ut,vl,vr)	mbiK_sr(ut, mbiK_shr, (vl), (vr), 0)
 #define mbiMKrol(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_rol, (vl), (vr), void)
 #define mbiMKror(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_ror, (vl), (vr), void)
 #define mbiMKshl(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_shl, (vl), (vr), void)
-#define mbiMKsar(ut,FM,vz,l,r)	mbiMK_sr(ut, (FM), mbiK_sar,  (l),  (r), (vz))
-#define mbiMKshr(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_sar, (vl), (vr), 0)
+#define mbiMKsar(ut,FM,vz,l,r)	mbiMOT(ut, (FM), (vz), \
+					mbiK_SR(ut, mbiMASK_BITS(FM), \
+					    mbiMK_nr, (l), (r), (FM)), \
+					mbiK_SR(ut, mbiMASK_BITS(FM), \
+					    mbiK_shr, (l), (r), 0))
+#define mbiMKshr(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_shr, (vl), (vr), 0)
 /* implementation */
 #define mbiK_sr(ut,n,vl,vr,vz)	mbiK_SR(ut, mbiTYPE_UBITS(ut), n, vl, vr, vz)
 #define mbiMK_sr(ut,FM,n,l,r,z)	mbiMM(ut, (FM), mbiK_SR(ut, mbiMASK_BITS(FM), \
 				    n, mbiMM(ut, (FM), (l)), (r), (z)))
-#define mbiK_SR(ut,b,n,l,r,vz)	mbiK_RS(ut, b, n, l, mbiUI(r) & (b - 1U), !(vz))
+#define mbiK_SR(ut,b,n,l,r,vz)	mbiK_RS(ut, b, n, l, mbiUI(r) & (b - 1U), (vz))
 #define mbiK_RS(ut,b,n,v,cl,zx)	mbiOT(ut, cl, n(ut, v, cl, b - (cl), zx), v)
 #define mbiK_shl(ut,ax,cl,CL,z)	mbiOshl(ut, ax, cl)
-#define mbiK_sar(ut,ax,cl,CL,z)	mbiOT(ut, z, mbiOshr(ut, ax, cl), \
-				    mbiOU1(ut, ~, mbiOshr(ut, \
-				    mbiOU1(ut, ~, ax), cl)))
+#define mbiK_shr(ut,ax,cl,CL,z)	mbiOshr(ut, ax, cl)
+#define mbiK_sar(ut,ax,cl,CL,z)	mbiOT(ut, z, mbiOU1(ut, ~, mbiOshr(ut, \
+				    mbiOU1(ut, ~, ax), cl)), \
+				    mbiOshr(ut, ax, cl))
+#define mbiMK_nr(ut,ax,cl,CL,m)	mbiOU1(ut, ~, mbiOshr(ut, \
+				    mbiMO1(ut, m, ~, ax), cl))
 #define mbiK_rol(ut,ax,cl,CL,z)	\
 	mbiOU(ut, mbiOshl(ut, ax, cl), |, mbiOshr(ut, ax, CL))
 #define mbiK_ror(ut,ax,cl,CL,z)	\
