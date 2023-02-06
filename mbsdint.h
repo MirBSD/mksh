@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.19 2023/02/06 01:17:20 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.20 2023/02/06 01:33:54 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -349,7 +349,7 @@ mbiCTAS(mbsdint_h) {
 
 /* basic building blocks: arithmetics cast helpers */
 
-#define mbiUI(v)		(0UL + (v))
+#define mbiUI(v)		(0U + (v))
 #define mbiUP(ut,v)		mbiUI((ut)(v))
 #define mbiSP(st,v)		(0 + ((st)(v)))
 
