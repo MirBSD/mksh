@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2015, 2016, 2017, 2018, 2019, 2021,
- *		 2022
+ *		 2022, 2023
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.132 2023/01/08 21:06:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.133 2023/02/20 19:20:43 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -837,20 +837,15 @@ shf_smprintf(const char *fmt, ...)
 char *
 kslfmt(ksl number, kui flags, char *numbuf)
 {
+	/* easy for positive number */
+	if (number >= 0)
+		return (kulfmt((kul)number, flags, numbuf));
+	/* negative signed quantity */
 	if (!IS(flags, FM_TYPE, FL_SGN)) {
-		/* uh-oh, unsigned? what? be bitwise faithful here */
-		union {
-			/*XXX hopefully not UB… */
-			ksl s;
-			kul u;
-		} v;
-
-		v.s = number;
-		return (kulfmt(v.u, flags, numbuf));
+		/* uh-oh, output a signed quantity unsignedly */
+		return (kulfmt(KSL2UL(number), flags, numbuf));
 	}
-	if (number < 0)
-		flags |= FL_NEG;
-	return (kulfmt(KSL2NEGUL(number), flags, numbuf));
+	return (kulfmt(KSL2NEGUL(number), flags | FL_NEG, numbuf));
 }
 
 /* pre-initio() */
@@ -892,13 +887,13 @@ kulfmt(kul number, kui flags, char *numbuf)
 			number /= 10UL;
 		} while (number);
 
-		if (!IS(flags, FM_TYPE, FL_DEC)) {
+		if (IS(flags, FM_TYPE, FL_SGN)) {
 			if (HAS(flags, FL_NEG))
 				*--cp = '-';
 			else if (HAS(flags, FL_PLUS))
 				*--cp = '+';
 			else if (HAS(flags, FL_BLANK))
-				*--cp = '-';
+				*--cp = ' ';
 		}
 		break;
 	}

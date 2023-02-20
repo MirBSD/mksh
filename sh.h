@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1003 2023/01/31 01:05:10 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1004 2023/02/20 19:20:42 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -2855,8 +2855,8 @@ void set_ifs(const char *);
 #define FL_DOT		0x4000	/* ‘.’ seen: printf(3) precision specified */
 /*
  * %#o produces the longest output: '0' + w/3 + NUL
- * %#x produces '0x' + w/4 + NUL which is at least as long (w=8)
- * %+d produces sign + w/log₂(10) + NUL which takes more than octal obviously
+ * %#x produces '0x' + w/4 + NUL which is at least as long (w=8, w>9)
+ * %+d produces sign + w/log₂(10) + NUL which takes less than octal obviously
  */
 #define NUMBUFSZ (1U + (mbiTYPE_UBITS(kul) + 2U) / 3U + /* NUL */ 1U)
 #define NUMBUFLEN(base,result) ((base) + NUMBUFSZ - (result) - 1U)
