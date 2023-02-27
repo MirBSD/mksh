@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.21 2023/02/25 20:08:06 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.22 2023/02/27 02:33:15 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -750,6 +750,17 @@ mbiCTAS(mbsdint_h) {
 					    mbiKdiv(ut, (SM), (vl), (vr)))
 #define mbiMKrem(ut,FM,HM,vl,vr)	mbiMM(ut, (FM), mbiK_rem(ut, (vl), (vr), \
 					    mbiMK_div(ut, (FM), (HM), (vl), (vr))))
+/* statement, assigning to dstdiv and dstrem */
+#define mbiKdivrem(dstdiv,dstrem,ut,SM,vl,vr) do {			\
+	ut mbi__TMP = mbiKdiv(ut, (SM), (vl), (vr));			\
+	(dstdiv) = mbi__TMP;						\
+	(dstrem) = mbiK_rem(ut, (vl), (vr), mbi__TMP);			\
+} while (/* CONSTCOND */ 0)
+#define mbiMKdivrem(dstdiv,dstrem,ut,FM,HM,vl,vr) do {			\
+	ut mbi__TMP = mbiMK_div(ut, (FM), (HM), (vl), (vr));		\
+	(dstdiv) = mbiMM(ut, (FM), mbi__TMP);				\
+	(dstrem) = mbiMM(ut, (FM), mbiK_rem(ut, (vl), (vr), mbi__TMP));	\
+} while (/* CONSTCOND */ 0)
 
 /* nil pointer constant */
 #if (defined(__cplusplus) && (__cplusplus >= 201103L)) || \
