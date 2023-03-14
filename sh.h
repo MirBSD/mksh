@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1004 2023/02/20 19:20:42 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1005 2023/03/14 15:09:22 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -153,6 +153,13 @@
 #ifdef MIRBSD_BOOTFLOPPY
 #include <wchar.h>
 #endif
+
+/* we need uintptr_t */
+#ifndef UINTPTR_MAX
+typedef size_t uintptr_t;
+#define UINTPTR_MAX mbiTYPE_UMAX(uintptr_t)
+#endif
+
 #undef MBSDINT_H_SKIP_CTAS
 #ifndef MKSH_DO_MBI_CTAS
 #define MBSDINT_H_SKIP_CTAS
@@ -235,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2023/01/31"
+#define MKSH_VERSION "R59 2023/03/14"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -249,7 +256,6 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KBY(c)	((kby)(KUI(c) & 0xFFU))	/* byte, truncated if necessary */
 #define KBI(c)	((kui)(KUI(c) & 0xFFU))	/* byte as u_int, truncated */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
-#define K32(u)	((k32)(KUI(u) & 0xFFFFFFFFU))
 
 #define K32_HM		0x7FFFFFFFUL
 #define K32_FM		0xFFFFFFFFUL

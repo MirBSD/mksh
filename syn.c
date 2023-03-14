@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2018, 2020, 2021
+ *		 2018, 2020, 2021, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.144 2022/09/05 23:46:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.145 2023/03/14 15:09:24 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1066,20 +1066,37 @@ dbtestp_error(Test_env *te, int offset, const char *msg)
 Wahr
 parse_usec(const char *s, struct timeval *tv)
 {
-	struct timeval tt;
 	int i;
 
 	tv->tv_sec = 0;
 	/* parse integral part */
-	while (ctype(*s, C_DIGIT)) {
-		tt.tv_sec = tv->tv_sec * 10 + ksh_numdig(*s++);
-		/*XXX this overflow check maybe UB */
-		if (tt.tv_sec / 10 != tv->tv_sec) {
-			errno = EOVERFLOW;
-			return (Ja);
+#define mbiCfail do { errno = EOVERFLOW; return (Ja); } while (/* CONSTCOND */ 0)
+	if (mbiTYPE_ISF(time_t)) {
+		time_t tt = 0;
+
+		while (ctype(*s, C_DIGIT))
+			tt = tt * 10 + ksh_numdig(*s++);
+		mbiCAAlet(tv->tv_sec, time_t, tt);
+	} else if (mbiTYPE_ISU(time_t)) {
+		time_t tt = 0;
+
+		while (ctype(*s, C_DIGIT)) {
+			mbiCAUmul(time_t, tt, 10);
+			mbiCAUadd(tt, ksh_numdig(*s));
+			++s;
 		}
-		tv->tv_sec = tt.tv_sec;
+		mbiCAAlet(tv->tv_sec, time_t, tt);
+	} else {
+		mbiHUGE_S tt = 0;
+
+		while (ctype(*s, C_DIGIT)) {
+			mbiCAPmul(INTMAX, tt, 10);
+			mbiCAPadd(INTMAX, tt, ksh_numdig(*s));
+			++s;
+		}
+		mbiCASlet(time_t, tv->tv_sec, mbiHUGE_S, tt);
 	}
+#undef mbiCfail
 
 	tv->tv_usec = 0;
 	if (!*s)

@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2011, 2014, 2015, 2021, 2022
+ * Copyright © 2011, 2014, 2015, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  *-
  * This file provides BAFH1-0 (Better Avalanche for the Jenkins Hash)
  * as macro bodies operating on “register k32” variables (from sh.h),
- * which must be of u_int (or higher) rank.
+ * which must be of u_int (or higher) rank, ≥32 bits width.
  *-
  * Little quote gem:
  *	We are looking into it. Changing the core
@@ -31,7 +31,7 @@
 #ifndef MKSH_MIRHASH_H
 #define MKSH_MIRHASH_H
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.17 2023/01/08 21:06:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.18 2023/03/14 15:09:22 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -65,28 +65,40 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.17 2023/01/08 21:06:27 tg Exp $");
  */
 
 #define BAFHInit(h) do {					\
-	(h) = K32(1U);						\
+	(h) = mbiMM(k32, K32_FM, 1U);				\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateOctet(h,b) do {				\
-	(h) = K32(KUI(h) + KBI(b));				\
-	(h) = K32((h) + K32((h) << 10));			\
-	(h) = K32((h) ^ K32((h) >> 6));				\
+	(h) = mbiMO(k32, K32_FM, (h), +, KBI(b));		\
+	(h) = mbiMO(k32, K32_FM, (h), +,			\
+	    mbiMKshl(k32, K32_FM, (h), 10));			\
+	(h) = mbiMO(k32, K32_FM, (h), ^,			\
+	    mbiMKshr(k32, K32_FM, (h), 6));			\
 } while (/* CONSTCOND */ 0)
 
-#define BAFHFinish(h) BAFHFinish__impl((h), BAFHFinish_v)
-#define BAFHFinish__impl(h,v) do {				\
-	register k32 v;						\
+#define BAFHFinish__impl(h,v,d)					\
+	v = mbiMO(k32, K32_FM,					\
+	    mbiMKshr(k32, K32_FM, h, 7), &, 0x01010101U);	\
+	v = mbiMO(k32, K32_FM, v, +,				\
+	    mbiMKshl(k32, K32_FM, v, 1));			\
+	v = mbiMO(k32, K32_FM, v, +,				\
+	    mbiMKshl(k32, K32_FM, v, 3));			\
+	v = mbiMO(k32, K32_FM, v, ^, mbiMO(k32, K32_FM,		\
+	    mbiMKshl(k32, K32_FM, h, 1), &, 0xFEFEFEFEU));	\
 								\
-	v = K32(K32(h) >> 7) & 0x01010101U;			\
-	v = K32(v + K32(v << 1));				\
-	v = K32(v + K32(v << 3));				\
-	v = K32(v ^ (K32(K32(h) << 1) & 0xFEFEFEFEU));		\
+	v = mbiMO(k32, K32_FM, v, ^,				\
+	    mbiMKror(k32, K32_FM, v, 8));			\
+	v = mbiMO(k32, K32_FM, v, ^,				\
+	    (h = mbiMKror(k32, K32_FM, h, 8)));			\
+	v = mbiMO(k32, K32_FM, v, ^,				\
+	    (h = mbiMKror(k32, K32_FM, h, 8)));			\
+	d = mbiMO(k32, K32_FM, v, ^,				\
+	    mbiMKror(k32, K32_FM, h, 8));
+
+#define BAFHFinish(h) do {					\
+	register k32 BAFHFinish_v;				\
 								\
-	v = K32(v ^ mbiMKror(k32, K32_FM, v, 8));		\
-	v = K32(v ^ (h = mbiMKror(k32, K32_FM, h, 8)));		\
-	v = K32(v ^ (h = mbiMKror(k32, K32_FM, h, 8)));		\
-	h = K32(v ^ mbiMKror(k32, K32_FM, h, 8));		\
+	BAFHFinish__impl((h), BAFHFinish_v, (h))		\
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateMem(h,p,z) do {				\
@@ -104,7 +116,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.17 2023/01/08 21:06:27 tg Exp $");
 	register unsigned char BAFHUpdate_c;			\
 								\
 	BAFHUpdate_s = (const void *)(s);			\
-	while ((BAFHUpdate_c = *BAFHUpdate_s++) != '\0')	\
+	while ((BAFHUpdate_c = *BAFHUpdate_s++))		\
 		BAFHUpdateOctet((h), BAFHUpdate_c);		\
 } while (/* CONSTCOND */ 0)
 

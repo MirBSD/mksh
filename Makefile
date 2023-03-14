@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.192 2022/12/01 23:55:26 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.193 2023/03/14 15:09:15 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021,
-#		2022
+#		2022, 2023
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -119,7 +119,11 @@ CLEANFILES+=	${GENERATED}
 
 ${PROG} beforedepend: ${GENERATED}
 
-REGRESS_CATEGORIES=shell:legacy-no,int:32,shell:textmode-no,shell:binmode-yes,fastbox
+REGRESS_CATEGORIES=	shell:legacy-no int:32 shell:textmode-no \
+			shell:binmode-yes have:select:1 fastbox
+.if ${USE_PRINTF_BUILTIN} == 1
+REGRESS_CATEGORIES+=	printf-builtin
+.endif
 
 regress: ${PROG} check.pl check.t
 	-rm -rf regress-dir
@@ -127,7 +131,7 @@ regress: ${PROG} check.pl check.t
 	echo export FNORD=666 >regress-dir/.mkshrc
 	HOME=$$(realpath regress-dir) perl ${SRCDIR}/check.pl \
 	    -s ${SRCDIR}/check.t -v -p ./${PROG} \
-	    -C ${REGRESS_CATEGORIES}
+	    -C ${REGRESS_CATEGORIES:M*:Q:S/\ /,/g}
 
 test-build: .PHONY
 	-rm -rf build-dir

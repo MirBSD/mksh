@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.906 2023/01/31 01:05:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.907 2023/03/14 15:09:16 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/01/31
+	KSH R59 2023/03/14
 description:
 	Check base version of full shell
 stdin:
@@ -10085,13 +10085,23 @@ name: varexpand-special-hash
 description:
 	Check special ${var@x} expansion for x=hash
 category: !shell:ebcdic-yes
+perl-setup: open XF,">","xf" or die; print XF "a"x1000000 or die; close XF or die;
 stdin:
 	typeset -i8 foo=10
 	bar=baz
 	unset baz
 	print ${foo@#} ${bar@#} ${baz@#} .
+	set -e
+	set -A vec -- '' a abc 'message digest' abcdefghijklmnopqrstuvwxyz \
+	    abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq \
+	    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 \
+	    12345678901234567890123456789012345678901234567890123456789012345678901234567890 \
+	    $(<xf)
+	print ${vec[0]@#} ${vec[1]@#} ${vec[2]@#} ${vec[3]@#} ${vec[4]@#} \
+	    ${vec[5]@#} ${vec[6]@#} ${vec[7]@#} ${vec[8]@#} .
 expected-stdout:
 	D2F7C7B5 FE93FA63 03010102 .
+	03010102 4ACF470E 92FC2A8B E5030FFA ED69F029 9C0E532B C155BDD9 BE5117B7 2A9728CB .
 ---
 name: varexpand-special-hash-ebcdic
 description:
@@ -14253,4 +14263,88 @@ expected-stdout:
 	1 fh .
 	2 eh .
 	3 eh .
+---
+name: read-timeout-nexttesttakes15seconds
+description:
+	Check timeout functionality
+category: have:select:1
+time-limit: 5
+stdin:
+	sleep 2 | {
+		read -t1 foo
+		echo 1 $? "<$foo>"
+	}
+	: | {
+		read -t1 foo
+		echo 2 $? "<$foo>"
+	}
+	echo bla | {
+		read -t1 foo
+		echo 3 $? "<$foo>"
+	}
+expected-stdout:
+	1 142 <>
+	2 1 <>
+	3 0 <bla>
+---
+name: read-timeout-slow
+description:
+	Check timeout parser
+category: have:select:1
+time-limit: 20
+stdin:
+	(sleep 14; echo foo) | {
+		read -t12.3 foo
+		echo 1 $? "<$foo>"
+	} >o1 &
+	(sleep 11; echo foo) | {
+		read -t12.3 foo
+		echo 2 $? "<$foo>"
+	} > o2 &
+	wait
+	cat o1
+	cat o2
+expected-stdout:
+	1 142 <>
+	2 0 <foo>
+---
+name: optional-printf-builtin
+description:
+	printf(1) minimal tests
+category: printf-builtin
+stdin:
+	t() {
+		o=$(\\builtin printf "$@"; echo .)
+		r=$?
+		print -r -- "$((++n)) ${o%.} : $r"
+	}
+	t '<%s>' a b\	c
+	t '%s - %c %s %d %i %o %u %x %X %b' 3
+	t '%% %c %s %d %i %o %u %x %X' 72 73 74 75 76 77 78 79
+	t '\\\a\b\f\n\r\t\v\01234'
+	let n+=2
+	t '%b foo %s bar' '\\\a\b\f\n\r\t\v\01234\cdefg'
+	let ++n
+	t '<%d>' 1 +2 -3 0x1a 0X1B 010 -011 +012 \'1 \"2
+	t '<%d|%d><%+d|%+d><% d|% d><%+ d|%+ d>' 1 -1 1 -1 1 -1 1 -1
+	t '<%o|%#o><%x|%#x><%X|%#X>' 8 9 10 11 12 13
+	#XXX replace with below
+	t '|%3d|%-3d|%+3d|%-+3d|%03d|%-03d|%3d|%.3d|notyet|' \
+	    1 2 3 4 5 6 7777 8
+	#t '|%3d|%-3d|%+3d|%-+3d|%03d|%-03d|%3d|%.3d|%5.3d|' \
+	#    1 2 3 4 5 6 7777 8 9
+	#12 |  1|2  | +3|+4 |005|6  |7777|008|  009| : 0
+expected-stdout:
+	1 <a><b	c> : 0
+	2 3 -   0 0 0 0 0 0  : 0
+	3 % 7 73 74 75 114 77 4e 4F : 0
+	4 \
+		
+	34 : 0
+	7 \
+		S4 : 0
+	9 <1><2><-3><26><27><8><-9><10><49><50> : 0
+	10 <1|-1><+1|-1>< 1|-1><+1|-1> : 0
+	11 <10|011><a|0xb><C|0XD> : 0
+	12 |  1|2  | +3|+4 |005|6  |7777|008|notyet| : 0
 ---

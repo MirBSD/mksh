@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.156 2023/01/08 21:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.157 2023/03/14 15:09:21 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1296,7 +1296,7 @@ j_waitj(Job *j,
 			vp->u.array = (void *)vt;
 			vp = (void *)vt;
 			vp->areap = vp_pipest->areap;
-			vp->ua.index = num = K32(num + 1U);
+			vp->ua.index = num = mbiMO(k32, K32_FM, num, +, 1U);
 			vp->flag = DEFINED | ISSET | INTEGER | RDONLY |
 			    ARRAY | INT_U | AINDEX;
  got_array:

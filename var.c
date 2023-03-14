@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.269 2023/01/08 21:06:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.270 2023/03/14 15:09:24 tg Exp $");
 
 /*-
  * Variables
@@ -228,7 +228,7 @@ array_index_calc(const char *n, Wahr *arrayp, k32 *idxp)
 		tmp[len] = '\0';
 		sub = substitute(tmp, 0);
 		evaluate(sub, &rval.i, KSH_UNWIND_ERROR, Ja);
-		*idxp = K32(rval.u);
+		*idxp = mbiMM(k32, K32_FM, rval.u);
 		afree(sub, ATEMP);
 		memcpy(tmp, n, tmplen);
 		tmp[tmplen] = '\0';
@@ -480,11 +480,18 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		/* string dest */
 		char *salloc = NULL;
 		size_t cursz;
+#ifndef MKSH_SMALL
+		uintptr_t cmp_s, cmp_b, cmp_e;
+#endif
+
 		if ((vq->flag&ALLOC)) {
 			cursz = strlen(vq->val.s) + 1;
-#if defined(__MirBSD__) && defined(DEBUG)
-			/* this is C UB (pointer comparison out of object) */
-			if (s >= vq->val.s && s < (vq->val.s + cursz)) {
+#ifndef MKSH_SMALL
+			/* debugging */
+			cmp_s = (uintptr_t)(const void *)s;
+			cmp_b = (uintptr_t)(void *)vq->val.s;
+			cmp_e = (uintptr_t)(void *)(vq->val.s + cursz);
+			if (cmp_s >= cmp_b && cmp_s < cmp_e) {
 				kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
@@ -1772,7 +1779,7 @@ set_array(const char *var, Wahr reset, const char **vals)
 		}
 #endif
 
-		vq = arraysearch(vp, K32(j));
+		vq = arraysearch(vp, mbiMM(k32, K32_FM, j));
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, ccp, KSH_RETURN_ERROR);
 		i++;
@@ -1857,15 +1864,14 @@ chvt_rndsetup(const void *bp, size_t sz)
 k32
 rndget(void)
 {
-	register k32 v = lcg_state;
-
 	/*
 	 * this is the same Linear Congruential PRNG as Borland
 	 * C/C++ allegedly uses in its built-in rand() function
 	 */
-	v = K32(22695477U * v + 1U);
-	lcg_state = v;
-	return ((k32)(v >> 16) & 0x7FFFU);
+	lcg_state = mbiMO(k32, K32_FM,
+	    mbiMO(k32, K32_FM, 22695477U, *, lcg_state), +, 1U);
+	return (mbiMO(k32, K32_FM,
+	    mbiMKshr(k32, K32_FM, lcg_state, 16), &, 0x7FFFU));
 }
 
 void
@@ -1897,7 +1903,7 @@ rndset(unsigned long v)
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
 	z.qh = (qh_state & 0xFFFF8000U) | rndget();
-	lcg_state = K32(qh_state << 15) | rndget();
+	lcg_state = mbiMKshl(k32, K32_FM, qh_state, 15) | rndget();
 	/*
 	 * either we have very chap entropy get and push available,
 	 * with malloc() pulling in this code already anyway, or the

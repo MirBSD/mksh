@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.22 2023/02/27 02:33:15 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.23 2023/03/14 15:09:22 tg Exp $"
 
 /* if you have <sys/types.h> and/or <stdint.h>, include them before this */
 /* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
@@ -677,7 +677,12 @@ mbiCTAS(mbsdint_h) {
 	(vl) *= (vr);							\
 } while (/* CONSTCOND */ 0)
 
-/* 3. signed narrowing assign; this is checked IB */
+/* 3. autotype or signed narrowing assign; this is checked IB */
+#define mbiCAAlet(vl,srctype,vr) do {					\
+	(vl) = (vr);							\
+	if (__predict_false((srctype)(vl) != (srctype)(vr)))		\
+		mbiCfail;						\
+} while (/* CONSTCOND */ 0)
 #define mbiCASlet(dsttype,vl,srctype,vr) do {				\
 	(vl) = (dsttype)(vr);						\
 	if (__predict_false((srctype)(vl) != (srctype)(vr)))		\

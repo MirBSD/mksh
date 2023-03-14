@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.411 2023/01/08 22:53:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.412 2023/03/14 15:09:19 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1977,7 +1977,7 @@ c_read(const char **wp)
 				vq->flag |= AINDEX;
 		} else {
 			vq = arraysearch(vp, idx);
-			idx = K32(idx + 1U);
+			idx = mbiMO(k32, K32_FM, idx, +, 1U);
 		}
 	} else {
 		vq = global(*wp);
