@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.145 2023/03/14 15:09:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.146 2023/03/14 19:49:06 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1090,8 +1090,8 @@ parse_usec(const char *s, struct timeval *tv)
 		mbiHUGE_S tt = 0;
 
 		while (ctype(*s, C_DIGIT)) {
-			mbiCAPmul(INTMAX, tt, 10);
-			mbiCAPadd(INTMAX, tt, ksh_numdig(*s));
+			mbiCAPmul(mbiHUGE, tt, 10);
+			mbiCAPadd(mbiHUGE, tt, ksh_numdig(*s));
 			++s;
 		}
 		mbiCASlet(time_t, tv->tv_sec, mbiHUGE_S, tt);
