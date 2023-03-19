@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1005 2023/03/14 15:09:22 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1006 2023/03/19 22:20:08 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -164,6 +164,10 @@ typedef size_t uintptr_t;
 #ifndef MKSH_DO_MBI_CTAS
 #define MBSDINT_H_SKIP_CTAS
 #endif
+/* formatting routines assume this */
+#define MBSDINT_H_WANT_SIZET_IN_LONG 1
+/* POSIX guarantees a 32-bit int */
+#define MBSDINT_H_WANT_INT32 1
 #include "mbsdint.h"
 
 /* monkey-patch nil pointer constant */
@@ -247,7 +251,7 @@ typedef size_t uintptr_t;
 /* shell types */
 typedef unsigned char kby;		/* byte */
 typedef unsigned int kui;		/* wchar; kby or EOF; ⊇k32; etc. */
-/* main.c cta:int_32bit guaranteed; u_int rank also guaranteed */
+/* MBSDINT_H_WANT_INT32 guaranteed; u_int rank also guaranteed */
 typedef unsigned int k32;		/* 32-bit arithmetic (hashes etc.) */
 /* for use with/without 32-bit masking */
 typedef unsigned long kul;		/* long, arithmetic */

@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.423 2023/01/31 01:05:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.424 2023/03/19 22:20:07 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -118,9 +118,6 @@ mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
     mbiTYPE_UBITS(unsigned char) == 8U &&
     mbiMASK_BITS(SCHAR_MAX) == 7U);
 
-/* POSIX guarantees a 32-bit int */
-mbiCTA(int_32bit, mbiTYPE_UBITS(unsigned int) >= 32U);
-
 /* the next assertion is probably not really needed */
 mbiCTA(short_is_2_char, sizeof(short) == 2);
 /* the next assertion is probably not really needed */
@@ -134,7 +131,7 @@ mbiCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
 mbiCTA(basic_int32_ari,
     mbiTYPE_UMAX(mksh_uari_t) == (UINT32_MAX) &&
     /* require two’s complement */
-    ((INT32_MIN) == -(INT32_MAX)-1));
+    ((INT32_MIN)+1 == -(INT32_MAX)));
 /* the next assertion is probably not really needed */
 mbiCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 /* but this is */
@@ -143,7 +140,7 @@ mbiCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
 mbiCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
 mbiCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
 #else
-mbiCTA(long_complement, (LONG_MIN) == -(LONG_MAX)-1);
+mbiCTA(long_complement, (LONG_MIN)+1 == -(LONG_MAX));
 #endif
 /* these are always required */
 mbiCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
@@ -153,7 +150,6 @@ mbiCTA(ari_size_no_matter_of_signedness,
     sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
 /* our formatting routines assume this */
-mbiCTA(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
 mbiCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 
 };
