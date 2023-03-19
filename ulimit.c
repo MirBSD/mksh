@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.8 2022/09/06 00:22:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.9 2023/03/19 23:33:48 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -344,6 +344,7 @@ static void
 print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 {
 	RL_T val = (RL_T)0;
+	char numbuf[NUMBUFSZ];
 #if HAVE_RLIMIT
 	struct rlimit limit;
 
@@ -352,8 +353,8 @@ print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 	if ((val = ulimit(l->resource, 0)) < 0)
 #endif
 	    {
-		shf_puts("unknown\n", shl_stdout);
-		return;
+		shf_puts("unknown", shl_stdout);
+		goto out;
 	}
 #if HAVE_RLIMIT
 	if (how & SOFT)
@@ -362,7 +363,7 @@ print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 		val = limit.rlim_max;
 #endif
 	if (val == RL_U)
-		shf_puts("unlimited\n", shl_stdout);
+		shf_puts("unlimited", shl_stdout);
 	else {
 #if HAVE_RLIMIT
 		val /= l->factor;
@@ -371,6 +372,10 @@ print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 			val = (RL_T)(((size_t)val - (size_t)&etext) /
 			    (size_t)1024);
 #endif
-		shprintf("%lu\n", (unsigned long)val);
+		shf_puts(mbiTYPE_ISU(RL_T) ?
+		    kuHfmt((kuH)val, FL_DEC, numbuf) :
+		    ksHfmt((ksH)val, FL_DEC, numbuf), shl_stdout);
 	}
+ out:
+	shf_putc('\n', shl_stdout);
 }
