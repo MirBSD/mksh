@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1006 2023/03/19 22:20:08 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1007 2023/03/19 23:31:28 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -256,6 +256,22 @@ typedef unsigned int k32;		/* 32-bit arithmetic (hashes etc.) */
 /* for use with/without 32-bit masking */
 typedef unsigned long kul;		/* long, arithmetic */
 typedef signed long ksl;		/* signed long, arithmetic */
+#define KUL_FM ULONG_MAX
+#define KUL_HM LONG_MAX
+/* if mbiHUGE is wider than long then that, else long */
+#if mbiMASK__BITS(mbiHUGE_UMAX) > mbiMASK__BITS(ULONG_MAX)
+#define MKSH_HAVE_HUGE
+typedef mbiHUGE_U kuH;
+typedef mbiHUGE_S ksH;
+#define KUH_FM mbiHUGE_UMAX
+#define KUH_HM mbiHUGE_MAX
+#else
+#undef MKSH_HAVE_HUGE
+typedef kul kuH;
+typedef ksl ksH;
+#define KUH_FM ULONG_MAX
+#define KUH_HM LONG_MAX
+#endif
 
 #define KBY(c)	((kby)(KUI(c) & 0xFFU))	/* byte, truncated if necessary */
 #define KBI(c)	((kui)(KUI(c) & 0xFFU))	/* byte as u_int, truncated */
@@ -280,15 +296,6 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #endif
 
 /* arithmetic types: shell arithmetics */
-
-/* “cast” between unsigned / signed long */
-#define KUL2SL(ul)	mbiA_U2S(kul, ksl, LONG_MAX, (ul))
-#define KSL2UL(sl)	mbiA_S2U(kul, ksl, (sl))
-
-/* convert between signed and sign variable plus magnitude */
-#define KNEGUL2SL(n,ul)	mbiA_VZM2S(kul, ksl, (n), (ul))
-/* n = sl < 0; //mbiA_S2VZ(sl); */
-#define KSL2NEGUL(sl)	mbiA_S2M(kul, ksl, (sl))
 
 /* new arithmetics tbd, using mbiMA_* */
 
@@ -2858,22 +2865,34 @@ void set_ifs(const char *);
 #define FL_SHORT	0x0100	/* ‘h’ seen */
 #define FL_LONG		0x0200	/* ‘l’ seen */
 #define FL_SIZET	0x0400	/* ‘z’ seen */
-#define FM_SIZES	0x0700	/* mask: short/long/sizet */
-#define FL_NUMBER	0x0800	/* %[douxefg] a number was formatted */
+#ifdef MKSH_HAVE_HUGE
+#define FL_HUGE		0x0800	/* ‘j’ seen */
+#endif
+#define FM_SIZES	0x0F00	/* mask: short/long/sizet/huge */
 #define FL_RIGHT	0x1000	/* ‘-’ seen: right-pad, left-align */
 #define FL_ZERO		0x2000	/* ‘0’ seen: pad with leading zeros */
 #define FL_DOT		0x4000	/* ‘.’ seen: printf(3) precision specified */
+#define FL_NUMBER	0x8000	/* %[douxefg] a number was formatted */
 /*
  * %#o produces the longest output: '0' + w/3 + NUL
  * %#x produces '0x' + w/4 + NUL which is at least as long (w=8, w>9)
  * %+d produces sign + w/log₂(10) + NUL which takes less than octal obviously
  */
-#define NUMBUFSZ (1U + (mbiTYPE_UBITS(kul) + 2U) / 3U + /* NUL */ 1U)
+#define NUMBUFSZ (1U + (mbiTYPE_UBITS(kuH) + 2U) / 3U + /* NUL */ 1U)
 #define NUMBUFLEN(base,result) ((base) + NUMBUFSZ - (result) - 1U)
 char *kulfmt(kul number, kui flags, char *numbuf)
     MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
 char *kslfmt(ksl number, kui flags, char *numbuf)
     MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
+#ifdef MKSH_HAVE_HUGE
+char *kuHfmt(kuH number, kui flags, char *numbuf)
+    MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
+char *ksHfmt(ksH number, kui flags, char *numbuf)
+    MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
+#else
+#define kuHfmt kulfmt
+#define ksHfmt kslfmt
+#endif
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *, Wahr);

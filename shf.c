@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.133 2023/02/20 19:20:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.134 2023/03/19 23:31:29 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -843,9 +843,9 @@ kslfmt(ksl number, kui flags, char *numbuf)
 	/* negative signed quantity */
 	if (!IS(flags, FM_TYPE, FL_SGN)) {
 		/* uh-oh, output a signed quantity unsignedly */
-		return (kulfmt(KSL2UL(number), flags, numbuf));
+		return (kulfmt(mbiA_S2U(kul, ksl, number), flags, numbuf));
 	}
-	return (kulfmt(KSL2NEGUL(number), flags | FL_NEG, numbuf));
+	return (kulfmt(mbiA_S2M(kul, ksl, number), flags | FL_NEG, numbuf));
 }
 
 /* pre-initio() */
@@ -900,6 +900,76 @@ kulfmt(kul number, kui flags, char *numbuf)
 
 	return (cp);
 }
+
+#ifdef MKSH_HAVE_HUGE
+/* pre-initio() */
+char *
+ksHfmt(ksH number, kui flags, char *numbuf)
+{
+	/* easy for positive number */
+	if (number >= 0)
+		return (kuHfmt((kuH)number, flags, numbuf));
+	/* negative signed quantity */
+	if (!IS(flags, FM_TYPE, FL_SGN)) {
+		/* uh-oh, output a signed quantity unsignedly */
+		return (kuHfmt(mbiA_S2U(kuH, ksH, number), flags, numbuf));
+	}
+	return (kuHfmt(mbiA_S2M(kuH, ksH, number), flags | FL_NEG, numbuf));
+}
+
+/* pre-initio() */
+char *
+kuHfmt(kuH number, kui flags, char *numbuf)
+{
+	char *cp;
+
+	cp = numbuf + NUMBUFSZ;
+	*--cp = '\0';
+	switch (flags & FM_TYPE) {
+	case FL_OCT:
+		do {
+			*--cp = digits_lc[number & 07UL];
+			number >>= 3;
+		} while (number);
+
+		if (HAS(flags, FL_HASH) && ord(*cp) != ORD('0'))
+			*--cp = '0';
+		break;
+	case FL_HEX: {
+		const char *digits;
+
+		digits = HAS(flags, FL_UCASE) ? digits_uc : digits_lc;
+		do {
+			*--cp = digits[number & 0xFUL];
+			number >>= 4;
+		} while (number);
+
+		if (HAS(flags, FL_HASH)) {
+			*--cp = IS(flags, FL_UPPER, FL_UPPER) ? 'X' : 'x';
+			*--cp = '0';
+		}
+		break;
+	    }
+	default:
+		do {
+			*--cp = digits_lc[number % 10UL];
+			number /= 10UL;
+		} while (number);
+
+		if (IS(flags, FM_TYPE, FL_SGN)) {
+			if (HAS(flags, FL_NEG))
+				*--cp = '-';
+			else if (HAS(flags, FL_PLUS))
+				*--cp = '+';
+			else if (HAS(flags, FL_BLANK))
+				*--cp = ' ';
+		}
+		break;
+	}
+
+	return (cp);
+}
+#endif
 
 ssize_t
 shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
@@ -977,14 +1047,23 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 					field = (unsigned int)tmp;
 				continue;
 
-			case 'l':
-				flags &= ~FM_SIZES;
-				flags |= FL_LONG;
-				continue;
-
 			case 'h':
 				flags &= ~FM_SIZES;
 				flags |= FL_SHORT;
+				continue;
+
+			case 'j':
+				flags &= ~FM_SIZES;
+#ifdef MKSH_HAVE_HUGE
+				flags |= FL_HUGE;
+#else
+				flags |= FL_LONG;
+#endif
+				continue;
+
+			case 'l':
+				flags &= ~FM_SIZES;
+				flags |= FL_LONG;
 				continue;
 
 			case 'z':
@@ -1016,7 +1095,12 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		switch (c) {
 		case 'd':
 		case 'i':
-			s = kslfmt(HAS(flags, FL_SIZET) ? (ksl)VA(ssize_t) :
+#ifdef MKSH_HAVE_HUGE
+			if (HAS(flags, FL_HUGE))
+				s = ksHfmt(VA(ksH), flags | FL_SGN, numbuf);
+			else
+#endif
+			  s = kslfmt(HAS(flags, FL_SIZET) ? (ksl)VA(ssize_t) :
 			    HAS(flags, FL_LONG) ? (ksl)VA(long) :
 			    HAS(flags, FL_SHORT) ? (ksl)(short)VA(int) :
 			    (ksl)VA(int), flags | FL_SGN, numbuf);
@@ -1032,8 +1116,12 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				/* FALLTHROUGH */
 		case 'x':
 			  flags |= FL_HEX;
-
-			s = kulfmt(HAS(flags, FL_SIZET) ? (kul)VA(size_t) :
+#ifdef MKSH_HAVE_HUGE
+			if (HAS(flags, FL_HUGE))
+				s = kuHfmt(VA(kuH), flags, numbuf);
+			else
+#endif
+			  s = kulfmt(HAS(flags, FL_SIZET) ? (kul)VA(size_t) :
 			    HAS(flags, FL_LONG) ? (kul)VA(unsigned long) :
 			    HAS(flags, FL_SHORT) ? (kul)(unsigned short)VA(int) :
 			    (kul)VA(unsigned int), flags, numbuf);
