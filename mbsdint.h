@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.24 2023/03/19 22:12:03 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.25 2023/03/19 22:35:03 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -829,7 +829,7 @@ mbiCTAS(mbsdint_h) {
 #define mbiK_sr(ut,n,vl,vr,vz)	mbiK_SR(ut, mbiTYPE_UBITS(ut), n, vl, vr, vz)
 #define mbiMK_sr(ut,FM,n,l,r,z)	mbiMM(ut, (FM), mbiK_SR(ut, mbiMASK_BITS(FM), \
 				    n, mbiMM(ut, (FM), (l)), (r), (z)))
-#define mbiK_SR(ut,b,n,l,r,vz)	mbiK_RS(ut, b, n, l, mbiUI(r) & (b - 1U), (vz))
+#define mbiK_SR(ut,b,n,l,r,vz)	mbiK_RS(ut, b, n, l, mbiUI(r) % mbiUI(b), (vz))
 #define mbiK_RS(ut,b,n,v,cl,zx)	mbiOT(ut, cl, n(ut, v, cl, b - (cl), zx), v)
 #define mbiK_shl(ut,ax,cl,CL,z)	mbiOshl(ut, ax, cl)
 #define mbiK_shr(ut,ax,cl,CL,z)	mbiOshr(ut, ax, cl)
