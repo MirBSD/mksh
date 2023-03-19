@@ -5,12 +5,25 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.23 2023/03/14 15:09:22 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.24 2023/03/19 22:12:03 tg Exp $"
 
-/* if you have <sys/types.h> and/or <stdint.h>, include them before this */
-/* also if <limits.h> defines SSIZE_MAX or UINTPTR_MAX but not the types */
-
-/* -DHAVE_INTCONSTEXPR_RSIZE_MAX=1 if RSIZE_MAX is an integer constexpr */
+/*
+ * cpp defines to set:
+ *
+ * -DHAVE_INTCONSTEXPR_RSIZE_MAX=1 if RSIZE_MAX is an integer constexpr
+ *
+ * -DMBSDINT_H_SMALL_SYSTEM=1 (or 2) to shorten some macros, for old systems
+ * or -DMBSDINT_H_SMALL_SYSTEM=3 in very tiny address space (< 32 bits)
+ *
+ * -DMBSDINT_H_WANT_SIZET_IN_LONG (breaks LLP64) ensure pointers fit storage
+ * -DMBSDINT_H_WANT_INT32=1 to ensure unsigned int has at least 32 bit width
+ * -DMBSDINT_H_WANT_LRG64=1 to ensure mbiLARGE_U has at least 64 bit width
+ * (these trigger extra compile-time assertion checks)
+ *
+ * If <sys/types.h>, <inttypes.h> and/or <stdint.h> exist, INCLUDE THEM
+ * BEFORE this header; also prerequisites of <limits.h> and <stddef.h>,
+ * which this header includes always.
+ */
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <limits.h>
@@ -21,8 +34,6 @@
 #include <sys/stddef.h>
 #endif
 
-/* define to 1 or 2 to shorten some macros, for old systems */
-/* or 3 for environments with very small address space (< 32 bits) */
 #if !defined(MBSDINT_H_SMALL_SYSTEM) || ((MBSDINT_H_SMALL_SYSTEM) < 1)
 #undef MBSDINT_H_SMALL_SYSTEM	/* in case someone defined it as 0 */
 #define mbiMASK_bitmax		279
@@ -30,6 +41,16 @@
 #define mbiMASK_bitmax		62
 #else
 #define mbiMASK_bitmax		93
+#endif
+
+#if defined(MBSDINT_H_WANT_SIZET_IN_LONG) && ((MBSDINT_H_WANT_SIZET_IN_LONG) < 1)
+#undef MBSDINT_H_WANT_SIZET_IN_LONG
+#endif
+#if defined(MBSDINT_H_WANT_INT32) && ((MBSDINT_H_WANT_INT32) < 1)
+#undef MBSDINT_H_WANT_INT32
+#endif
+#if defined(MBSDINT_H_WANT_LRG64) && ((MBSDINT_H_WANT_LRG64) < 1)
+#undef MBSDINT_H_WANT_LRG64
 #endif
 
 /* should be in <sys/cdefs.h> via <limits.h> */
@@ -55,27 +76,6 @@
 #define mbiCTA_TYPE_MBIT(nm,ty)	char ctatm_ ## nm [\
 	(sizeof(ty) <= (mbiMASK_bitmax / (CHAR_BIT))) ? 1 : -1]
 
-/* largest integer */
-#if defined(INTMAX_MIN)
-#define mbiHUGE_S		intmax_t
-#define mbiHUGE_MIN		INTMAX_MIN
-#define mbiHUGE_MAX		INTMAX_MAX
-#define mbiHUGE_U		uintmax_t
-#define mbiHUGE_UMAX		UINTMAX_MAX
-#elif defined(LLONG_MIN)
-#define mbiHUGE_S		long long
-#define mbiHUGE_MIN		LLONG_MIN
-#define mbiHUGE_MAX		LLONG_MAX
-#define mbiHUGE_U		unsigned long long
-#define mbiHUGE_UMAX		ULLONG_MAX
-#else /* C89? */
-#define mbiHUGE_S		long
-#define mbiHUGE_MIN		LONG_MIN
-#define mbiHUGE_MAX		LONG_MAX
-#define mbiHUGE_U		unsigned long
-#define mbiHUGE_UMAX		ULONG_MAX
-#endif
-
 /* kinds of types */
 	/* runtime only, but see mbiCTA_TYPE_NOTF */
 #define mbiTYPE_ISF(type)	((double)0.5 == (double)(type)0.5)
@@ -84,9 +84,10 @@
 /* limits of types */
 #define mbiTYPE_UMAX(type)	((type)~(type)0U)
 #define mbiTYPE_UBITS(type)	mbiMASK_BITS(mbiTYPE_UMAX(type))
-/* calculation by Hallvard B Furuseth (from comp.lang.c), up to 2039 bits */
-#define mbiMASK_BITS(maxv)	((unsigned int)((maxv) / ((maxv) % 255 + 1) / \
-				255 % 255 * 8 + 7 - 86 / ((maxv) % 255 + 12)))
+/* calculation by Hallvard B Furuseth (via comp.lang.c), ≤ 2039 bits */
+#define mbiMASK__BITS(maxv)	((maxv) / ((maxv) % 255 + 1) / \
+				255 % 255 * 8 + 7 - 86 / ((maxv) % 255 + 12))
+#define mbiMASK_BITS(maxv)	((unsigned int)mbiMASK__BITS(maxv))
 
 /* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 (or less) bits */
 #define mbiMASK_CHK(v)		((v) > 0 ? mbi_maskchk31_1((v)) : 0)
@@ -144,6 +145,67 @@
 #define mbiSIZEMAX	((size_t)PTRDIFF_MAX)
 #endif
 
+/* largest integer */
+#if defined(INTMAX_MIN)
+#define mbiHUGE_S		intmax_t
+#define mbiHUGE_MIN		INTMAX_MIN
+#define mbiHUGE_MAX		INTMAX_MAX
+#define mbiHUGE_U		uintmax_t
+#define mbiHUGE_UMAX		UINTMAX_MAX
+#define mbiHUGE_P(c)		PRI ## c ## MAX
+#elif defined(LLONG_MIN)
+#define mbiHUGE_S		long long
+#define mbiHUGE_MIN		LLONG_MIN
+#define mbiHUGE_MAX		LLONG_MAX
+#define mbiHUGE_U		unsigned long long
+#define mbiHUGE_UMAX		ULLONG_MAX
+#define mbiHUGE_P(c)		"ll" #c
+#elif defined(_UI64_MAX) && (mbiMASK__BITS(_UI64_MAX) > mbiMASK__BITS(ULONG_MAX))
+#define mbiHUGE_S		signed __int64
+#define mbiHUGE_MIN		_I64_MIN
+#define mbiHUGE_MAX		_I64_MAX
+#define mbiHUGE_U		unsigned __int64
+#define mbiHUGE_UMAX		_UI64_MAX
+#define mbiHUGE_P(c)		"I64" #c
+#else /* C89? */
+#define mbiHUGE_S		long
+#define mbiHUGE_MIN		LONG_MIN
+#define mbiHUGE_MAX		LONG_MAX
+#define mbiHUGE_U		unsigned long
+#define mbiHUGE_UMAX		ULONG_MAX
+#define mbiHUGE_P(c)		"l" #c
+#endif
+/* larger than int, 64 bit if possible, storage fits size_t/pointers */
+#if (mbiMASK__BITS(ULONG_MAX) >= 64)
+#define mbiLARGE_S		long
+#define mbiLARGE_MIN		LONG_MIN
+#define mbiLARGE_MAX		LONG_MAX
+#define mbiLARGE_U		unsigned long
+#define mbiLARGE_UMAX		ULONG_MAX
+#define mbiLARGE_P(c)		"l" #c
+#elif defined(ULLONG_MAX) && (mbiMASK__BITS(ULLONG_MAX) >= 64)
+#define mbiLARGE_S		long long
+#define mbiLARGE_MIN		LLONG_MIN
+#define mbiLARGE_MAX		LLONG_MAX
+#define mbiLARGE_U		unsigned long long
+#define mbiLARGE_UMAX		ULLONG_MAX
+#define mbiLARGE_P(c)		"ll" #c
+#elif defined(_UI64_MAX) && (mbiMASK__BITS(_UI64_MAX) >= 64)
+#define mbiLARGE_S		signed __int64
+#define mbiLARGE_MIN		_I64_MIN
+#define mbiLARGE_MAX		_I64_MAX
+#define mbiLARGE_U		unsigned __int64
+#define mbiLARGE_UMAX		_UI64_MAX
+#define mbiLARGE_P(c)		"I64" #c
+#else
+#define mbiLARGE_S		mbiHUGE_S
+#define mbiLARGE_MIN		mbiHUGE_MIN
+#define mbiLARGE_MAX		mbiHUGE_MAX
+#define mbiLARGE_U		mbiHUGE_U
+#define mbiLARGE_UMAX		mbiHUGE_UMAX
+#define mbiLARGE_P		mbiHUGE_P
+#endif
+
 #ifndef MBSDINT_H_SKIP_CTAS
 /* compile-time assertions for mbsdint.h */
 mbiCTAS(mbsdint_h) {
@@ -157,6 +219,8 @@ mbiCTAS(mbsdint_h) {
  mbiCTA(basic_char_umask, mbiMASK_CHK(UCHAR_MAX));
  mbiCTA(basic_char,
 	sizeof(char) == 1 && (CHAR_BIT) >= 7 && (CHAR_BIT) < 2040 &&
+	(((CHAR_MAX) == (SCHAR_MAX) && (CHAR_MIN) == (SCHAR_MIN)) ||
+	 ((CHAR_MAX) == (UCHAR_MAX) && (CHAR_MIN) == 0)) &&
 	mbiTYPE_UMAX(unsigned char) == (UCHAR_MAX) &&
 	sizeof(signed char) == 1 &&
 	sizeof(unsigned char) == 1 &&
@@ -176,6 +240,10 @@ mbiCTAS(mbsdint_h) {
 #ifdef INTMAX_MIN
  mbiCTA_TYPE_MBIT(imax, intmax_t);
  mbiCTA_TYPE_MBIT(uimax, uintmax_t);
+#endif
+#ifdef _UI64_MAX
+ mbiCTA_TYPE_MBIT(ms_i64, signed __int64);
+ mbiCTA_TYPE_MBIT(ms_ui64, unsigned __int64);
 #endif
  mbiCTA(basic_short_smask, mbiMASK_CHK(SHRT_MAX));
  mbiCTA(basic_short_umask, mbiMASK_CHK(USHRT_MAX));
@@ -253,6 +321,30 @@ mbiCTAS(mbsdint_h) {
 	sizeof(uintmax_t) >= sizeof(unsigned long long));
 #endif /* INTMAX_MIN && LLONG_MIN */
 #endif /* INTMAX_MIN */
+ mbiCTA(basic_large_smask, mbiMASK_CHK(mbiLARGE_MAX));
+ mbiCTA(basic_large_umask, mbiMASK_CHK(mbiLARGE_UMAX));
+ mbiCTA(basic_large,
+	mbiTYPE_ISU(mbiLARGE_U) && !mbiTYPE_ISU(mbiLARGE_S) &&
+	mbiTYPE_UMAX(mbiLARGE_U) == (mbiLARGE_UMAX) && (mbiLARGE_MIN) < 0 &&
+	((mbiLARGE_MIN) == -(mbiLARGE_MAX) || (mbiLARGE_MIN)+1 == -(mbiLARGE_MAX)) &&
+	sizeof(mbiLARGE_S) >= sizeof(long) &&
+	sizeof(mbiLARGE_U) >= sizeof(unsigned long) &&
+	mbiMASK_BITS(mbiLARGE_MAX) >= mbiMASK_BITS(LONG_MAX) &&
+	mbiMASK_BITS(mbiLARGE_MAX) <= mbiMASK_BITS(mbiHUGE_MAX) &&
+	mbiMASK_BITS(mbiLARGE_UMAX) >= mbiMASK_BITS(ULONG_MAX) &&
+	mbiMASK_BITS(mbiLARGE_UMAX) <= mbiMASK_BITS(mbiHUGE_UMAX) &&
+	sizeof(mbiLARGE_S) == sizeof(mbiLARGE_U));
+ mbiCTA(basic_huge_smask, mbiMASK_CHK(mbiHUGE_MAX));
+ mbiCTA(basic_huge_umask, mbiMASK_CHK(mbiHUGE_UMAX));
+ mbiCTA(basic_huge,
+	mbiTYPE_ISU(mbiHUGE_U) && !mbiTYPE_ISU(mbiHUGE_S) &&
+	mbiTYPE_UMAX(mbiHUGE_U) == (mbiHUGE_UMAX) && (mbiHUGE_MIN) < 0 &&
+	((mbiHUGE_MIN) == -(mbiHUGE_MAX) || (mbiHUGE_MIN)+1 == -(mbiHUGE_MAX)) &&
+	sizeof(mbiHUGE_S) >= sizeof(long) &&
+	sizeof(mbiHUGE_U) >= sizeof(unsigned long) &&
+	mbiMASK_BITS(mbiHUGE_MAX) >= mbiMASK_BITS(LONG_MAX) &&
+	mbiMASK_BITS(mbiHUGE_UMAX) >= mbiMASK_BITS(ULONG_MAX) &&
+	sizeof(mbiHUGE_S) == sizeof(mbiHUGE_U));
  /* size_t is C but ssize_t is POSIX */
  mbiCTA_TYPE_NOTF(size_t);
  mbiCTA(basic_sizet,
@@ -332,6 +424,8 @@ mbiCTAS(mbsdint_h) {
 #ifdef INTMAX_MIN
  mbiCTA(vbits_imax, mbiMASK_BITS(UINTMAX_MAX) == mbiMASK_BITS(INTMAX_MAX) + 1U);
 #endif
+ mbiCTA(vbits_large, mbiMASK_BITS(mbiLARGE_UMAX) == mbiMASK_BITS(mbiLARGE_MAX) + 1U);
+ mbiCTA(vbits_huge, mbiMASK_BITS(mbiHUGE_UMAX) == mbiMASK_BITS(mbiHUGE_MAX) + 1U);
 #ifdef SSIZE_MAX
  mbiCTA(vbits_size, mbiTYPE_UBITS(size_t) == mbiMASK_BITS(SSIZE_MAX) + 1U);
 #endif
@@ -344,9 +438,10 @@ mbiCTAS(mbsdint_h) {
  mbiCTA(sizet_funcptr, sizeof(size_t) == sizeof(void (*)(void)));
  /* do size_t and ulong fit each other? */
  mbiCTA(sizet_minlong, sizeof(size_t) >= sizeof(long));
-#if 0 /* breaks on LLP64 (e.g. Windows/amd64) */
+#ifdef MBSDINT_H_WANT_SIZET_IN_LONG /* breaks LLP64 (e.g. Windows/amd64) */
  mbiCTA(sizet_inulong, sizeof(size_t) <= sizeof(long));
 #endif
+ mbiCTA(sizet_inlarge, sizeof(size_t) <= sizeof(mbiLARGE_U));
  /* assume ptrdiff_t and (s)size_t will fit each other */
  mbiCTA(sizet_ptrdiff, sizeof(size_t) == sizeof(ptrdiff_t));
 #ifdef SSIZE_MAX
@@ -355,6 +450,13 @@ mbiCTAS(mbsdint_h) {
  /* also uintptr_t, to rule out certain weird machines */
 #ifdef UINTPTR_MAX
  mbiCTA(sizet_uintptr, sizeof(size_t) == sizeof(uintptr_t));
+#endif
+ /* user-requested extra checks */
+#ifdef MBSDINT_H_WANT_INT32
+ mbiCTA(user_int32, mbiTYPE_UBITS(unsigned int) >= 32);
+#endif
+#ifdef MBSDINT_H_WANT_LRG64
+ mbiCTA(user_lrg64, mbiTYPE_UBITS(mbiLARGE_U) >= 64);
 #endif
 };
 #endif /* !MBSDINT_H_SKIP_CTAS */
