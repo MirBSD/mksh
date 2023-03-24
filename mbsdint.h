@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.25 2023/03/19 22:35:03 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.26 2023/03/24 19:45:28 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -799,7 +799,7 @@ mbiCTAS(mbsdint_h) {
  * unsigned value; other operations follow:
  */
 
-/* compare < <= > >= */
+/* k-signed compare < <= > >= */
 #define mbiK_signbit(ut,HM)	mbiOU(ut, (HM), +, 1)
 #define mbiK_signflip(ut,HM,v)	mbiOU(ut, (v), ^, mbiK_signbit(ut, (HM)))
 #define mbiKcmp(ut,HM,vl,op,vr)	mbiCOU(ut, \
@@ -809,11 +809,12 @@ mbiCTAS(mbsdint_h) {
 #define mbiMKcmp(ut,FM,HM,vl,op,vr) \
 	mbiKcmp(ut, (HM), mbiMM(ut, (FM), (vl)), op, mbiMM(ut, (FM), (vr)))
 
-/* rotate and shift */
+/* rotate and shift (can also be used on unsigned values) */
 #define mbiKrol(ut,vl,vr)	mbiK_sr(ut, mbiK_rol, (vl), (vr), void)
 #define mbiKror(ut,vl,vr)	mbiK_sr(ut, mbiK_ror, (vl), (vr), void)
 #define mbiKshl(ut,vl,vr)	mbiK_sr(ut, mbiK_shl, (vl), (vr), void)
-/* let vz be sgn(vl) */
+/* let vz be sgn(vl): mbi{,M}A_U2VZ(ut,SM,vl) */
+/* mbiA_U2VZ(ut,mbiTYPE_UMAX(ut)>>1,vl) if unsigned and nōn-masking */
 #define mbiKsar(ut,vz,vl,vr)	mbiK_sr(ut, mbiK_sar, (vl), (vr), (vz))
 #define mbiKshr(ut,vl,vr)	mbiK_sr(ut, mbiK_shr, (vl), (vr), 0)
 #define mbiMKrol(ut,FM,vl,vr)	mbiMK_sr(ut, (FM), mbiK_rol, (vl), (vr), void)
@@ -843,7 +844,7 @@ mbiCTAS(mbsdint_h) {
 #define mbiK_ror(ut,ax,cl,CL,z)	\
 	mbiOU(ut, mbiOshr(ut, ax, cl), |, mbiOshl(ut, ax, CL))
 
-/* division and remainder */
+/* k-signed division and remainder */
 #define mbiKdiv(ut,SM,vl,vr)		mbiA_VZU2U(ut, \
 	mbiA_U2VZ(ut, (SM), (vl)) ^ mbiA_U2VZ(ut, (SM), (vr)), \
 	mbiUI(mbiA_U2M(ut, (SM), (vl))) / mbiUI(mbiA_U2M(ut, (SM), (vr))))
@@ -868,6 +869,10 @@ mbiCTAS(mbsdint_h) {
 	(dstdiv) = mbiMM(ut, (FM), mbi__TMP);				\
 	(dstrem) = mbiMM(ut, (FM), mbiK_rem(ut, (vl), (vr), mbi__TMP));	\
 } while (/* CONSTCOND */ 0)
+
+/*
+ * anything else
+ */
 
 /* nil pointer constant */
 #if (defined(__cplusplus) && (__cplusplus >= 201103L)) || \
