@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.26 2023/03/24 19:45:28 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.27 2023/03/26 01:26:56 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -696,6 +696,14 @@ mbiCTAS(mbsdint_h) {
 /* awful: must constant-evaluate if ut is a signed type */
 #define mbi_halftype(ut)	(!mbiTYPE_ISU(ut) ? 07 : \
 	((ut)(mbiOshl(ut, 1U, mbiTYPE_UBITS(ut) / 2U) - 1U)))
+/* awful: GCC complains if e.g. vl is mbiHUGE_U, vr is unsigned int */
+#ifdef __GNUC__
+#define mbi_xhalftype(ut,a,b)   \
+	(((ut)a | (ut)b) > mbi_halftype(ut))
+#else
+#define mbi_xhalftype(ut,a,b)	\
+	((ut)(a) > mbi_halftype(ut) || (ut)(b) > mbi_halftype(ut))
+#endif
 
 /* 1. for unsigned types checking afterwards is OK */
 #define mbiCAUinc(vl)		mbiCAUadd(vl, 1U)
@@ -711,8 +719,7 @@ mbiCTAS(mbsdint_h) {
 	(vl) -= mbiUI(vr);						\
 } while (/* CONSTCOND */ 0)
 #define mbiCAUmul(ut,vl,vr)	do {					\
-	if (__predict_false(((ut)(vl) > mbi_halftype(ut) ||		\
-	    (ut)(vr) > mbi_halftype(ut)) && (vr) != 0 &&		\
+	if (__predict_false(mbi_xhalftype(ut, vl, vr) && (vr) != 0 &&	\
 	    mbiOU(ut, mbiTYPE_UMAX(ut), /, (ut)(vr)) < (ut)(vl)))	\
 		mbiCfail;						\
 	(vl) *= (vr);							\
