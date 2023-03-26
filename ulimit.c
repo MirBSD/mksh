@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.10 2023/03/26 01:38:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.11 2023/03/26 01:55:47 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -37,55 +37,64 @@ typedef unsigned long rlim_t;
 
 /* Magic to divine the 'm' and 'v' limits */
 
+#undef MKHL_AS
+#undef MKHL_VMEM
+#undef MKHL_RSS
+
 #ifdef RLIMIT_AS
-#if !defined(RLIMIT_VMEM) || (RLIMIT_VMEM == RLIMIT_AS) || \
-    !defined(RLIMIT_RSS) || (RLIMIT_VMEM == RLIMIT_RSS)
-#define ULIMIT_V_IS_AS
-#elif defined(RLIMIT_VMEM)
-#if !defined(RLIMIT_RSS) || (RLIMIT_RSS == RLIMIT_AS)
-#define ULIMIT_V_IS_AS
-#else
-#define ULIMIT_V_IS_VMEM
+#define MKHL_AS
 #endif
-#endif
+
+#ifdef RLIMIT_VMEM
+#define MKHL_VMEM
 #endif
 
 #ifdef RLIMIT_RSS
-#ifdef ULIMIT_V_IS_VMEM
-#define ULIMIT_M_IS_RSS
-#elif defined(RLIMIT_VMEM) && (RLIMIT_VMEM == RLIMIT_RSS)
-#define ULIMIT_M_IS_VMEM
-#else
-#define ULIMIT_M_IS_RSS
-#endif
-#if defined(ULIMIT_M_IS_RSS) && defined(RLIMIT_AS) && \
-    !defined(__APPLE__) && (RLIMIT_RSS == RLIMIT_AS)
-/* On Mac OSX keep -m as -v alias for pkgsrc and other software expecting it */
-#undef ULIMIT_M_IS_RSS
-#endif
+#define MKHL_RSS
 #endif
 
-#if !defined(RLIMIT_AS) && !defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_VMEM)
+#if defined(MKHL_AS) && defined(MKHL_VMEM) && (RLIMIT_AS == RLIMIT_VMEM)
+#undef MKHL_VMEM
+#endif
+
+#if defined(MKHL_AS) && defined(MKHL_RSS) && (RLIMIT_AS == RLIMIT_RSS)
+#undef MKHL_RSS
+#endif
+
+#if defined(MKHL_VMEM) && defined(MKHL_RSS) && (RLIMIT_VMEM == RLIMIT_RSS)
+#undef MKHL_VMEM
+#endif
+
+#undef ULIMIT_V_IS_AS
+#undef ULIMIT_V_IS_VMEM
+#undef ULIMIT_M_IS_RSS
+#undef ULIMIT_M_IS_VMEM
+
+#ifdef MKHL_AS
+#define ULIMIT_V_IS_AS
+#if defined(MKHL_RSS)
+#define ULIMIT_M_IS_RSS
+#elif defined(MKHL_VMEM)
+#define ULIMIT_M_IS_VMEM
+#endif
+#else /* !MKHL_AS */
+#ifdef MKHL_VMEM
 #define ULIMIT_V_IS_VMEM
 #endif
+#ifdef MKHL_RSS
+#define ULIMIT_M_IS_RSS
+#endif
+#endif /* !MKHL_AS */
 
-#if !defined(ULIMIT_V_IS_VMEM) && defined(RLIMIT_VMEM) && \
-    (!defined(RLIMIT_RSS) || (defined(RLIMIT_AS) && (RLIMIT_RSS == RLIMIT_AS)))
+/* pkgsrc® at least on Mac OSX expects -m as -v alias */
+#if !defined(ULIMIT_M_IS_RSS) /* ergo MKHL_RSS is unset */ && \
+    !defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_VMEM) /* even if =AS */
 #define ULIMIT_M_IS_VMEM
 #endif
 
-#if defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_AS) && \
-    (RLIMIT_VMEM == RLIMIT_AS)
-#undef ULIMIT_M_IS_VMEM
-#endif
-
-#if defined(ULIMIT_M_IS_RSS) && defined(ULIMIT_M_IS_VMEM)
-# error nonsensical m ulimit
-#endif
-
-#if defined(ULIMIT_V_IS_VMEM) && defined(ULIMIT_V_IS_AS)
-# error nonsensical v ulimit
-#endif
+#undef MKHL_AS
+#undef MKHL_VMEM
+#undef MKHL_RSS
 
 #define LIMITS_GEN	"rlimits.gen"
 
