@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1007 2023/03/19 23:31:28 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1008 2023/03/26 01:35:36 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -2768,6 +2768,8 @@ void change_xtrace(unsigned char, Wahr);
 int parse_args(const char **, unsigned int, Wahr *);
 int getn(const char *, int *);
 int getpn(const char **, int *);
+int getnh(const char *, mbiHUGE_U *);
+int getpnh(const char **, mbiHUGE_U *);
 int gmatchx(const char *, const char *, Wahr);
 Wahr has_globbing(const char *);
 int ascstrcmp(const void *, const void *);

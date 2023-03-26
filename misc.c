@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
- *		 2020, 2021, 2022
+ *		 2020, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.353 2023/01/08 21:06:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.354 2023/03/26 01:35:35 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -546,6 +546,17 @@ getn(const char *s, int *ai)
 	return (0);
 }
 
+int
+getnh(const char *s, mbiHUGE_U *ai)
+{
+	if (!getpnh(&s, ai))
+		return (0);
+	if (!*s)
+		return (1);
+	errno = EINVAL;
+	return (0);
+}
+
 /*
  * parse a decimal number
  * on success, returns 1 and *ai contains it and *sp points past it
@@ -577,6 +588,7 @@ getpn(const char **sp, int *ai)
 	}
 
 	while (ctype(c, C_DIGIT)) {
+			  /*XXX this supposed to return int? */
 		if (num > 214748364U) {
 			/* overflow on multiplication */
 			state = 2;
@@ -605,9 +617,66 @@ getpn(const char **sp, int *ai)
 		*ai = 0;
 		return (0);
 	}
+	/*XXX this supposed to return int?!?!?!?! */
 	*ai = (neg && num > 0) ?
 	    (mksh_ari_t)(-(mksh_ari_t)((num - 1U) & 0x7FFFFFFF) - 1) :
 	    (mksh_ari_t)num;
+	return (1);
+}
+
+int
+getpnh(const char **sp, mbiHUGE_U *ai)
+{
+	char c;
+	const char *s;
+	mbiHUGE_U num = 0;
+	kby state = 0;
+	Wahr neg = Nee;
+
+	s = *sp;
+
+	do {
+		c = *s++;
+	} while (ctype(c, C_SPACE));
+
+	switch (c) {
+	case '-':
+		neg = Ja;
+		/* FALLTHROUGH */
+	case '+':
+		c = *s++;
+		break;
+	}
+
+	while (ctype(c, C_DIGIT)) {
+		if (num > (mbiHUGE_UMAX / 10U)) {
+			/* overflow on multiplication */
+			state = 2;
+			errno = EOVERFLOW;
+		}
+		num *= 10U;
+		if (num > (mbiHUGE_UMAX - (unsigned int)ksh_numdig(c))) {
+			/* overflow on addition */
+			state = 2;
+			errno = EOVERFLOW;
+		}
+		if (state < 2) {
+			num += (unsigned int)ksh_numdig(c);
+			state = 1;
+		}
+		c = *s++;
+	}
+	--s;
+
+	if (state)
+		*sp = s;
+	else
+		errno = EINVAL;
+	if (state != 1) {
+		*ai = 0;
+		return (0);
+	}
+	*ai = neg ? (mbiHUGE_U)-(mbiHUGE_U)num : num;
 	return (1);
 }
 
