@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.28 2023/03/26 02:38:11 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.29 2023/03/26 17:20:55 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -713,7 +713,7 @@ mbiCTAS(mbsdint_h) {
 #define mbi_halftype(ut)	(!mbiTYPE_ISU(ut) ? 07 : \
 	((ut)(mbiOshl(ut, 1U, mbiTYPE_UBITS(ut) / 2U) - 1U)))
 /* awful: GCC complains if e.g. vl is mbiHUGE_U, vr is unsigned int */
-#ifdef __GNUC__
+#if 1
 #define mbi_xhalftype(ut,a,b)   \
 	(((ut)a | (ut)b) > mbi_halftype(ut))
 #else
