@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.9 2023/03/19 23:33:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.10 2023/03/26 01:38:00 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -223,7 +223,8 @@ c_ulimit(const char **wp)
 			break;
 		case ORD('?'):
  unknown_opt:
-			bi_errorf("usage: ulimit [-%s] [value]", rlimits_opts);
+			kwarnf0(KWF_BIERR | KWF_NOERRNO,
+			    "usage: ulimit [-%s] [value]", rlimits_opts);
 			return (1);
 		default:
 			what = optc;
@@ -232,7 +233,8 @@ c_ulimit(const char **wp)
 	if (all) {
 		if (wp[builtin_opt.optind]) {
  unexpected_args:
-			bi_errorf(Ttoo_many_args);
+			kwarnf(KWF_BIERR | KWF_ONEMSG | KWF_NOERRNO,
+			    Ttoo_many_args);
 			return (1);
 		}
 		while (i < NELEM(rlimits)) {
@@ -279,14 +281,20 @@ static int
 set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 {
 	RL_T val = (RL_T)0;
+	mbiHUGE_U hval;
 #if HAVE_RLIMIT
 	struct rlimit limit;
 #endif
 
-	if (strcmp(v, "unlimited") == 0)
+	if (strcmp(v, "unlimited") == 0) {
 		val = RL_U;
-	else {
+		goto got_val;
+	}
+	if (!getnh(v, &hval)) {
 		mksh_uari_t rval;
+
+		if (errno != EINVAL)
+			goto inv_val;
 
 		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, Nee))
 			return (1);
@@ -297,21 +305,47 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 		 * evaluate() to control if unset params are 0 or an error.
 		 */
 		if (!rval && !ctype(v[0], C_DIGIT)) {
-			bi_errorf("invalid %s limit: %s", l->name, v);
+			errno = EINVAL;
+ inv_val:
+			kwarnf0(KWF_BIERR, "invalid %s limit: %s", l->name, v);
 			return (1);
 		}
-#if HAVE_RLIMIT
-		val = (rlim_t)((rlim_t)rval * l->factor);
-#else
-		val = (RL_T)rval;
-#endif
+		hval = rval;
 	}
+	errno = EOVERFLOW;
+#define mbiCfail goto inv_val
+#if HAVE_RLIMIT
+	mbiCAUmul(mbiHUGE_U, hval, l->factor);
+#endif
+	if (mbiTYPE_ISU(RL_T))
+		mbiCASlet(RL_T, val, mbiHUGE_U, hval);
+	else {
+		/* huh, rlim_t is supposed to be unsigned! */
+		mbiHUGE_S hsval;
+
+#if (mbiHUGE_MIN) == -(mbiHUGE_MAX)
+		/* sign-and-magnitude or one’s complement */
+		if (hval == (mbiHUGE_U)(mbiHUGE_UMAX >> 1) + 1U)
+			mbiCfail;
+#endif
+		hsval = mbiA_U2S(mbiHUGE_U, mbiHUGE_S, mbiHUGE_MAX, hval);
+		mbiCASlet(RL_T, val, mbiHUGE_S, hsval);
+	}
+#undef mbiCfail
+	/* do not numerically apprehend magic values */
+	if (
+#if HAVE_RLIMIT && (defined(RLIM_SAVED_CUR) || defined(RLIM_SAVED_MAX))
+	    val == RLIM_SAVED_CUR || val == RLIM_SAVED_MAX ||
+#endif
+	    val == RL_U)
+		goto inv_val;
+ got_val:
 
 #if HAVE_RLIMIT
 	if (getrlimit(l->resource, &limit) < 0) {
 #ifndef MKSH_SMALL
-		bi_errorf("limit %s could not be read, contact the mksh developers: %s",
-		    l->name, cstrerror(errno));
+		kwarnf(KWF_BIERR | KWF_TWOMSG, l->name,
+		    "limit could not be read, contact the mksh developers");
 #endif
 		/* some can't be read */
 		limit.rlim_cur = RLIM_INFINITY;
@@ -326,7 +360,8 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 #else
 	if (l->writable == Nee) {
 	    /* check.t:ulimit-2 fails if we return 1 and/or do:
-		bi_errorf(Tread_only ": %s", l->name);
+		kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
+		    Tread_only, l->name);
 	    */
 		return (0);
 	}
@@ -334,9 +369,10 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 		return (0);
 #endif
 	if (errno == EPERM)
-		bi_errorf("%s exceeds allowable %s limit", v, l->name);
+		kwarnf0(KWF_BIERR | KWF_NOERRNO,
+		    "%s exceeds allowable %s limit", v, l->name);
 	else
-		bi_errorf("bad %s limit: %s", l->name, cstrerror(errno));
+		kwarnf0(KWF_BIERR, "%s: bad %s limit", v, l->name);
 	return (1);
 }
 
