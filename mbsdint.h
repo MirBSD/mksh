@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.29 2023/03/26 17:20:55 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.30 2023/03/26 20:43:38 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -496,7 +496,7 @@ mbiCTAS(mbsdint_h) {
  * Where unsigned values may be either properly unsigned or
  * manually represented in two’s complement (M=N-1 above),
  * signed values are the host’s (and conversion will UB for
- * -type_MAX-1 on one’s complement or sign-and-magnitude,
+ * -type_MAX-1 unless the mbiSAFECOMPLEMENT macro equals 1,
  * so don’t use that without checking), unsigned magnitude
  * ranges from 0 to type_MAX+1, and we try pretty hard to
  * avoid UB and (with one exception, below, casting into
@@ -818,7 +818,7 @@ mbiCTAS(mbsdint_h) {
 #if mbiSAFECOMPLEMENT
 #define mbiCAsafeU2S(lim,ut,v) /* nothing */
 #define mbiCAsafeVZM2S(lim,ut,vz,m) /* nothing */
-#else /* one’s complement or sign-and-magnitude */
+#else /* one’s complement or sign-and-magnitude or -type_MAX-1 is a trap */
 #define mbiCAsafeU2S(lim,ut,v) do {					\
 	if (__predict_false((ut)(v) == mbiOU(ut, lim ## _MAX, +, 1)))	\
 		mbiCfail;						\
