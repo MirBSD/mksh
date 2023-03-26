@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.12 2023/03/26 02:38:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.14 2023/03/26 02:46:37 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -87,9 +87,12 @@ typedef unsigned long rlim_t;
 #endif /* !MKHL_AS */
 
 /* pkgsrc® at least on Mac OSX expects -m as -v alias */
-#if !defined(ULIMIT_M_IS_RSS) /* ergo MKHL_RSS is unset */ && \
-    !defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_VMEM) /* even if =AS */
+#if !defined(ULIMIT_M_IS_RSS) && !defined(ULIMIT_M_IS_VMEM)
+#if defined(RLIMIT_VMEM)
 #define ULIMIT_M_IS_VMEM
+#elif defined(RLIMIT_RSS)
+#define ULIMIT_M_IS_RSS
+#endif
 #endif
 
 #undef MKHL_AS
