@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.424 2023/03/19 22:20:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.425 2023/03/28 20:37:28 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -57,6 +57,12 @@ static mksh_uari_t rndsetup(void);
 static void init_environ(void);
 #ifdef SIGWINCH
 static void x_sigwinch(int);
+#endif
+
+#ifdef DEBUG
+static void reclim_trace(void);
+#else
+#define reclim_trace() /* nothing */
 #endif
 
 static const char initsubs[] =
@@ -1060,6 +1066,7 @@ newenv(int type)
 	struct env *ep;
 	char *cp;
 
+	reclim_trace();
 	/*
 	 * struct env includes ALLOC_ITEM for alignment constraints
 	 * so first get the actually used memory, then assign it
@@ -2146,3 +2153,83 @@ ksh_getwd(void)
 #endif
 	return (getwd_bufp);
 }
+
+#ifdef DEBUG
+#if 1 /* enforce, 0 to find out */
+static void
+reclim_trace(void)
+{
+	struct env *ep = e;
+	unsigned int nenv = 0;
+
+ count:
+	if (++nenv == 128U) {
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_PREFIX |
+		    KWF_FILELINE | KWF_ONEMSG | KWF_NOERRNO,
+		    "\"mksh/Build.sh -g\" recursion limit exceeded");
+	} else if (ep) {
+		ep = ep->oenv;
+		goto count;
+	}
+}
+#elif defined(SIG_ATOMIC_MAX) && (SIG_ATOMIC_MAX >= 0x7FFF)
+#include <syslog.h>
+static void reclim_atexit(void);
+
+static volatile sig_atomic_t reclim_v = 0;
+static kby reclim_warned = 0;
+
+static void
+reclim_trace(void)
+{
+	struct env *ep = e;
+	unsigned int nenv = 0;
+
+	if (!reclim_v)
+		atexit(reclim_atexit);
+ count:
+	if (nenv == SIG_ATOMIC_MAX) {
+		syslog(LOG_WARNING, "reclim_trace: SIG_ATOMIC_MAX reached");
+		reclim_v = SIG_ATOMIC_MAX;
+		return;
+	}
+	if (!++nenv) {
+		--nenv;
+		if (!reclim_warned) {
+			syslog(LOG_WARNING, "reclim_trace: %s reached",
+			    "UINT_MAX");
+			reclim_warned = 1;
+		}
+	} else if (ep) {
+		ep = ep->oenv;
+		goto count;
+	}
+
+	if ((mbiHUGE_U)nenv >= (mbiHUGE_U)(SIG_ATOMIC_MAX)) {
+		if (!reclim_warned) {
+			syslog(LOG_WARNING, "reclim_trace: %s reached",
+			    "SIG_ATOMIC_MAX");
+			reclim_warned = 1;
+		}
+		reclim_v = SIG_ATOMIC_MAX;
+		return;
+	}
+	if ((sig_atomic_t)nenv > reclim_v)
+		reclim_v = (sig_atomic_t)nenv;
+}
+
+static void
+reclim_atexit(void)
+{
+	unsigned int nenv = (unsigned int)reclim_v;
+
+	if (nenv > 32U)
+		syslog(LOG_DEBUG, "max recursion limit: %u", nenv);
+}
+#else /* missing suitable large sig_atomic_t */
+static void
+reclim_trace(void)
+{
+}
+#endif /* missing suitable large sig_atomic_t */
+#endif /* DEBUG */
