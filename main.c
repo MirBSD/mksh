@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.425 2023/03/28 20:37:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.426 2023/04/02 20:43:20 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -1149,6 +1149,9 @@ quitenv(struct shf *shf)
 		sigprocmask(SIG_BLOCK, &sm_sigchld, NULL);
 #endif
 		afreeall(APERM);
+#if HAVE_GET_CURRENT_DIR_NAME
+		free_gnu_gcdn(getwd_bufp);
+#endif
 		for (fd = 3; fd < NUFILE; fd++)
 			if ((i = fcntl(fd, F_GETFD, 0)) != -1 &&
 			    (i & FD_CLOEXEC))
