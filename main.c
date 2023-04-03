@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.426 2023/04/02 20:43:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.427 2023/04/03 00:02:59 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -49,7 +49,7 @@ __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 #endif
 #endif
 
-static int main_init(int, const char *[], Source **);
+static void main_init(int, const char *[], Source **);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -264,7 +264,7 @@ kshname_islogin(const char **kshbasenamep)
 }
 
 /* pre-initio() */
-static int
+static void
 main_init(int argc, const char *argv[], Source **sp)
 {
 	int argi = 1, i;
@@ -359,7 +359,7 @@ main_init(int argc, const char *argv[], Source **sp)
 		/* check for -T option early */
 		argi = parse_args(argv, OF_FIRSTTIME, NULL);
 		if (argi < 0)
-			return (1);
+			unwind(LERROR);
 		/* called as rsh, rmksh, -rsh, RKSH.EXE, etc.? */
 		if (isCh(*ccp, 'R', 'r')) {
 			++ccp;
@@ -521,7 +521,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	if (!as_builtin) {
 		argi = parse_args(argv, OF_CMDLINE, NULL);
 		if (argi < 0)
-			return (1);
+			unwind(LERROR);
 	}
 
 /*XXX drop this and the entire cases below */
@@ -770,7 +770,6 @@ main_init(int argc, const char *argv[], Source **sp)
 	alarm_init();
 
 	*sp = s;
-	return (0);
 }
 
 /* this indirection barrier reduces stack usage during normal operation */
@@ -781,16 +780,15 @@ main(int argc, const char *argv[])
 	int rv;
 	Source *s;
 
-	if ((rv = main_init(argc, argv, &s)) == 0) {
-		if (as_builtin) {
-			rv = c_builtin(e->loc->argv);
-			exstat = rv & 0xFF;
-			unwind(LEXIT);
-			/* NOTREACHED */
-		} else {
-			shell(s, 0);
-			/* NOTREACHED */
-		}
+	main_init(argc, argv, &s);
+	if (as_builtin) {
+		rv = c_builtin(e->loc->argv) & 0xFF;
+		exstat = rv;
+		unwind(LEXIT);
+		/* NOTREACHED */
+	} else {
+		rv = shell(s, 0) & 0xFF;
+		/* NOTREACHED */
 	}
 	return (rv);
 }
