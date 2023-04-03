@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.30 2023/03/26 20:43:38 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.31 2023/04/03 18:14:27 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -707,19 +707,16 @@ mbiCTAS(mbsdint_h) {
  */
 
 /* 0. internal helpers */
-#define mbi_halftmax(stmax)	\
-	((((1 ? 0 : (stmax)) + 1) << (mbiMASK_BITS(stmax) / 2U)) - 1)
-/* awful: must constant-evaluate if ut is a signed type */
-#define mbi_halftype(ut)	(!mbiTYPE_ISU(ut) ? 07 : \
-	((ut)(mbiOshl(ut, 1U, mbiTYPE_UBITS(ut) / 2U) - 1U)))
-/* awful: GCC complains if e.g. vl is mbiHUGE_U, vr is unsigned int */
-#if 1
-#define mbi_xhalftype(ut,a,b)   \
-	(((ut)a | (ut)b) > mbi_halftype(ut))
-#else
-#define mbi_xhalftype(ut,a,b)	\
-	((ut)(a) > mbi_halftype(ut) || (ut)(b) > mbi_halftype(ut))
-#endif
+#define mbi__totypeof(templval,dstval)	((1 ? 0 : (templval)) + (dstval))
+#define mbi__halftmax(stmax)		mbi__totypeof(stmax, \
+	(mbi__totypeof(stmax, 1) << (mbiMASK_BITS(stmax) / 2U)))
+/* note: must constant-evaluate even for signed ut */
+#define mbi__halftype(ut)		mbiOT(ut, mbiTYPE_ISU(ut), \
+	mbiOshl(ut, 1U, mbiTYPE_UBITS(ut) / 2U), 2)
+#define mbi__uabovehalftype(ut,a,b)	(((ut)a | (ut)b) >= mbi__halftype(ut))
+/* assert: !(b < 0) */
+#define mbi__sabovehalftype(stmax,a,b)	(a < 0 ? 1 : \
+	(mbi__totypeof(stmax, a) | mbi__totypeof(stmax, b)) >= mbi__halftmax(stmax))
 
 /* 1. for unsigned types checking afterwards is OK */
 #define mbiCAUinc(vl)		mbiCAUadd(vl, 1U)
@@ -735,7 +732,8 @@ mbiCTAS(mbsdint_h) {
 	(vl) -= mbiUI(vr);						\
 } while (/* CONSTCOND */ 0)
 #define mbiCAUmul(ut,vl,vr)	do {					\
-	if (__predict_false(mbi_xhalftype(ut, vl, vr) && (vr) != 0 &&	\
+	if (__predict_false((vr) != 0 &&				\
+	    mbi__uabovehalftype(ut, (vl), (vr)) &&			\
 	    mbiOU(ut, mbiTYPE_UMAX(ut), /, (ut)(vr)) < (ut)(vl)))	\
 		mbiCfail;						\
 	(vl) *= (vr);							\
@@ -764,10 +762,8 @@ mbiCTAS(mbsdint_h) {
 	(vl) -= (vr);							\
 } while (/* CONSTCOND */ 0)
 #define mbiCAPmul(lim,vl,vr)	do {					\
-	if (__predict_false(((vl) < 0 ||				\
-	    (vl) > mbi_halftmax(lim ## _MAX) ||				\
-	    (vr) > mbi_halftmax(lim ## _MAX)) &&			\
-	    (vr) != 0 && ((vl) < 0 ?					\
+	if (__predict_false((vr) != 0 &&				\
+	    mbi__sabovehalftype(lim ## _MAX, (vl), (vr)) && ((vl) < 0 ?	\
 	    (vl) < (lim ## _MIN / (vr)) :				\
 	    (vl) > (lim ## _MAX / (vr)))))				\
 		mbiCfail;						\
@@ -789,10 +785,8 @@ mbiCTAS(mbsdint_h) {
 	(vl) -= (vr);							\
 } while (/* CONSTCOND */ 0)
 #define mbiCASmul(lim,vl,vr)	do {					\
-	if (__predict_true((vr) >= 0) ? __predict_false(((vl) < 0 ||	\
-	    (vl) > mbi_halftmax(lim ## _MAX) ||				\
-	    (vr) > mbi_halftmax(lim ## _MAX)) &&			\
-	    (vr) != 0 && ((vl) < 0 ?					\
+	if (__predict_true((vr) >= 0) ? __predict_false((vr) != 0 &&	\
+	    mbi__sabovehalftype(lim ## _MAX, (vl), (vr)) && ((vl) < 0 ?	\
 	    (vl) < (lim ## _MIN / (vr)) :				\
 	    (vl) > (lim ## _MAX / (vr)))) :				\
 	    /* vr < 0 */ __predict_false((vl) < 0 ?			\
