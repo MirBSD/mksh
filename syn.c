@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.147 2023/04/16 00:40:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.148 2023/04/16 00:42:19 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -283,7 +283,7 @@ get_command(int cf, int sALIAS)
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 	Wahr check_decl_utility;
-	static struct ioword *iops[NUFILE + 1];
+	struct ioword *iops[NUFILE + 1];
 
 	XPinit(args, 16);
 	XPinit(vars, 16);
