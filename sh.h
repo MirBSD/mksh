@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1008 2023/03/26 01:35:36 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1009 2023/04/16 00:40:14 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -2167,6 +2167,7 @@ struct ioword {
 #define IOBASH		BIT(10)	/* &> etc. */
 #define IOHERESTR	BIT(11)	/* <<< (here string) */
 #define IONDELIM	BIT(12)	/* null delimiter (<<) */
+#define IOSYNIONEXT	BIT(13)	/* already fully configured */
 
 /* execute/exchild flags */
 #define XEXEC	BIT(0)		/* execute without forking */

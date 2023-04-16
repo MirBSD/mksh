@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.146 2023/03/14 19:49:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.147 2023/04/16 00:40:15 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -47,7 +47,7 @@ static struct op *pipeline(int, int);
 static struct op *andor(int);
 static struct op *c_list(int, Wahr);
 static struct ioword *synio(int);
-static struct op *nested(int, int, int, int);
+static struct op *nested(int, unsigned int, unsigned int, int);
 static struct op *get_command(int, int);
 static struct op *dogroup(int);
 static struct op *thenpart(int);
@@ -191,19 +191,16 @@ static struct ioword *
 synio(int cf)
 {
 	struct ioword *iop;
-	static struct ioword *nextiop;
 	Wahr ishere;
-
-	if (nextiop != NULL) {
-		iop = nextiop;
-		nextiop = NULL;
-		return (iop);
-	}
 
 	if (tpeek(cf) != REDIR)
 		return (NULL);
 	ACCEPT;
 	iop = yylval.iop;
+	if (iop->ioflag & IOSYNIONEXT) {
+		iop->ioflag &= ~IOSYNIONEXT;
+		return (iop);
+	}
 	ishere = (iop->ioflag & IOTYPE) == IOHERE;
 	if (iop->ioflag & IOHERESTR) {
 		musthave(LWORD, 0);
@@ -228,28 +225,32 @@ synio(int cf)
 	if (iop->ioflag & IOBASH) {
 		char *cp;
 
-		nextiop = alloc(sizeof(*iop), ATEMP);
-		nextiop->ioname = cp = alloc(3, ATEMP);
+		iop->ioflag &= ~IOBASH;
+
+		cp = alloc(sizeof(struct ioword) + 3U, ATEMP);
+		yylval.iop = (void *)cp;
+		cp += sizeof(struct ioword);
+		yylval.iop->ioname = cp;
 		*cp++ = CHAR;
 		*cp++ = digits_lc[iop->unit];
 		*cp = EOS;
-
-		iop->ioflag &= ~IOBASH;
-		nextiop->unit = 2;
-		nextiop->ioflag = IODUP;
-		nextiop->delim = NULL;
-		nextiop->heredoc = NULL;
+		yylval.iop->delim = NULL;
+		yylval.iop->heredoc = NULL;
+		yylval.iop->ioflag = IODUP | IOSYNIONEXT;
+		yylval.iop->unit = 2;
+		REJECT;
+		symbol = REDIR;
 	}
 	return (iop);
 }
 
 static struct op *
-nested(int type, int smark, int emark, int sALIAS)
+nested(int type, unsigned int smark, unsigned int emark, int sALIAS)
 {
 	struct op *t;
 	struct nesting_state old_nesting;
 
-	nesting_push(&old_nesting, smark);
+	nesting_push(&old_nesting, (int)smark);
 	t = c_list(sALIAS, Ja);
 	musthave(emark, KEYWORD|sALIAS);
 	nesting_pop(&old_nesting);

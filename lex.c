@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2021, 2022
+ *		 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.266 2023/01/03 14:36:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.267 2023/04/16 00:40:13 tg Exp $");
 
 /*
  * states while lexing word
@@ -194,7 +194,6 @@ getsc_r(int c)
  * for example, "${var:-${PWD}}", and "$(size $(whence ksh))".
  * hence the state stack. Note "$(...)" are now parsed recursively.
  */
-
 int
 yylex(int cf)
 {
@@ -253,13 +252,18 @@ yylex(int cf)
 	statep->ls_flags = (cf & HEREDOC) ? LS_HEREDOC : 0;
 
 	/* collect non-special or quoted characters to form word */
-	while (!((c = getsc()) == 0 ||
-	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
-		if (state == SBASE &&
-		    subshell_nesting_type == ORD(/*{*/ '}') &&
-		    (unsigned int)c == ORD(/*{*/ '}'))
-			/* possibly end ${ :;} */
+	while ((c = getsc())) {
+		switch (state) {
+		case SBASE:
+			/* possibly end "${ :;}" */
+			if ((unsigned int)c == subshell_nesting_type)
+				goto Done;
+			/* FALLTHROUGH */
+		case SHEREDELIM:
+			if (ctype(c, C_LEX1))
+				goto Done;
 			break;
+		}
 		Xcheck(ws, wp);
 		switch (state) {
 		case SADELIM:
@@ -1122,7 +1126,6 @@ gethere(void)
 /*
  * read "<<word" text into temp file
  */
-
 static void
 readhere(struct ioword *iop)
 {
@@ -1157,7 +1160,7 @@ readhere(struct ioword *iop)
 		/* end of here document marker, what to do? */
 		switch (c) {
 		case ORD(/*(*/ ')'):
-			if (!subshell_nesting_type)
+			if (subshell_nesting_type != ORD(/*(*/ ')'))
 				/*-
 				 * not allowed outside $(...) or (...)
 				 * => mismatch
@@ -1212,7 +1215,6 @@ readhere(struct ioword *iop)
 /*
  * input for yylex with alias expansion
  */
-
 Source *
 pushs(int type, Area *areap)
 {
