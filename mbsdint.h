@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.32 2023/04/17 00:51:30 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.33 2023/04/17 01:39:03 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -812,10 +812,14 @@ mbiCTAS(mbsdint_h) {
 		mbiCfail;						\
 } while (/* CONSTCOND */ 0)
 
-/* 4. safe to use mbiA_U2S / mbiA_VZM2S for the given value */
+/* 4. safe to use mbiA_U2S / mbiA_VZM2S for the given in-range value */
 #if mbiSAFECOMPLEMENT
-#define mbiCAsafeU2S(lim,ut,v) /* nothing */
-#define mbiCAsafeVZM2S(lim,ut,vz,m) /* nothing */
+#define mbiCAsafeU2S(lim,ut,v) do {					\
+	/* nothing */ (void)(ut)(v); (void)(lim ## _MAX);		\
+} while (/* CONSTCOND */ 0)
+#define mbiCAsafeVZM2S(lim,ut,vz,m) do {				\
+	/* nothing */ (void)(ut)(m); (void)(lim ## _MAX); (void)(vz);	\
+} while (/* CONSTCOND */ 0)
 #else /* one’s complement or sign-and-magnitude or -type_MAX-1 is a trap */
 #define mbiCAsafeU2S(lim,ut,v) do {					\
 	if (__predict_false((ut)(v) == mbiOU(ut, lim ## _MAX, +, 1)))	\
