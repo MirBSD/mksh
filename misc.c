@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.354 2023/03/26 01:35:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.355 2023/04/17 00:51:32 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -649,13 +649,13 @@ getpnh(const char **sp, mbiHUGE_U *ai)
 	}
 
 	while (ctype(c, C_DIGIT)) {
-		if (num > (mbiHUGE_UMAX / 10U)) {
+		if (num > (mbiHUGE_U_MAX / 10U)) {
 			/* overflow on multiplication */
 			state = 2;
 			errno = EOVERFLOW;
 		}
 		num *= 10U;
-		if (num > (mbiHUGE_UMAX - (unsigned int)ksh_numdig(c))) {
+		if (num > (mbiHUGE_U_MAX - (unsigned int)ksh_numdig(c))) {
 			/* overflow on addition */
 			state = 2;
 			errno = EOVERFLOW;
@@ -2012,12 +2012,12 @@ do_realpath(const char *upath)
 			/* need to resize link target buffer? */
 			if ((mbiHUGE_U)sb.st_size > (mbiHUGE_U)(ldestlen - 1U)) {
 				/* like notoktoadd() */
-				if ((mbiHUGE_U)sb.st_size >= (mbiHUGE_U)mbiSIZEMAX) {
+				if ((mbiHUGE_U)sb.st_size >= (mbiHUGE_U)mbiSIZE_MAX) {
 					errno = ENAMETOOLONG;
 					goto notfound;
 				}
 				ldestlen = (size_t)sb.st_size + 1U;
-				/* assert(ldestlen <= mbiSIZEMAX) */
+				/* assert(ldestlen <= mbiSIZE_MAX) */
 				ldest = aresize(ldest, ldestlen, ATEMP);
 			}
 			/* get symlink(7) target */

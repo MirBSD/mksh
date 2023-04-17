@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1009 2023/04/16 00:40:14 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1010 2023/04/17 00:51:33 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -168,6 +168,8 @@ typedef size_t uintptr_t;
 #define MBSDINT_H_WANT_SIZET_IN_LONG 1
 /* POSIX guarantees a 32-bit int */
 #define MBSDINT_H_WANT_INT32 1
+/* the code cannot cope without yet */
+#define MBSDINT_H_WANT_SAFEC 1
 #include "mbsdint.h"
 
 /* monkey-patch nil pointer constant */
@@ -258,13 +260,13 @@ typedef unsigned long kul;		/* long, arithmetic */
 typedef signed long ksl;		/* signed long, arithmetic */
 #define KUL_FM ULONG_MAX
 #define KUL_HM LONG_MAX
-/* if mbiHUGE is wider than long then that, else long */
-#if mbiMASK__BITS(mbiHUGE_UMAX) > mbiMASK__BITS(ULONG_MAX)
+/* if mbiHUGE is wider than long, then that, else long */
+#if mbiMASK__BITS(mbiHUGE_U_MAX) > mbiMASK__BITS(ULONG_MAX)
 #define MKSH_HAVE_HUGE
 typedef mbiHUGE_U kuH;
 typedef mbiHUGE_S ksH;
-#define KUH_FM mbiHUGE_UMAX
-#define KUH_HM mbiHUGE_MAX
+#define KUH_FM mbiHUGE_U_MAX
+#define KUH_HM mbiHUGE_S_MAX
 #else
 #undef MKSH_HAVE_HUGE
 typedef kul kuH;
@@ -2514,8 +2516,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notok2mul(max,val,c)	(((val) != 0) && ((c) != 0) && \
 				    (((max) / (c)) < (val)))
 #define notok2add(max,val,c)	((val) > ((max) - (c)))
-#define notoktomul(val,cnst)	notok2mul(mbiSIZEMAX, (val), (cnst))
-#define notoktoadd(val,cnst)	notok2add(mbiSIZEMAX, (val), (cnst))
+#define notoktomul(val,cnst)	notok2mul(mbiSIZE_MAX, (val), (cnst))
+#define notoktoadd(val,cnst)	notok2add(mbiSIZE_MAX, (val), (cnst))
 #define checkoktoadd(val,cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\

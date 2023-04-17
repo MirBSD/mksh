@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.14 2023/03/26 02:46:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.15 2023/04/17 00:51:34 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -335,8 +335,8 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 		/* huh, rlim_t is supposed to be unsigned! */
 		mbiHUGE_S hsval;
 
-		mbiCAsafeU2S(mbiHUGE, mbiHUGE_U, hval);
-		hsval = mbiA_U2S(mbiHUGE_U, mbiHUGE_S, mbiHUGE_MAX, hval);
+		mbiCAsafeU2S(mbiHUGE_S, mbiHUGE_U, hval);
+		hsval = mbiA_U2S(mbiHUGE_U, mbiHUGE_S, mbiHUGE_S_MAX, hval);
 		mbiCASlet(RL_T, val, mbiHUGE_S, hsval);
 	}
 #undef mbiCfail
