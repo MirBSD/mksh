@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.907 2023/03/14 15:09:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.908 2023/06/03 22:45:04 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/03/14
+	KSH R59 2023/06/03
 description:
 	Check base version of full shell
 stdin:
@@ -13813,6 +13813,12 @@ stdin:
 	"$__progname" -c 'x=$(tr z r <<<baz); echo $x'
 expected-stdout:
 	bar
+---
+name: crash-2
+stdin:
+	<<<`$((`
+expected-exit: e != 0
+expected-stderr-pattern: /.*: no closing quote$/
 ---
 name: debian-117-1
 description:

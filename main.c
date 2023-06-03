@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.427 2023/04/03 00:02:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.428 2023/06/03 22:45:06 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -1234,6 +1234,7 @@ reclaim(void)
 	 */
 	if (source && source->areap == &e->area)
 		source = NULL;
+	retrace_info = NULL;
 	afreeall(&e->area);
 }
 
