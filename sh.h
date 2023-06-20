@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1011 2023/06/03 22:45:07 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1012 2023/06/20 23:22:02 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -710,6 +710,11 @@ EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 #else
 #define KSH_VERSIONNAME_ISLEGACY	"MIRBSD"
 #endif
+#ifdef DEBUG
+#define KSH_VERSIONNAME_DEBUG		" +DEBUG_dont_ship_to_users"
+#else
+#define KSH_VERSIONNAME_DEBUG		""
+#endif
 #ifdef MKSH_WITH_TEXTMODE
 #define KSH_VERSIONNAME_TEXTMODE	" +TEXTMODE"
 #else
@@ -724,7 +729,8 @@ EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 #define KSH_VERSIONNAME_VENDOR_EXT	""
 #endif
 EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME_ISLEGACY \
-    " KSH " MKSH_VERSION KSH_VERSIONNAME_EBCDIC KSH_VERSIONNAME_TEXTMODE \
+    " KSH " MKSH_VERSION KSH_VERSIONNAME_DEBUG \
+    KSH_VERSIONNAME_EBCDIC KSH_VERSIONNAME_TEXTMODE \
     KSH_VERSIONNAME_VENDOR_EXT);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
