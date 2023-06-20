@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.908 2023/06/03 22:45:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.909 2023/06/20 23:20:47 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10322,6 +10322,9 @@ stdin:
 	./foo | while IFS= read -r line; do
 		print -r -- "{$line}"
 	done
+	print -n -- '<220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT\r>\n<220->> Bitte keine Werbung einwerfen! <<\r\r>\n<220 Who do you wanna pretend to be today'
+	print -n \?
+	print \>
 expected-stdout:
 	[220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT
 	220->> Bitte keine Werbung einwerfen! <<
@@ -10329,6 +10332,9 @@ expected-stdout:
 	{220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT}
 	{220->> Bitte keine Werbung einwerfen! <<}
 	{220 Who do you wanna pretend to be today?}
+	<220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT>
+	<220->> Bitte keine Werbung einwerfen! <<>
+	<220 Who do you wanna pretend to be today?>
 ---
 name: print-crlf
 description:
