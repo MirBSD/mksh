@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2021, 2022
+ *		 2019, 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.270 2023/03/14 15:09:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.271 2023/06/24 23:05:18 tg Exp $");
 
 /*-
  * Variables
@@ -1206,12 +1206,22 @@ is_wdvarname(const char *s, Wahr aok)
 
 /* Check if coded string s is a variable assignment */
 int
-is_wdvarassign(const char *s)
+is_wdvarassign(const char *s, Wahr needEOS)
 {
 	const char *p = skip_wdvarname(s, Ja);
 
-	return (p != s && p[0] == CHAR &&
-	    (p[1] == '=' || (p[1] == '+' && p[2] == CHAR && p[3] == '=')));
+	if (p == s || p[0] != CHAR)
+		return (0);
+	switch (ord(p[1])) {
+	case ORD('='):
+		return (!needEOS || p[2] == EOS);
+	case ORD('+'):
+		if (p[2] != CHAR || ord(p[3]) != ORD('='))
+			return (0);
+		return (!needEOS || p[4] == EOS);
+	default:
+		return (0);
+	}
 }
 
 /* don’t leak internal hash table order */

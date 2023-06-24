@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.149 2023/04/17 00:51:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.150 2023/06/24 23:05:17 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -337,7 +337,7 @@ get_command(int cf, int sALIAS)
 					check_decl_utility = Nee;
 			}
 			if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
-			    is_wdvarassign(yylval.cp))
+			    is_wdvarassign(yylval.cp, Nee))
 				XPput(vars, yylval.cp);
 			else
 				XPput(args, yylval.cp);
@@ -345,7 +345,7 @@ get_command(int cf, int sALIAS)
 
 		case ORD('(' /*)*/):
 			if (XPsize(args) == 0 && XPsize(vars) == 1 &&
-			    is_wdvarassign(yylval.cp)) {
+			    is_wdvarassign(yylval.cp, Ja)) {
 				char *tcp;
 
 				/* wdarrassign: foo=(bar) */

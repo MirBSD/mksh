@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.257 2023/01/08 22:54:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.258 2023/06/24 23:05:15 tg Exp $");
 
 /*
  * string expansion
@@ -262,7 +262,7 @@ expand(
 		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
 		    "expand(NULL)");
 	/* for alias, readonly, set, typeset commands */
-	if ((f & DOVACHECK) && is_wdvarassign(ccp)) {
+	if ((f & DOVACHECK) && is_wdvarassign(ccp, Nee)) {
 		f &= ~(DOVACHECK | DOBLANK | DOGLOB | DOTILDE);
 		f |= DOASNTILDE | DOSCALAR;
 	}
