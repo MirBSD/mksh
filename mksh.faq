@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.37 2023/01/03 17:28:24 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.38 2023/07/04 23:27:15 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -590,6 +590,8 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
 <p>The shell is pretty close to POSIX, when run as <tt>lksh -o posix</tt>
  under the "C" locale it is intended to match. It does not do everything
  like other POSIX-compatible or ‑compliant shells, though.</p>
+<p>Like pretty much all other POSIX-compatible shells, builtins are
+ <em>independent</em> of paths and always recognised in mksh.</p>
 ----
 ToC: function-local-scopes
 Title: What differences in function-local scopes are there?
