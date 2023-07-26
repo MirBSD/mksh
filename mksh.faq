@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.39 2023/07/15 16:04:34 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.40 2023/07/26 03:09:21 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -888,8 +888,7 @@ ToC: contact
 Title: How do I contact you (to say thanks, for bugreports and questions)?
 
 <p>You can say hi in the <tt>#!/bin/mksh</tt> channel on <a
- href="@@RELPATH@@irc.htm">IRC</a> (OFTC, for now), although… a
- <a href="@@RELPATH@@danke.htm">donation</a> wouldn’t be amiss ☻
+ href="@@RELPATH@@irc.htm">IRC</a> (OFTC, for now).
 <br />The <a href="@@RELPATH@@rss.htm#lists">mailing list</a> can also
  be used for this. The <a href="#faq">extra resources</a> from the FAQ
  entry just one above should also be considered ;-)</p>
