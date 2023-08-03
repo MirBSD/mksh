@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.30 2022/01/28 10:28:19 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.31 2023/08/03 22:15:22 tg Exp $
 .\"-
 .\" Copyright © 2008, 2009, 2010, 2012, 2013, 2015, 2016, 2017,
-.\"		2018
+.\"		2018, 2023
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
 .\" damage or existence of a defect, except proven that it results out
 .\" of said person’s immediate fault when using the work as intended.
 .\"-
-.\" Try to make GNU groff and AT&T nroff more compatible
+.\" Glue GNU groff (BSD and GNU mdoc both) to AT&T nroff (UCB mdoc).
 .\" * ` generates ‘ in gnroff, so use \`
 .\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
 .\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
@@ -32,18 +32,35 @@
 .\" Also make sure to use \& *before* a punctuation char that is to not
 .\" be interpreted as punctuation, and especially with two-letter words
 .\" but also (after) a period that does not end a sentence (“e.g.\&”).
-.\" The section after the "doc" macropackage has been loaded contains
-.\" additional code to convene between the UCB mdoc macropackage (and
-.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"-
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3
+..
+.\"
+.\" .Dd must come before most everything, because when called
+.\" with -mandoc it loads -mdoc via .so in .Dd (first macro).
+.\"
+.Dd $Mdocdate: August 3 2023 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
 .\"
 .ie \n(.g \{\
 .	if \*[.T]ascii .tr \-\N'45'
 .	if \*[.T]latin1 .tr \-\N'45'
 .	if \*[.T]utf8 .tr \-\N'45'
-.	ds <= \[<=]
-.	ds >= \[>=]
-.	ds Rq \[rq]
-.	ds Lq \[lq]
+.	if \*[.T]utf8 .tr \(la\*(Lt
+.	if \*[.T]utf8 .tr \(ra\*(Gt
+.	ds <= \(<=
+.	ds >= \(>=
+.	ds Rq \(rq
+.	ds Lq \(lq
 .	ds sL \(aq
 .	ds sR \(aq
 .	if \*[.T]utf8 .ds sL `
@@ -54,12 +71,16 @@
 .	ds TI \(ti
 .	ds ha \(ha
 .	ds en \(en
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
+.	el .ds tT bsd
 .\}
 .el \{\
 .	ds aq '
 .	ds TI ~
 .	ds ha ^
 .	ds en \(em
+.	ds tT ucb
 .\}
 .ie n \{\
 .	ds EM \ \(em\ \&
@@ -68,42 +89,18 @@
 .	ds EM \f(TR\^\(em\^\fP
 .\}
 .\"
-.\" Implement .Dd with the Mdocdate RCS keyword
-.\"
-.rn Dd xD
-.de Dd
-.ie \\$1$Mdocdate: \{\
-.	xD \\$2 \\$3, \\$4
-.\}
-.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
-..
-.\"
-.\" .Dd must come before definition of .Mx, because when called
-.\" with -mandoc, it might implement .Mx itself, but we want to
-.\" use our own definition. And .Dd must come *first*, always.
-.\"
-.Dd $Mdocdate: January 28 2022 $
-.\"
-.\" Check which macro package we use, and do other -mdoc setup.
-.\"
-.ie \n(.g \{\
-.	if \*[.T]utf8 .tr \[la]\*(Lt
-.	if \*[.T]utf8 .tr \[ra]\*(Gt
-.	ie d volume-ds-1 .ds tT gnu
-.	el .ie d doc-volume-ds-1 .ds tT gnp
-.	el .ds tT bsd
-.\}
-.el .ds tT ucb
-.\"
+.\" Add UCB mdoc compatibility to GNU mdoc
 .\" Implement .Mx (MirBSD)
 .\"
 .ie "\*(tT"gnu" \{\
+.	ds sP \s0
+.	ds tN \*[Tn-font-size]
 .	eo
 .	de Mx
 .	nr curr-font \n[.f]
 .	nr curr-size \n[.ps]
 .	ds str-Mx \f[\n[curr-font]]\s[\n[curr-size]u]
-.	ds str-Mx1 \*[Tn-font-size]\%MirBSD\*[str-Mx]
+.	ds str-Mx1 \*(tN\%MirBSD\*[str-Mx]
 .	if !\n[arg-limit] \
 .	if \n[.$] \{\
 .	ds macro-name Mx
@@ -126,16 +123,17 @@
 .	print-recursive
 ..
 .	ec
-.	ds sP \s0
-.	ds tN \*[Tn-font-size]
 .\}
 .el .ie "\*(tT"gnp" \{\
+.	ds sP \s0
+.	ie t .ds tN \s[(\n[.ps]u-1z)]
+.	el .ds tN
 .	eo
 .	de Mx
 .	nr doc-curr-font \n[.f]
 .	nr doc-curr-size \n[.ps]
 .	ds doc-str-Mx \f[\n[doc-curr-font]]\s[\n[doc-curr-size]u]
-.	ds doc-str-Mx1 \*[doc-Tn-font-size]\%MirBSD\*[doc-str-Mx]
+.	ds doc-str-Mx1 \*(tN\%MirBSD\*[doc-str-Mx]
 .	if !\n[doc-arg-limit] \
 .	if \n[.$] \{\
 .	ds doc-macro-name Mx
@@ -158,8 +156,6 @@
 .	doc-print-recursive
 ..
 .	ec
-.	ds sP \s0
-.	ds tN \*[doc-Tn-font-size]
 .\}
 .el \{\
 .	de Mx
