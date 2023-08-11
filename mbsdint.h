@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.33 2023/04/17 01:39:03 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.34 2023/08/11 21:47:59 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -44,6 +44,9 @@
 #define mbiMASK_bitmax		93
 #endif
 
+#if defined(HAVE_INTCONSTEXPR_RSIZE_MAX) && ((HAVE_INTCONSTEXPR_RSIZE_MAX) < 1)
+#undef HAVE_INTCONSTEXPR_RSIZE_MAX
+#endif
 #if defined(MBSDINT_H_WANT_SIZET_IN_LONG) && ((MBSDINT_H_WANT_SIZET_IN_LONG) < 1)
 #undef MBSDINT_H_WANT_SIZET_IN_LONG
 #endif
@@ -120,7 +123,7 @@
 #define mbi_maskchkF(v)		(v == 0xF || v == 7 || v == 3 || v == 1 || !v)
 
 /* limit maximum object size so we can express pointer differences w/o UB */
-#if defined(HAVE_INTCONSTEXPR_RSIZE_MAX) && (HAVE_INTCONSTEXPR_RSIZE_MAX != 0)
+#if defined(HAVE_INTCONSTEXPR_RSIZE_MAX)
 /* trust but verify operating environment */
 #define mbiRSZCHK	RSIZE_MAX
 #define mbiSIZE_MAX	((size_t)RSIZE_MAX)
