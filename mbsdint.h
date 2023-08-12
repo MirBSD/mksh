@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.39 2023/08/12 05:48:08 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.40 2023/08/12 06:06:45 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -180,7 +180,8 @@
 #else
 #define mbiSIZE_MAX	((size_t)(mbiTYPE_UMAX(size_t) >> 1))
 #endif /* !PTRDIFF_MAX !MBSDINT_H_SMALL_SYSTEM>=3 */
-#elif !defined(PTRDIFF_MAX) || ((SIZE_MAX) == (PTRDIFF_MAX))
+#elif !defined(PTRDIFF_MAX) || \
+    (((SIZE_MAX) == (PTRDIFF_MAX)) && ((SIZE_MAX) > 0x7FFFFFFFUL))
 #if defined(MBSDINT_H_SMALL_SYSTEM) && ((MBSDINT_H_SMALL_SYSTEM) >= 3)
 #define mbiSIZE_MAX	((size_t)SIZE_MAX)
 #else
