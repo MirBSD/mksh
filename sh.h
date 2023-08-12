@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1013 2023/06/24 23:05:16 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1014 2023/08/12 01:32:31 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -154,17 +154,12 @@
 #include <wchar.h>
 #endif
 
-/* we need uintptr_t */
-#ifndef UINTPTR_MAX
-typedef size_t uintptr_t;
-#define UINTPTR_MAX mbiTYPE_UMAX(uintptr_t)
-#endif
-
 #undef MBSDINT_H_SKIP_CTAS
 #ifndef MKSH_DO_MBI_CTAS
 #define MBSDINT_H_SKIP_CTAS
 #endif
 /* formatting routines assume this */
+#define MBSDINT_H_WANT_PTR_IN_SIZET 1
 #define MBSDINT_H_WANT_SIZET_IN_LONG 1
 /* POSIX guarantees a 32-bit int */
 #define MBSDINT_H_WANT_INT32 1

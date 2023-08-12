@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.271 2023/06/24 23:05:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.272 2023/08/12 01:32:32 tg Exp $");
 
 /*-
  * Variables
@@ -481,16 +481,16 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		char *salloc = NULL;
 		size_t cursz;
 #ifndef MKSH_SMALL
-		uintptr_t cmp_s, cmp_b, cmp_e;
+		mbiPTR_U cmp_s, cmp_b, cmp_e;
 #endif
 
 		if ((vq->flag&ALLOC)) {
 			cursz = strlen(vq->val.s) + 1;
 #ifndef MKSH_SMALL
 			/* debugging */
-			cmp_s = (uintptr_t)(const void *)s;
-			cmp_b = (uintptr_t)(void *)vq->val.s;
-			cmp_e = (uintptr_t)(void *)(vq->val.s + cursz);
+			cmp_s = (mbiPTR_U)(const void *)s;
+			cmp_b = (mbiPTR_U)(void *)vq->val.s;
+			cmp_e = (mbiPTR_U)(void *)(vq->val.s + cursz);
 			if (cmp_s >= cmp_b && cmp_s < cmp_e) {
 				kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
 				    "setstr: %s=%s: assigning to self",

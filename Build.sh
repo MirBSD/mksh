@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.837 2023/08/11 21:15:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.838 2023/08/12 01:32:28 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2119,11 +2119,6 @@ ac_testn mbi_ctas '' 'if integer types are sane enough' <<-'EOF'
 	#endif
 	#include <limits.h>
 	#include <stddef.h>
-	/* we need uintptr_t */
-	#ifndef UINTPTR_MAX
-	typedef size_t uintptr_t;
-	#define UINTPTR_MAX mbiTYPE_UMAX(uintptr_t)
-	#endif
 	#undef MBSDINT_H_SKIP_CTAS
 	#include "mbsdint.h"
 	#include <unistd.h>
