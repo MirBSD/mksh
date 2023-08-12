@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.35 2023/08/12 01:32:30 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.36 2023/08/12 02:49:02 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -22,9 +22,13 @@
  * -DMBSDINT_H_WANT_SAFEC=1 to ensure mbiSAFECOMPLEMENT==1
  * (these trigger extra compile-time assertion checks)
  *
- * If <sys/types.h>, <inttypes.h> and/or <stdint.h> exist, INCLUDE THEM
- * BEFORE this header; also prerequisites of <limits.h> and <stddef.h>,
- * which this header includes always.
+ * This header always includes <limits.h> and <stddef.h> so please ensure
+ * their prerequisites (if any), as well as all of the following headers…
+ *	<sys/types.h>		// from POSIX
+ *	<basetsd.h>		// on Windows®
+ *	<inttypes.h>		// some pre-C99
+ *	<stdint.h>		// ISO C99
+ * … that exist are included before this header, for full functionality.
  */
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
@@ -72,8 +76,21 @@
 #endif /* !GCC 3.x */
 #endif /* ndef(__predict_true) */
 
-#if !defined(SIZE_MAX) && defined(SIZE_T_MAX)
+/* expose SIZE_MAX if possible and provided, not guessed */
+#ifndef SIZE_MAX
+#if defined(SIZE_T_MAX)
 #define SIZE_MAX		SIZE_T_MAX
+#elif defined(MAXSIZE_T)
+#define SIZE_MAX		MAXSIZE_T
+#endif
+#endif
+
+/* expose POSIX SSIZE_MAX and ssize_t on Win32 */
+#if defined(SIZE_MAX) && !defined(SSIZE_MAX) && \
+    defined(MINSSIZE_T) && defined(MAXSSIZE_T) && !defined(ssize_t)
+#define SSIZE_MIN		MINSSIZE_T
+#define SSIZE_MAX		MAXSSIZE_T
+#define ssize_t			SSIZE_T
 #endif
 
 /* compile-time assertions: mbiCTAS(srcf_c) { … }; */
@@ -460,6 +477,12 @@ mbiCTAS(mbsdint_h) {
 	mbiMASK_BITS(SSIZE_MAX) <= mbiMASK_BITS(mbiHUGE_S_MAX) &&
 	((mbiHUGE_S)(SSIZE_MAX) == (mbiHUGE_S)(ssize_t)(SSIZE_MAX)) &&
 	mbiMASK_BITS(SSIZE_MAX) < mbiTYPE_UBITS(size_t));
+#ifdef SSIZE_MIN
+ mbiCTA(basic_ssizet_min,
+	(SSIZE_MIN) < 0 &&
+	((SSIZE_MIN) == -(SSIZE_MAX) || (SSIZE_MIN)+1 == -(SSIZE_MAX)) &&
+	((SSIZE_MIN) == -(SSIZE_MAX)) == ((SCHAR_MIN) == -(SCHAR_MAX)));
+#endif
 #ifdef SIZE_MAX
  mbiCTA(basic_ssizet_sizet,
 	mbiMASK_BITS(SSIZE_MAX) <= mbiMASK_BITS(SIZE_MAX));
