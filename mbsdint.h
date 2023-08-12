@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.37 2023/08/12 03:53:28 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.38 2023/08/12 04:42:19 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -14,6 +14,9 @@
  *
  * -DMBSDINT_H_SMALL_SYSTEM=1 (or 2) to shorten some macros, for old systems
  * or -DMBSDINT_H_SMALL_SYSTEM=3 in very tiny address space (< 32 bits)
+ *
+ * -DMBSDINT_H_MBIPTR_IS_SIZET=0 stop assuming mbiPTR is size_t-ranged
+ * -DMBSDINT_H_MBIPTR_IN_LARGE=0 mbiPTR fits mbiHUGE but no longer mbiLARGE
  *
  * -DMBSDINT_H_WANT_PTR_IN_SIZET (breaks some) ensure pointers fit in size_t
  * -DMBSDINT_H_WANT_SIZET_IN_LONG (breaks LLP64) ensure size_t fits in long
@@ -63,6 +66,13 @@
 #endif
 #if defined(MBSDINT_H_WANT_LRG64) && ((MBSDINT_H_WANT_LRG64) < 1)
 #undef MBSDINT_H_WANT_LRG64
+#endif
+
+#ifndef MBSDINT_H_MBIPTR_IS_SIZET
+#define MBSDINT_H_MBIPTR_IS_SIZET 1
+#endif
+#ifndef MBSDINT_H_MBIPTR_IN_LARGE
+#define MBSDINT_H_MBIPTR_IN_LARGE 1
 #endif
 
 /* should be in <sys/cdefs.h> via <limits.h> */
@@ -201,7 +211,7 @@
 #define mbiHUGE_U_MAX		ULONG_MAX
 #define mbiHUGE_P(c)		"l" #c
 #endif
-/* larger than int, 64 bit if possible, storage fits size_t/mbiPTR_U */
+/* larger than int, 64 bit if possible, storage fits size_t */
 #if (mbiMASK__BITS(ULONG_MAX) >= 64)
 #define mbiLARGE_S		long
 #define mbiLARGE_S_MIN		LONG_MIN
@@ -241,6 +251,17 @@
 #else
 #define mbiPTR_U		size_t
 #define mbiPTR_U_MAX		mbiTYPE_UMAX(mbiPTR_U)
+#endif
+#if MBSDINT_H_MBIPTR_IS_SIZET || \
+    (!defined(__CHERI__) && !defined(UINTPTR_MAX))
+#define mbiPTR_P(c)		"z" #c
+#define mbiPTR_PV(v)		((size_t)(v))
+#elif MBSDINT_H_MBIPTR_IN_LARGE
+#define mbiPTR_P		mbiLARGE_P
+#define mbiPTR_PV(v)		((mbiLARGE_U)(v))
+#else
+#define mbiPTR_P		mbiHUGE_P
+#define mbiPTR_PV(v)		((mbiHUGE_U)(v))
 #endif
 
 #undef mbiSAFECOMPLEMENT
@@ -564,16 +585,26 @@ mbiCTAS(mbsdint_h) {
 #endif
  /* this is as documented above */
  mbiCTA(sizet_inlarge, sizeof(size_t) <= sizeof(mbiLARGE_U));
- mbiCTA(mbiPTRU_inlarge, sizeof(mbiPTR_U) <= sizeof(mbiLARGE_U));
+#if MBSDINT_H_MBIPTR_IN_LARGE
+ mbiCTA(mbiPTRU_inlarge,
+	sizeof(mbiPTR_U) <= sizeof(mbiLARGE_U) &&
+	mbiTYPE_UBITS(mbiPTR_U) <= mbiMASK_BITS(mbiLARGE_U_MAX));
+#endif
  /* assume ptrdiff_t and (s)size_t will fit each other */
  mbiCTA(sizet_ptrdiff, sizeof(size_t) == sizeof(ptrdiff_t));
 #ifdef SSIZE_MAX
  mbiCTA(sizet_ssize, sizeof(size_t) == sizeof(ssize_t));
 #endif
  /* also mbiPTR_U, to rule out certain weird machines */
- mbiCTA(sizet_mbiPTRU, sizeof(size_t) == sizeof(mbiPTR_U));
+#if MBSDINT_H_MBIPTR_IS_SIZET
+ /* note mbiMASK_BITS(SIZE_MAX) could be smaller still */
+ mbiCTA(sizet_mbiPTRU,
+	sizeof(size_t) == sizeof(mbiPTR_U) &&
+	mbiTYPE_UBITS(mbiPTR_U) == mbiTYPE_UBITS(size_t));
+ /* more loose bonus check */
 #if defined(UINTPTR_MAX) && !defined(__CHERI__)
  mbiCTA(sizet_uintptr, sizeof(size_t) == sizeof(uintptr_t));
+#endif
 #endif
  /* user-requested extra checks */
 #ifdef MBSDINT_H_WANT_INT32
