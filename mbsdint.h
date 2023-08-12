@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.36 2023/08/12 02:49:02 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.37 2023/08/12 03:53:28 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -97,7 +97,8 @@
 #define mbiCTAS(name)		struct ctassert_ ## name
 #define mbiCTA(name,cond)	char cta_ ## name [(cond) ? 1 : -1]
 /* special CTAs */
-#define mbiCTA_TYPE_NOTF(type)	char ctati_ ## type [((type)0.5 == 0) ? 1 : -1]
+#define mbiCTA_TYPE_NOTF(type)	mbiCTA_TYPE_notF(type ## _1, type)
+#define mbiCTA_TYPE_notF(nm,ty)	char ctati_ ## nm [((ty)0.5 == 0) ? 1 : -1]
 #define mbiCTA_TYPE_MBIT(nm,ty)	char ctatm_ ## nm [\
 	(sizeof(ty) <= (mbiMASK_bitmax / (CHAR_BIT))) ? 1 : -1]
 
@@ -339,8 +340,8 @@ mbiCTAS(mbsdint_h) {
 	mbiMASK_BITS(ULONG_MAX) <= mbiMASK_BITS(mbiHUGE_U_MAX) &&
 	sizeof(long) == sizeof(unsigned long));
 #ifdef _UI64_MAX
- mbiCTA_TYPE_NOTF(signed __int64);
- mbiCTA_TYPE_NOTF(unsigned __int64);
+ mbiCTA_TYPE_notF(s_i64, signed __int64);
+ mbiCTA_TYPE_notF(u_i64, unsigned __int64);
  mbiCTA(basic_i64_smask, mbiMASK_CHK(_I64_MAX));
  mbiCTA(basic_i64_umask, mbiMASK_CHK(_UI64_MAX));
  mbiCTA(basic_i64,
