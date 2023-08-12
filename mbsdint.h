@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.38 2023/08/12 04:42:19 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.39 2023/08/12 05:48:08 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -41,6 +41,16 @@
 #include <sys/cdefs.h>
 #include <sys/limits.h>
 #include <sys/stddef.h>
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4127 4146 4296)
+#define mbsdint__Wd(d)	__pragma(warning(push)) __pragma(warning(disable: d))
+#define mbsdint__Wpop	__pragma(warning(pop))
+#else
+#define mbsdint__Wd(d)
+#define mbsdint__Wpop
 #endif
 
 #if !defined(MBSDINT_H_SMALL_SYSTEM) || ((MBSDINT_H_SMALL_SYSTEM) < 1)
@@ -126,7 +136,9 @@
 #define mbiMASK_BITS(maxv)	((unsigned int)mbiMASK__BITS(maxv))
 
 /* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 (or less) bits */
-#define mbiMASK_CHK(v)		((v) > 0 ? mbi_maskchk31_1((v)) : 0)
+#define mbiMASK_CHK(v)		mbsdint__Wd(4296) \
+				((v) > 0 ? mbi_maskchk31_1((v)) : 0) \
+				mbsdint__Wpop
 #define mbi_maskchks(v,m,o,n)	(v <= m ? o : ((v & m) == m) && n)
 #define mbi_maskchk31s(v,n)	mbi_maskchks(v, 0x7FFFFFFFUL, \
 				    mbi_maskchk16(v), n)
@@ -691,6 +703,11 @@ mbiCTAS(mbsdint_h) {
 #define mbiOT(t,w,j,n)		((w) ? (t)(j) : (t)(n))
 #define mbiMOT(ut,tM,w,j,n)	mbiMM(ut, (tM), mbiOT(ut, (w), (j), (n)))
 
+/* 4. helpers */
+#define mbiOUneg(ut,v)		mbsdint__Wd(4146) \
+				mbiOU1(ut, -, (v)) \
+				mbsdint__Wpop
+
 /* manual two’s complement in unsigned arithmetics */
 
 /* 1. obtain sign of encoded value */
@@ -774,7 +791,7 @@ mbiCTAS(mbsdint_h) {
 #define mbiA_U2M(ut,HM,v)						\
 		mbiOT(ut,						\
 		 mbiA_U2VZ(ut, (HM), (v)),				\
-		 mbiOU1(ut, -, (v)),					\
+		 mbiOUneg(ut, (v)),					\
 		 (v)							\
 		)
 #define mbiMA_U2M(ut,FM,HM,v)						\
@@ -840,7 +857,7 @@ mbiCTAS(mbsdint_h) {
 #define mbiA_VZU2U(ut,vz,m)						\
 		mbiOT(ut,						\
 		 (vz),							\
-		 mbiOU1(ut, -, (m)),					\
+		 mbiOUneg(ut, (m)),					\
 		 (m)							\
 		)
 #define mbiMA_VZU2U(ut,FM,vz,u)	mbiMM(ut, (FM), mbiA_VZU2U(ut, (vz), (u)))
@@ -1064,6 +1081,10 @@ mbiCTAS(mbsdint_h) {
 #define mbi_nil				nullptr
 #else
 #define mbi_nil				(void *)0UL
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
 #endif /* !SYSKERN_MBSDINT_H */
