@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.41 2023/08/14 12:22:03 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.42 2023/08/14 12:35:59 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -644,6 +644,7 @@ mbiCTAS(mbsdint_h) {
  mbiCTA(user_int32, mbiTYPE_UBITS(unsigned int) >= 32);
 #endif
 #ifdef MBSDINT_H_WANT_LRG64
+ /* guaranteed if 64-bit types even exist */
  mbiCTA(user_lrg64, mbiTYPE_UBITS(mbiLARGE_U) >= 64);
 #endif
 #ifdef MBSDINT_H_WANT_SAFEC
