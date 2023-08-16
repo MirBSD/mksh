@@ -23,7 +23,7 @@
 #endif
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.34 2023/01/08 21:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.35 2023/08/16 13:46:04 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -100,6 +100,9 @@ static struct lalloc_common *
 findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 {
 	void *lp;
+#ifdef DEBUG
+	Area *oap = ap;
+#endif
 
 #ifndef MKSH_SMALL
 	if (ALLOC_ISUNALIGNED(ptr))
@@ -120,7 +123,7 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 #ifdef DEBUG
 			kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
 			    "rogue pointer %zX in ap %zX",
-			    (size_t)ptr, (size_t)ap);
+			    (size_t)ptr, (size_t)oap);
 			/* try to get a coredump */
 			abort();
 #else
