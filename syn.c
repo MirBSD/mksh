@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.150 2023/06/24 23:05:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.151 2023/08/16 13:53:30 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -223,17 +223,13 @@ synio(int cf)
 		iop->ioname = yylval.cp;
 
 	if (iop->ioflag & IOBASH) {
-		char *cp;
-
 		iop->ioflag &= ~IOBASH;
 
-		cp = alloc(sizeof(struct ioword) + 3U, ATEMP);
-		yylval.iop = (void *)cp;
-		cp += sizeof(struct ioword);
-		yylval.iop->ioname = cp;
-		*cp++ = CHAR;
-		*cp++ = digits_lc[iop->unit];
-		*cp = EOS;
+		yylval.iop = alloc(sizeof(struct ioword), ATEMP);
+		yylval.iop->ioname = alloc(3U, ATEMP);
+		yylval.iop->ioname[0] = CHAR;
+		yylval.iop->ioname[1] = digits_lc[iop->unit];
+		yylval.iop->ioname[2] = EOS;
 		yylval.iop->delim = NULL;
 		yylval.iop->heredoc = NULL;
 		yylval.iop->ioflag = IODUP | IOSYNIONEXT;
