@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.272 2023/08/12 01:32:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.273 2023/08/22 17:16:11 tg Exp $");
 
 /*-
  * Variables
@@ -1810,16 +1810,25 @@ change_winsz(void)
 		int ioc;
 		int eno;
 #endif
+#ifdef SIGWINCH
+		sig_atomic_t gotsig;
+#endif
 	} z;
 
 	memset(&z, 0, sizeof(z));
 	mksh_TIME(z.tv);
+#ifdef SIGWINCH
+	z.gotsig = got_winch;
+#endif
 
 #ifdef TIOCGWINSZ
 	if ((z.tif = tty_init_fd()) < 2) {
 		/* check if window size has changed */
 		z.ioc = ioctl(tty_fd, TIOCGWINSZ, &z.ws);
 		z.eno = errno;
+#ifdef SIGWINCH
+		got_winch = 0;
+#endif
 		if (z.ioc >= 0) {
 			if (z.ws.ws_col)
 				x_cols = z.ws.ws_col;
@@ -1827,18 +1836,16 @@ change_winsz(void)
 				x_lins = z.ws.ws_row;
 		}
 	}
+#elif defined(SIGWINCH)
+	got_winch = 0;
 #endif
+	rndpush(&z, sizeof(z));
 
 	/* bounds check for sane values, use defaults otherwise */
 	if (x_cols < MIN_COLS)
 		x_cols = 80;
 	if (x_lins < MIN_LINS)
 		x_lins = 24;
-
-	rndpush(&z, sizeof(z));
-#ifdef SIGWINCH
-	got_winch = 0;
-#endif
 }
 
 k32
