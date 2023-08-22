@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.277 2023/08/22 22:31:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.278 2023/08/22 22:40:53 tg Exp $");
 
 /*-
  * Variables
@@ -1865,6 +1865,7 @@ chvt_rndsetup(const void *bp, size_t sz)
 	register k32 h;
 
 	h = lcg_state;
+	BAFHUpdateVLQ(h, size_t, sz);
 	BAFHFinish(h);
 	/* variation through pid, ppid, and the works */
 	BAFHUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
