@@ -31,7 +31,7 @@
 #ifndef MKSH_MIRHASH_H
 #define MKSH_MIRHASH_H
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.19 2023/08/22 22:40:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.20 2023/08/22 22:42:33 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -55,7 +55,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.19 2023/08/22 22:40:28 tg Exp $");
  *   Warning: BAFHFinish uses the MixColumn algorithm of AES — which
  *   is reversible (to avoid introducing funnels and reducing entro‐
  *   py), so blinding may need to be employed for some uses, e.g. in
- *   mksh, after a fork.
+ *   mksh, after a fork. For ctx == 0 only, ctx will be 0 afterwards.
  *
  * The following high-level macros are available:
  *
