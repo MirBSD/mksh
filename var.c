@@ -23,9 +23,12 @@
  */
 
 #include "sh.h"
+#if HAVE_GETRANDOM
+#include <sys/random.h>
+#endif
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.273 2023/08/22 17:16:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.274 2023/08/22 18:10:17 tg Exp $");
 
 /*-
  * Variables
@@ -1891,6 +1894,16 @@ rndget(void)
 	    mbiMKshr(k32, K32_FM, lcg_state, 16), &, 0x7FFFU));
 }
 
+#ifndef KSH_USE_ARC4RANDOM
+#if HAVE_GETRANDOM || defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+#define KSH_USE_ARC4RANDOM 0
+#elif defined(__OpenBSD__)
+#define KSH_USE_ARC4RANDOM 1
+#else
+#define KSH_USE_ARC4RANDOM 0
+#endif
+#endif
+
 void
 rndset(unsigned long v)
 {
@@ -1902,6 +1915,12 @@ rndset(unsigned long v)
 		struct timeval tv;
 		void *sp;
 		k32 qh;
+#if HAVE_GETRANDOM
+		char xby[4];
+#endif
+#if KSH_USE_ARC4RANDOM
+		unsigned int xu32;
+#endif
 		pid_t pp;
 		unsigned short r;
 	} z;
@@ -1917,6 +1936,29 @@ rndset(unsigned long v)
 	z.sp = &z;
 	z.pp = procpid;
 	z.r = rndget();
+	/* nōn-blocking extra bytes from OS if cheap and available */
+#if HAVE_GETRANDOM
+ try_getrandom:
+	if (getrandom(z.xby, sizeof(z.xby), GRND_NONBLOCK) == -1)
+		switch (errno) {
+		default:
+			/* warn for other errors */
+			kwarnf(KWF_WARNING | KWF_PREFIX | KWF_ONEMSG,
+			    "getrandom");
+			/* FALLTHROUGH */
+		case EAGAIN:
+		case ENOSYS:
+			/* ignore */
+			break;
+		case EINTR:
+			/* repeat */
+			goto try_getrandom;
+		}
+	/* otherwise, use whatever we got */
+#endif
+#if KSH_USE_ARC4RANDOM
+	z.xu32 = arc4random();
+#endif
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
 	z.qh = (qh_state & 0xFFFF8000U) | rndget();

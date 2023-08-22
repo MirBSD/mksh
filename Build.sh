@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.838 2023/08/12 01:32:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.839 2023/08/22 18:10:15 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2353,6 +2353,14 @@ ac_test get_current_dir_name <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (!get_current_dir_name()); }
+EOF
+
+ac_test getrandom <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	#include <sys/random.h>
+	char buf;
+	int main(void) { return ((int)getrandom(&buf, 1, GRND_NONBLOCK)); }
 EOF
 
 ac_test getrusage <<-'EOF'

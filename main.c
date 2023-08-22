@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.429 2023/08/22 16:52:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.430 2023/08/22 18:10:16 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -715,6 +715,8 @@ main_init(int argc, const char *argv[], Source **sp)
 	/* mark as initialised */
 	baseline_flags[(int)FNFLAGS] = 1;
 #endif
+	rndpush(shell_flags, sizeof(shell_flags));
+	rndset(hash(/*=current_wd*/ cp) ^ hash(argv[0]));
 	if (as_builtin)
 		goto skip_startup_files;
 
