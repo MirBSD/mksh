@@ -23,12 +23,9 @@
  */
 
 #include "sh.h"
-#if HAVE_GETRANDOM
-#include <sys/random.h>
-#endif
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.274 2023/08/22 18:10:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.275 2023/08/22 20:33:37 tg Exp $");
 
 /*-
  * Variables

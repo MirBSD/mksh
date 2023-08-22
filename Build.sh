@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.839 2023/08/22 18:10:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.840 2023/08/22 20:33:35 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2357,8 +2357,8 @@ EOF
 
 ac_test getrandom <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
+	#define HAVE_GETRANDOM 1
 	#include "sh.h"
-	#include <sys/random.h>
 	char buf;
 	int main(void) { return ((int)getrandom(&buf, 1, GRND_NONBLOCK)); }
 EOF
