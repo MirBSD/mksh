@@ -31,7 +31,7 @@
 #ifndef MKSH_MIRHASH_H
 #define MKSH_MIRHASH_H
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.18 2023/03/14 15:09:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.19 2023/08/22 22:40:28 tg Exp $");
 
 /*-
  * BAFH1-0 is defined by the following primitives:
@@ -40,7 +40,9 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.18 2023/03/14 15:09:22 tg Exp $");
  *   sole 32-bit unsigned integer (ideally in a register), to 0^H1.
  *   It is possible to use any initial value out of [0; 2³²[ — which
  *   is, in fact, recommended if using BAFH for entropy distribution
- *   — but for a regular stable hash, the IV 0^H1 is needed.
+ *   — but for a regular stable hash, the IV 0^H1 is needed: iff the
+ *   sum of ctx and val in BAFHUpdateOctet is 0, leading NULs aren’t
+ *   counted, so apply suitable bias to ensure that state is avoided.
  *
  * • BAFHUpdateOctet(ctx,val) compresses the unsigned 8-bit quantity
  *   into the hash context using Jenkins’ one-at-a-time algorithm.
@@ -59,6 +61,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.18 2023/03/14 15:09:22 tg Exp $");
  *
  * • BAFHUpdateMem(ctx,buf,len) adds a memory block to a context.
  * • BAFHUpdateStr(ctx,buf) is equivalent to using len=strlen(buf).
+ * • BAFHUpdateVLQ(ctx,ut,ival) encodes as VLQ with negated A bit.
  *
  * All macros may use ctx multiple times in their expansion, but all
  * other arguments are always evaluated at most once.
@@ -118,6 +121,22 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.18 2023/03/14 15:09:22 tg Exp $");
 	BAFHUpdate_s = (const void *)(s);			\
 	while ((BAFHUpdate_c = *BAFHUpdate_s++))		\
 		BAFHUpdateOctet((h), BAFHUpdate_c);		\
+} while (/* CONSTCOND */ 0)
+
+#define BAFHUpdateVLQ(h,t,n) do {				\
+	unsigned char BAFHUpdate_s[(sizeof(t)*(CHAR_BIT)+6)/7];	\
+	register size_t BAFHUpdate_n = sizeof(BAFHUpdate_s);	\
+	t BAFHUpdate_v = (n);					\
+								\
+	do {							\
+		BAFHUpdate_s[--BAFHUpdate_n] =			\
+		    BAFHUpdate_v & 0x7FU;			\
+		BAFHUpdate_v >>= 7;				\
+	} while (BAFHUpdate_v);					\
+	BAFHUpdate_s[sizeof(BAFHUpdate_s) - 1] |= 0x80U;	\
+	while (BAFHUpdate_n < sizeof(BAFHUpdate_s))		\
+		BAFHUpdateOctet((h),				\
+		    BAFHUpdate_s[BAFHUpdate_n++]);		\
 } while (/* CONSTCOND */ 0)
 
 #endif
