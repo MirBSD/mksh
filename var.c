@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.276 2023/08/22 21:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.277 2023/08/22 22:31:32 tg Exp $");
 
 /*-
  * Variables
@@ -1922,7 +1922,7 @@ rndset(unsigned long v)
 	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(&z, 0, sizeof(z));
 
-	h = lcg_state;
+	h = lcg_state ? lcg_state : (k32)1U;
 	BAFHFinish(h);
 	BAFHUpdateMem(h, &v, sizeof(v));
 
@@ -1985,7 +1985,7 @@ rndset(unsigned long v)
 void
 rndpush(const void *s, size_t n)
 {
-	register k32 h = qh_state;
+	register k32 h = qh_state ? qh_state : (k32)1U;
 
 	BAFHUpdateMem(h, s, n);
 	BAFHFinish(h);
