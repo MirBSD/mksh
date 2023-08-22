@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021,
- *		 2022
+ *		 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.157 2023/03/14 15:09:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.158 2023/08/22 20:28:08 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -528,8 +528,6 @@ exchild(struct op *t, int flags,
 		sleep(forksleep);
 		forksleep <<= 1;
 	}
-	/* ensure $RANDOM changes between parent and child */
-	rndset((unsigned long)cldpid);
 	/* fork failed? */
 	if (cldpid < 0) {
 		kill_job(j, SIGKILL);
@@ -541,6 +539,8 @@ exchild(struct op *t, int flags,
 		    KWF_ONEMSG, eno, "can't fork - try again");
 	}
 	p->pid = cldpid ? cldpid : (procpid = getpid());
+	/* ensure $RANDOM changes between parent and child */
+	rndset((unsigned long)cldpid);
 
 #ifndef MKSH_UNEMPLOYED
 	/* job control set up */
