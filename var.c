@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.278 2023/08/22 22:40:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.279 2023/08/22 23:03:21 tg Exp $");
 
 /*-
  * Variables
@@ -1933,8 +1933,11 @@ rndset(unsigned long v)
 	z.r = rndget();
 	/* nōn-blocking extra bytes from OS if cheap and available */
 #if HAVE_GETRANDOM
+#ifndef GRND_INSECURE
+#define GRND_INSECURE 0
+#endif
  try_getrandom:
-	if (getrandom(z.xby, sizeof(z.xby), GRND_NONBLOCK) == -1)
+	if (getrandom(z.xby, sizeof(z.xby), GRND_NONBLOCK | GRND_INSECURE) == -1)
 		switch (errno) {
 		default:
 			/* warn for other errors */
