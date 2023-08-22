@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.428 2023/06/03 22:45:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.429 2023/08/22 16:52:04 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -168,9 +168,7 @@ rndsetup(void)
 	struct {
 		ALLOC_ITEM alloc_INT;
 		void *bssptr, *dataptr, *stkptr, *mallocptr;
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
-		sigjmp_buf jbuf;
-#endif
+		kshjmp_buf jbuf;
 		struct timeval tv;
 	} *bufptr;
 	char *cp;
@@ -187,8 +185,10 @@ rndsetup(void)
 	bufptr->stkptr = &bufptr;
 	/* randomised malloc in BSD (and possibly others) */
 	bufptr->mallocptr = bufptr;
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 	/* glibc pointer guard */
+#ifdef MKSH_NO_SIGSETJMP
+	setjmp(jbuf);
+#else
 	sigsetjmp(bufptr->jbuf, 1);
 #endif
 	/* introduce variation (cannot use gettimeofday *tzp portably) */
