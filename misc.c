@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.355 2023/04/17 00:51:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.356 2023/08/22 21:06:24 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -2698,7 +2698,7 @@ chvt(const Getopt *go)
 #endif
 	if (fd > 2)
 		close(fd);
-	rndset((unsigned long)chvt_rndsetup(go, sizeof(Getopt)));
+	chvt_rndsetup(go, sizeof(Getopt));
 	chvt_reinit();
 	/* signal parent the all OK */
 	if (write(pfd[1], Tdot, 1) != 1)

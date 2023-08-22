@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.275 2023/08/22 20:33:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.276 2023/08/22 21:06:26 tg Exp $");
 
 /*-
  * Variables
@@ -1859,14 +1859,12 @@ hash(const void *s)
 	return (h);
 }
 
-k32
+void
 chvt_rndsetup(const void *bp, size_t sz)
 {
 	register k32 h;
 
-	/* use LCG as seed but try to get them to deviate immediately */
 	h = lcg_state;
-	rndget();
 	BAFHFinish(h);
 	/* variation through pid, ppid, and the works */
 	BAFHUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
@@ -1874,8 +1872,7 @@ chvt_rndsetup(const void *bp, size_t sz)
 	BAFHUpdateMem(h, bp, sz);
 	/* mix them all up */
 	BAFHFinish(h);
-
-	return (h);
+	lcg_state = h;
 }
 
 k32
