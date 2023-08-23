@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.279 2023/08/22 23:03:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.280 2023/08/23 16:46:46 tg Exp $");
 
 /*-
  * Variables
@@ -1919,6 +1919,14 @@ rndset(unsigned long v)
 		pid_t pp;
 		unsigned short r;
 	} z;
+#if HAVE_GETRANDOM
+#ifdef GRND_INSECURE
+	static unsigned int grnd_iflag = GRND_INSECURE;
+#define grnd_flags (GRND_NONBLOCK | grnd_iflag)
+#else /* !GRND_INSECURE */
+#define grnd_flags GRND_NONBLOCK
+#endif /* !GRND_INSECURE */
+#endif /* HAVE_GETRANDOM */
 
 	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(&z, 0, sizeof(z));
@@ -1931,14 +1939,20 @@ rndset(unsigned long v)
 	z.sp = &z;
 	z.pp = procpid;
 	z.r = rndget();
-	/* nōn-blocking extra bytes from OS if cheap and available */
+	/* nōn-blocking extra bytes from OS… if cheap and available */
 #if HAVE_GETRANDOM
-#ifndef GRND_INSECURE
-#define GRND_INSECURE 0
-#endif
  try_getrandom:
-	if (getrandom(z.xby, sizeof(z.xby), GRND_NONBLOCK | GRND_INSECURE) == -1)
+	if (getrandom(z.xby, sizeof(z.xby), grnd_flags) == -1)
 		switch (errno) {
+		case EINVAL:
+#ifdef GRND_INSECURE
+			if (grnd_iflag) {
+				/* try without again, old kernel? */
+				grnd_iflag = 0;
+				goto try_getrandom;
+			}
+#endif
+			/* FALLTHROUGH */
 		default:
 			/* warn for other errors */
 			kwarnf(KWF_WARNING | KWF_PREFIX | KWF_ONEMSG,
