@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.432 2023/08/23 00:08:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.433 2023/08/23 16:27:06 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -486,6 +486,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	    (!ksheuid && !vstrchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+	/* ensure several variables will be (unsigned) integers */
 	setint_n((vp = global("BASHPID")), 0, 10);
 	vp->flag |= INT_U;
 	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp, 10);
@@ -500,9 +501,13 @@ main_init(int argc, const char *argv[], Source **sp)
 	vp->flag |= INT_U;
 	setint_n((vp = global("KSHGID")), (mksh_uari_t)kshgid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("RANDOM")), rndget(), 10);
-	vp->flag |= INT_U;
+	/* this is needed globally */
 	setint_n((vp_pipest = global(Tpipest)), 0, 10);
+	/* unsigned integer, but avoid rndset call: done farther below */
+	vp = global("RANDOM");
+	vp->flag &= ~SPECIAL;
+	setint_n(vp, 0, 10);
+	vp->flag |= SPECIAL | INT_U;
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
