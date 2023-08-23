@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.194 2023/08/22 18:10:16 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.195 2023/08/23 17:12:55 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021,
@@ -120,7 +120,7 @@ CLEANFILES+=	${GENERATED}
 ${PROG} beforedepend: ${GENERATED}
 
 REGRESS_CATEGORIES=	shell:legacy-no int:32 shell:textmode-no \
-			shell:binmode-yes have:select:1 fastbox
+			shell:binmode-yes have:select:1 system:fast-yes
 .if ${USE_PRINTF_BUILTIN} == 1
 REGRESS_CATEGORIES+=	printf-builtin
 .endif
@@ -142,7 +142,7 @@ test-build: .PHONY
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
 	    LIBS=${LDADD:Q} NOWARN=-Wno-error ${TEST_BUILD_ENV} \
-	    /bin/sh ${SRCDIR:Q}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
+	    /bin/sh ${SRCDIR:Q}/Build.sh -Q -r ${_TBF} && ./test.sh -v
 
 CLEANFILES+=	lksh.cat1
 test-build-lksh: .PHONY

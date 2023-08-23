@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.911 2023/08/16 13:53:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.912 2023/08/23 17:12:56 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/08/16
+	KSH R59 2023/08/23
 description:
 	Check base version of full shell
 stdin:
@@ -14135,7 +14135,7 @@ expected-stdout:
 name: stateptr-underflow
 description:
 	This check overflows an Xrestpos stored in a short in R40
-category: fastbox
+category: !system:fast-no
 stdin:
 	function Lb64decode {
 		[[ -o utf8-mode ]]; local u=$?

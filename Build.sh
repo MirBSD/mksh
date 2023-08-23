@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.840 2023/08/22 20:33:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.841 2023/08/23 17:12:54 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2855,11 +2855,12 @@ cat >test.sh <<-EOF
 	set -A check_categories -- $check_categories
 	pflag='$curdisp/$buildoutput'
 	sflag='$srcdir/check.t'
-	usee=0 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
+	usee=0 usef=1 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
 	while getopts "C:e:fPp:QSs:t:U:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
-	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
+	(f)	usef=1 ;;
+	(+f)	usef=0 ;;
 	(P)	Pflag=1 ;;
 	(+P)	Pflag=0 ;;
 	(p)	pflag=\$OPTARG ;;
@@ -2879,6 +2880,11 @@ cat >test.sh <<-EOF
 	set -A args -- '$srcdir/check.pl' -p "\$pflag"
 	if $ebcdic; then
 		args[\${#args[*]}]=-E
+	fi
+	if (( usef )); then
+		check_categories[\${#check_categories[*]}]=system:fast-yes
+	else
+		check_categories[\${#check_categories[*]}]=system:fast-no
 	fi
 	x=
 	for y in "\${check_categories[@]}"; do
@@ -3206,7 +3212,7 @@ them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
 MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
 
 Normally, the following command is what you want to run, then:
-$ (sh Build.sh -r && ./test.sh -f) 2>&1 | tee log
+$ (sh Build.sh -r && ./test.sh) 2>&1 | tee log
 
 Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
 /bin; install the manpage, if omitting the -r flag a catmanpage is made
