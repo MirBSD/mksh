@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.431 2023/08/22 21:06:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.432 2023/08/23 00:08:47 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -186,7 +186,7 @@ rndsetup(void)
 	bufptr->mallocptr = bufptr;
 	/* glibc pointer guard */
 #ifdef MKSH_NO_SIGSETJMP
-	setjmp(jbuf);
+	setjmp(bufptr->jbuf);
 #else
 	sigsetjmp(bufptr->jbuf, 1);
 #endif
