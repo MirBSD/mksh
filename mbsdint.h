@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.43 2023/08/25 18:12:54 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.44 2023/08/25 18:16:45 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -142,7 +142,7 @@
 #define mbiMASK__rh(maxv)	(7 - 86 / ((maxv) % 255 + 12))
 /* mbiMASK_BITS everywhere except #if uses (castless) mbiMASK__BITS */
 #define mbiMASK__BITS(maxv)	(mbiMASK__lh(maxv) + mbiMASK__rh(maxv))
-#define mbiMASK__type(maxv)	(mbiMASK__lh(maxv) + mbiMASK__rh(maxv))
+#define mbiMASK__type(maxv)	(mbiMASK__lh(maxv) + (int)mbiMASK__rh(maxv))
 #define mbiMASK_BITS(maxv)	((unsigned int)mbiMASK__type(maxv))
 
 /* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 (or less) bits */
