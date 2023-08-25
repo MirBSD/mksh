@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.42 2023/08/14 12:35:59 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.43 2023/08/25 18:12:54 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -78,6 +78,9 @@
 #if defined(MBSDINT_H_WANT_LRG64) && ((MBSDINT_H_WANT_LRG64) < 1)
 #undef MBSDINT_H_WANT_LRG64
 #endif
+#if defined(MBSDINT_H_WANT_SAFEC) && ((MBSDINT_H_WANT_SAFEC) < 1)
+#undef MBSDINT_H_WANT_SAFEC
+#endif
 
 #ifndef HAVE_OFF_T
 #define HAVE_OFF_T 1
@@ -134,10 +137,13 @@
 /* limits of types */
 #define mbiTYPE_UMAX(type)	((type)~(type)0U)
 #define mbiTYPE_UBITS(type)	mbiMASK_BITS(mbiTYPE_UMAX(type))
-/* calculation by Hallvard B Furuseth (via comp.lang.c), ≤ 2039 bits */
-#define mbiMASK__BITS(maxv)	((maxv) / ((maxv) % 255 + 1) / \
-				255 % 255 * 8 + 7 - 86 / ((maxv) % 255 + 12))
-#define mbiMASK_BITS(maxv)	((unsigned int)mbiMASK__BITS(maxv))
+/* calculation by Hallvard B Furuseth (via comp.lang.c), ≤ 2039 bit */
+#define mbiMASK__lh(maxv)	((maxv) / ((maxv) % 255 + 1) / 255 % 255 * 8)
+#define mbiMASK__rh(maxv)	(7 - 86 / ((maxv) % 255 + 12))
+/* mbiMASK_BITS everywhere except #if uses (castless) mbiMASK__BITS */
+#define mbiMASK__BITS(maxv)	(mbiMASK__lh(maxv) + mbiMASK__rh(maxv))
+#define mbiMASK__type(maxv)	(mbiMASK__lh(maxv) + mbiMASK__rh(maxv))
+#define mbiMASK_BITS(maxv)	((unsigned int)mbiMASK__type(maxv))
 
 /* ensure v is a positive (2ⁿ-1) number (n>0), up to 279 (or less) bits */
 #define mbiMASK_CHK(v)		mbsdint__Wd(4296) \
@@ -631,7 +637,7 @@ mbiCTAS(mbsdint_h) {
 #if MBSDINT_H_MBIPTR_IS_SIZET
  /* note mbiMASK_BITS(SIZE_MAX) could be smaller still */
  mbiCTA(sizet_mbiPTRU,
-	sizeof(size_t) == sizeof(mbiPTR_U) &&
+	sizeof(mbiPTR_U) == sizeof(size_t) &&
 	mbiTYPE_UBITS(mbiPTR_U) == mbiTYPE_UBITS(size_t));
  /* more loose bonus check */
 #if defined(UINTPTR_MAX) && !defined(__CHERI__)
