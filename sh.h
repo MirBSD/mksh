@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1018 2023/08/23 17:12:58 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1019 2023/08/28 19:36:01 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -179,6 +179,11 @@
     ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
 #undef offsetof
 #define offsetof(s,e)		__builtin_offsetof(s, e)
+#endif
+
+/* conflict with GCC attributes; fixed in later dietlibcs */
+#ifdef __dietlibc__
+#undef __noinline__
 #endif
 
 #undef __attribute__
