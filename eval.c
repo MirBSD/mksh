@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.258 2023/06/24 23:05:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.259 2023/08/28 15:06:13 tg Exp $");
 
 /*
  * string expansion
@@ -396,7 +396,7 @@ expand(
 				int slen = 0;
 
 				/* skip variable */
-				sp = cstrchr(sp, '\0') + 1;
+				sp = strnul(sp) + 1;
 				type = varsub(&x, varname, sp, &stype, &slen);
 				if (type < 0) {
 					char *beg, *end, *str;
@@ -404,8 +404,8 @@ expand(
 					/* restore sp */
 					sp = varname - 2;
 					beg = wdcopy(sp, ATEMP);
-					end = (wdscan(cstrchr(sp, '\0') + 1,
-					    CSUBST) - sp) + beg;
+					end = (wdscan(strnul(sp) + 1, CSUBST) -
+					    sp) + beg;
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
