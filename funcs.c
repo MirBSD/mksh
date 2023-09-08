@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.412 2023/03/14 15:09:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.413 2023/09/08 03:10:39 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -182,9 +182,9 @@ const struct t_op u_ops[] = {
 	{"-z",	TO_STZER },
 	{"",	TO_NONOP }
 };
-mbiCTAS(funcs_c) {
+mbiCTAS_BEG(funcs_c);
 	mbiCTA(u_ops_size, NELEM(u_ops) == 26);
-};
+mbiCTAS_END(funcs_c);
 const struct t_op b_ops[] = {
 	{"=",	TO_STEQL },
 	{"==",	TO_STEQL },

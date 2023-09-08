@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.841 2023/08/23 17:12:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.842 2023/09/08 03:10:38 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2640,9 +2640,10 @@ ac_test intconstexpr_rsize_max '' 'whether RSIZE_MAX is an integer constant expr
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int tstarr[((int)(RSIZE_MAX) & 1) + 1] = {0};
-	mbiCTAS(conftest_c) { mbiCTA(rsizemax_check,
+	mbiCTAS_BEG(conftest_c);
+	 mbiCTA(rsizemax_check,
 	    ((mbiHUGE_U)(RSIZE_MAX) == (mbiHUGE_U)(size_t)(RSIZE_MAX)));
-	};
+	mbiCTAS_END(conftest_c);
 	int main(void) { return (isatty(0)); }
 EOF
 
@@ -2667,12 +2668,12 @@ if test $legacy = 1; then
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS(conftest) {
+		mbiCTAS_BEG(conftest);
 			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
 			mbiCTA(long_is_4_chars, sizeof(long) == 4);
 			mbiCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
 			mbiCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
-		};
+		mbiCTAS_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
@@ -2682,12 +2683,12 @@ EOF
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS(conftest) {
+		mbiCTAS_BEG(conftest);
 			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
 			mbiCTA(long_is_8_chars, sizeof(long) == 8);
 			mbiCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
 			mbiCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
-		};
+		mbiCTAS_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 

@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.433 2023/08/23 16:27:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.434 2023/09/08 03:10:40 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -115,7 +115,7 @@ static size_t getwd_bufsz = 448U;
 static char *getwd_bufp = NULL;
 
 /* many compile-time assertions */
-mbiCTAS(main_c) {
+mbiCTAS_BEG(main_c);
 
 /* require char to be 8 bit long */
 mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
@@ -158,7 +158,7 @@ mbiCTA(ari_size_no_matter_of_signedness,
 /* our formatting routines assume this */
 mbiCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 
-};
+mbiCTAS_END(main_c);
 /* end of compile-time asserts */
 
 static void
