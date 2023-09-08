@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1019 2023/08/28 19:36:01 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1020 2023/09/08 05:10:29 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -1446,8 +1446,8 @@ struct temp {
 	/* pid of process parsed here-doc */
 	pid_t pid;
 	Temp_type type;
-	/* actually longer: name (variable length) */
-	char tffn[3];
+	/* name */
+	mbi__FAM(char, tffn);
 };
 
 /*
@@ -1928,8 +1928,7 @@ struct tbl {
 	/* flags (see below) */
 	kui flag;
 
-	/* actually longer: name (variable length) */
-	char name[4];
+	mbi__FAM(char, name);
 };
 
 EXTERN struct tbl *vtemp;

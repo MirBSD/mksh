@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.45 2023/09/08 03:10:43 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.46 2023/09/08 05:10:31 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -47,9 +47,11 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4127 4146 4296)
+#define mbsdint__Ws(d)	__pragma(warning(suppress: d))
 #define mbsdint__Wd(d)	__pragma(warning(push)) __pragma(warning(disable: d))
 #define mbsdint__Wpop	__pragma(warning(pop))
 #else
+#define mbsdint__Ws(d)
 #define mbsdint__Wd(d)
 #define mbsdint__Wpop
 #endif
@@ -120,7 +122,25 @@
 #define ssize_t			SSIZE_T
 #endif
 
-/* helper macros */
+/* helper macros (public) */
+/* flexible array member (use with offsetof, NOT C99-style sizeof!) */
+#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L)) || \
+    defined(__cpp_flexible_array_members)
+#define mbi__FAM(type,name)	type name[]
+#elif defined(__GNUC__) || defined(__cplusplus)
+#define mbi__FAM(type,name)	type name[0]
+#else
+#define mbi__FAM(type,name)	type name[1] /* SOL */ mbsdint__Ws(4820)
+#endif
+/* field sizeof */
+#ifdef __cplusplus
+#define mbi__FSZ(struc,memb)	(sizeof((struc){}.memb))
+#elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
+#define mbi__FSZ(struc,memb)	(sizeof(((struc){0}).memb))
+#else
+#define mbi__FSZ(struc,memb)	(sizeof(((struc *)0)->memb))
+#endif
+/* stringification with expansion */
 #define mbi__S(x)		#x
 
 /* compile-time assertions */
