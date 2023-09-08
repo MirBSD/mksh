@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.46 2023/09/08 05:10:31 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.47 2023/09/08 05:44:53 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -151,7 +151,7 @@
 #elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 201112L))
 #define mbiCTAS__PFX		_Static_assert
 #elif defined(__GNUC__) && ((__GNUC__ > 4) || \
-    (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)) && !defined(__cplusplus)
 #define mbiCTAS__PFX		__extension__ _Static_assert
 #endif
 #ifdef mbiCTAS__PFX
