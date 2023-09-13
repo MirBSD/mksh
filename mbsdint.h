@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.47 2023/09/08 05:44:53 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.48 2023/09/13 00:53:16 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -128,14 +128,12 @@
     defined(__cpp_flexible_array_members)
 #define mbi__FAM(type,name)	type name[]
 #elif defined(__GNUC__) || defined(__cplusplus)
-#define mbi__FAM(type,name)	type name[0]
+#define mbi__FAM(type,name)	type name[0] mbsdint__Ws(4200 4820)
 #else
 #define mbi__FAM(type,name)	type name[1] /* SOL */ mbsdint__Ws(4820)
 #endif
 /* field sizeof */
-#ifdef __cplusplus
-#define mbi__FSZ(struc,memb)	(sizeof((struc){}.memb))
-#elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
+#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
 #define mbi__FSZ(struc,memb)	(sizeof(((struc){0}).memb))
 #else
 #define mbi__FSZ(struc,memb)	(sizeof(((struc *)0)->memb))
