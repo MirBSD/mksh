@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.48 2023/09/13 00:53:16 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.49 2023/09/13 01:01:38 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -156,7 +156,7 @@
 /* nothing, but syntax-check equally to manual compile-time assert macro */
 #define mbiCTAS_BEG(name)	struct ctassert_ ## name { int dummy:2; }
 #define mbiCTAS_END(name)	struct ctassert2 ## name { int dummy:2; }
-#ifdef MBSDINT_H_SMALL_SYSTEM
+#ifndef MBSDINT_H_LARGE_ASSERTION_STRINGS
 #define mbi_CTA(fldn,cond)	mbiCTAS__PFX(cond, mbi__S(fldn))
 #else
 #define mbi_CTA(fldn,cond)	mbiCTAS__PFX(cond, mbi__S(fldn) " " mbi__S(cond))
