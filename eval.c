@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.260 2023/08/28 19:36:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.261 2023/09/16 23:07:44 tg Exp $");
 
 /*
  * string expansion
@@ -371,16 +371,17 @@ expand(
 					}
 					*dp++ = ')'; *dp++ = ')';
 				} else {
-					struct tbl v;
+					union tbl_static v;
 
-					v.flag = DEFINED|ISSET|INTEGER;
+					v.tbl.flag = DEFINED|ISSET|INTEGER;
 					/* not default */
-					v.type = 10;
-					v.name[0] = '\0';
-					v_evaluate(&v, substitute(sp, 0),
+					v.tbl.type = 10;
+					v.tbl.name[0] = '\0';
+					v_evaluate((struct tbl *)&v,
+					    substitute(sp, 0),
 					    KSH_UNWIND_ERROR, Ja);
 					sp = strnul(sp) + 1;
-					x.str = str_val(&v);
+					x.str = str_val((struct tbl *)&v);
 					type = XSUB;
 					if (f & DOBLANK)
 						doblank++;

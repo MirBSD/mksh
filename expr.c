@@ -25,7 +25,7 @@
 #define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.123 2022/09/28 17:21:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.124 2023/09/16 23:07:45 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -106,13 +106,13 @@ static struct tbl *intvar(Expr_state *, struct tbl *);
 int
 evaluate(const char *expr, mksh_ari_t *rval, int error_ok, Wahr arith)
 {
-	struct tbl v;
+	union tbl_static v;
 	int ret;
 
-	v.flag = DEFINED | INTEGER;
-	v.type = 0;
-	ret = v_evaluate(&v, expr, error_ok, arith);
-	*rval = v.val.i;
+	v.tbl.flag = DEFINED | INTEGER;
+	v.tbl.type = 0;
+	ret = v_evaluate((struct tbl *)&v, expr, error_ok, arith);
+	*rval = v.tbl.val.i;
 	return (ret);
 }
 

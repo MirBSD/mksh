@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1020 2023/09/08 05:10:29 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1021 2023/09/16 23:07:46 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -251,7 +251,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2023/08/23"
+#define MKSH_VERSION "R59 2023/09/16"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -1929,6 +1929,15 @@ struct tbl {
 	kui flag;
 
 	mbi__FAM(char, name);
+};
+
+union tbl_static {
+	struct tbl tbl;
+#ifdef MKSH_BROKEN_OFFSETOF
+	char storage[sizeof(struct tbl) + /* wasteful */ 4];
+#else
+	char storage[offsetof(struct tbl, name[0]) + 4];
+#endif
 };
 
 EXTERN struct tbl *vtemp;
