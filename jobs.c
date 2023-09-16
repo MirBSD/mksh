@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.158 2023/08/22 20:28:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.159 2023/09/16 23:06:42 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -39,33 +39,33 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.158 2023/08/22 20:28:08 tg Exp $");
 #define PSIGNALLED	2
 #define PSTOPPED	3
 
-#define PROC_TGTSZ	256
+#define PROC_TGTSZ	256U
 
 typedef struct proc Proc;
+#ifdef MKSH_BROKEN_OFFSETOF
+/* assumes no padding; check manually! */
+#define PROC_OFS (sizeof(Proc *) + 2U * sizeof(int) + sizeof(pid_t))
+#else
+#define PROC_OFS (offsetof(struct proc_dummy, command[0]))
 /* to take alignment into consideration */
 struct proc_dummy {
 	Proc *next;
-	pid_t pid;
 	int state;
 	int status;
-	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 32)];
+	pid_t pid;
+	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 14U)];
 };
-#ifdef MKSH_BROKEN_OFFSETOF
-/* assumes no padding; check manually! */
-#define PROC_OFS (sizeof(Proc *) + sizeof(pid_t) + 2 * sizeof(int))
-#else
-#define PROC_OFS (offsetof(struct proc_dummy, command[0]))
 #endif
 /* real structure */
 struct proc {
 	/* next process in pipeline (if any) */
 	Proc *next;
-	/* process id of this Unix process in the job */
-	pid_t pid;
 	/* one of the four P… above */
 	int state;
 	/* wait status */
 	int status;
+	/* process ID of this Unix process in the job */
+	pid_t pid;
 	/* process command string from vistree */
 	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + PROC_OFS)];
 };
