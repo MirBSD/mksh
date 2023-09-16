@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.912 2023/08/23 17:12:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.913 2023/09/16 22:45:12 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/08/23
+	KSH R59 2023/09/16
 description:
 	Check base version of full shell
 stdin:
@@ -10629,6 +10629,18 @@ stdin:
 	echo 1 $? .
 expected-stdout:
 	1 0 .
+---
+name: dot-args
+description:
+	Ensure dot can take arguments
+file-setup: file 644 "t"
+	print -r -- "$#,${1-},${2-},${3-}"
+stdin:
+	"$__progname" -c '. ./t a b'
+	"$__progname" -c 'source t c d'
+expected-stdout:
+	2,a,b,
+	2,c,d,
 ---
 name: alias-function-no-conflict
 description:

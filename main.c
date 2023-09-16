@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.434 2023/09/08 03:10:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.435 2023/09/16 22:45:14 tg Exp $");
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -853,7 +853,7 @@ include(const char *name, const char **argv, Wahr intr_ok)
 	if (argv) {
 		e->loc->argv = argv;
 		e->loc->argc = 0;
-		while (argv[e->loc->argc])
+		while (argv[e->loc->argc + 1])
 			++e->loc->argc;
 	}
 	s = pushs(SFILE, ATEMP);
