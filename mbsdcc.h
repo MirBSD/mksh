@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.3 2023/09/17 01:54:04 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.4 2023/09/17 02:00:47 tg Exp $"
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <stddef.h>
@@ -80,8 +80,8 @@
 #define mbccCTA(fldn,cond)	__extension__ _Static_assert(cond, mbccS(fldn))
 #endif
 #ifndef mbccCTA
-/* single assertion for macros (prefix fldn suitably and parenthesise cond) */
-#define mbccCTA(fldn,cond)	unsigned int fldn:(cond ? 1 : -1)
+/* single assertion for macros (needs fldn prefixed, cond parenthesised) */
+#define mbccCTA(fldn,cond)	unsigned char fldn:(cond ? 1 : -1)
 /* begin/end assertion block */
 #define mbCTA_BEG(name)		struct ctassert_ ## name {		\
 					char ctabeg /* plus user semicolon */
