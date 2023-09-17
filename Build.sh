@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.842 2023/09/08 03:10:38 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.843 2023/09/17 00:44:31 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2120,6 +2120,7 @@ ac_testn mbi_ctas '' 'if integer types are sane enough' <<-'EOF'
 	#include <limits.h>
 	#include <stddef.h>
 	#undef MBSDINT_H_SKIP_CTAS
+	#include "mbsdcc.h"
 	#include "mbsdint.h"
 	#include <unistd.h>
 	int main(void) { return (isatty(0)); }
@@ -2191,6 +2192,7 @@ else
 		#define MKSH_DO_MBI_CTAS
 		#include "sh.h"
 		__RCSID("$srcversion");
+		__IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 		__IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 		__IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 		int main(void) {
@@ -2640,10 +2642,10 @@ ac_test intconstexpr_rsize_max '' 'whether RSIZE_MAX is an integer constant expr
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int tstarr[((int)(RSIZE_MAX) & 1) + 1] = {0};
-	mbiCTAS_BEG(conftest_c);
-	 mbiCTA(rsizemax_check,
+	mbCTA_BEG(conftest_c);
+	 mbCTA(rsizemax_check,
 	    ((mbiHUGE_U)(RSIZE_MAX) == (mbiHUGE_U)(size_t)(RSIZE_MAX)));
-	mbiCTAS_END(conftest_c);
+	mbCTA_END(conftest_c);
 	int main(void) { return (isatty(0)); }
 EOF
 
@@ -2668,12 +2670,12 @@ if test $legacy = 1; then
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS_BEG(conftest);
-			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
-			mbiCTA(long_is_4_chars, sizeof(long) == 4);
-			mbiCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
-			mbiCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
-		mbiCTAS_END(conftest);
+		mbCTA_BEG(conftest);
+			mbCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbCTA(long_is_4_chars, sizeof(long) == 4);
+			mbCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
+			mbCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
+		mbCTA_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
@@ -2683,12 +2685,12 @@ EOF
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS_BEG(conftest);
-			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
-			mbiCTA(long_is_8_chars, sizeof(long) == 8);
-			mbiCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
-			mbiCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
-		mbiCTAS_END(conftest);
+		mbCTA_BEG(conftest);
+			mbCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbCTA(long_is_8_chars, sizeof(long) == 8);
+			mbCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
+			mbCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
+		mbCTA_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
@@ -2997,7 +2999,7 @@ echo tcfn=$buildoutput >>Rebuild.sh
 echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h exprtok.h mbsdint.h mirhash.h mksh.faq rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
+	extras='emacsfn.h exprtok.h mbsdcc.h mbsdint.h mirhash.h mksh.faq rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
 	test 0 = $HAVE_SOME_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do

@@ -28,7 +28,8 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.435 2023/09/16 22:45:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.436 2023/09/17 00:44:34 tg Exp $");
+__IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -115,50 +116,50 @@ static size_t getwd_bufsz = 448U;
 static char *getwd_bufp = NULL;
 
 /* many compile-time assertions */
-mbiCTAS_BEG(main_c);
+mbCTA_BEG(main_c);
 
-/* require char to be 8 bit long */
-mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
+ /* require char to be 8 bit long */
+ mbCTA(char_8bit, (CHAR_BIT) == 8 &&
     (((unsigned int)(unsigned char)255U) == 255U) &&
     (((unsigned int)(unsigned char)256U) == 0U) &&
     mbiTYPE_UBITS(unsigned char) == 8U &&
     mbiMASK_BITS(SCHAR_MAX) == 7U);
 
-/* the next assertion is probably not really needed */
-mbiCTA(short_is_2_char, sizeof(short) == 2);
-/* the next assertion is probably not really needed */
-mbiCTA(int_is_4_char, sizeof(int) == 4);
+ /* the next assertion is probably not really needed */
+ mbCTA(short_is_2_char, sizeof(short) == 2);
+ /* the next assertion is probably not really needed */
+ mbCTA(int_is_4_char, sizeof(int) == 4);
 
 #ifndef MKSH_LEGACY_MODE
-mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
-mbiCTA_TYPE_MBIT(uari, mksh_uari_t);
-mbiCTA(basic_int32_smask, mbiMASK_CHK(INT32_MAX));
-mbiCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
-mbiCTA(basic_int32_ari,
+ mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
+ mbiCTA_TYPE_MBIT(uari, mksh_uari_t);
+ mbCTA(basic_int32_smask, mbiMASK_CHK(INT32_MAX));
+ mbCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
+ mbCTA(basic_int32_ari,
     mbiTYPE_UMAX(mksh_uari_t) == (UINT32_MAX) &&
     /* require two’s complement */
     ((INT32_MIN)+1 == -(INT32_MAX)));
-/* the next assertion is probably not really needed */
-mbiCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
-/* but this is */
-mbiCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
-/* the next assertion is probably not really needed */
-mbiCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
-mbiCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
+ /* the next assertion is probably not really needed */
+ mbCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
+ /* but this is */
+ mbCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
+ /* the next assertion is probably not really needed */
+ mbCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
+ mbCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
 #else
-mbiCTA(long_complement, (LONG_MIN)+1 == -(LONG_MAX));
+ mbCTA(long_complement, (LONG_MIN)+1 == -(LONG_MAX));
 #endif
-/* these are always required */
-mbiCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
-mbiCTA(uari_is_unsigned, mbiTYPE_ISU(mksh_uari_t));
-/* we require these to have the precisely same size and assume 2s complement */
-mbiCTA(ari_size_no_matter_of_signedness,
+ /* these are always required */
+ mbCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
+ mbCTA(uari_is_unsigned, mbiTYPE_ISU(mksh_uari_t));
+ /* we require these to have the precisely same size and assume 2s complement */
+ mbCTA(ari_size_no_matter_of_signedness,
     sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
-/* our formatting routines assume this */
-mbiCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
+ /* our formatting routines assume this */
+ mbCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 
-mbiCTAS_END(main_c);
+mbCTA_END(main_c);
 /* end of compile-time asserts */
 
 static void
