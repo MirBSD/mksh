@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.19 2023/01/08 21:06:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.20 2023/09/17 01:54:05 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -519,7 +519,7 @@ add_temp(const char *name)
 	size_t len;
 
 	len = strlen(name) + 1;
-	tp = alloc1(offsetof(struct temp, tffn[0]), len, APERM);
+	tp = alloc1(offsetof(struct temp, tffn), len, APERM);
 	memcpy(tp->tffn, name, len);
 	tp->next = templist;
 	templist = tp;

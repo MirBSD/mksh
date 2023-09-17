@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.2 2023/09/17 00:47:51 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.3 2023/09/17 01:54:04 tg Exp $"
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <stddef.h>
@@ -54,7 +54,7 @@
  *	int size;
  *	mbccFAM(char, label);	// like char label[…];
  * };
- * struct s *sp = malloc(offsetof(struct s, label[0]) + labellen);
+ * struct s *sp = malloc(offsetof(struct s, label) + labellen);
  */
 
 /* field sizeof */

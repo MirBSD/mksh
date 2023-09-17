@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.843 2023/09/17 00:44:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.844 2023/09/17 01:54:01 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1160,7 +1160,6 @@ scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	cpp_define MKSH__NO_SETEUGID 1
 	: "${HAVE_SETRESUGID=0}"
-	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	cpp_define MKSH_UNEMPLOYED 1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}${HAVE_TERMIOS_H=0}"
@@ -1226,7 +1225,6 @@ XENIX)
 	cpp_define _setjmp setjmp
 	cpp_define _longjmp longjmp
 	cpp_define USE_REALLOC_MALLOC 0
-	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	# per http://www.polarhome.com/service/man/?qf=signal&of=Xenix
 	cpp_define MKSH_USABLE_SIGNALFUNC signal

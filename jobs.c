@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.159 2023/09/16 23:06:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.160 2023/09/17 01:54:03 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -42,11 +42,6 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.159 2023/09/16 23:06:42 tg Exp $");
 #define PROC_TGTSZ	256U
 
 typedef struct proc Proc;
-#ifdef MKSH_BROKEN_OFFSETOF
-/* assumes no padding; check manually! */
-#define PROC_OFS (sizeof(Proc *) + 2U * sizeof(int) + sizeof(pid_t))
-#else
-#define PROC_OFS (offsetof(struct proc_dummy, command[0]))
 /* to take alignment into consideration */
 struct proc_dummy {
 	Proc *next;
@@ -55,7 +50,7 @@ struct proc_dummy {
 	pid_t pid;
 	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 14U)];
 };
-#endif
+#define PROC_OFS (offsetof(struct proc_dummy, command))
 /* real structure */
 struct proc {
 	/* next process in pipeline (if any) */
@@ -1288,10 +1283,10 @@ j_waitj(Job *j,
 		goto got_array;
 
 		while (p != NULL) {
-			vt = alloc(offsetof(struct tbl, name[0]) +
+			vt = alloc(offsetof(struct tbl, name) +
 			    sizeof(Tpipest), vp_pipest->areap);
-			memset(vt, 0, offsetof(struct tbl, name[0]));
-			memcpy(vt + offsetof(struct tbl, name[0]),
+			memset(vt, 0, offsetof(struct tbl, name));
+			memcpy(vt + offsetof(struct tbl, name),
 			    Tpipest, sizeof(Tpipest));
 			vp->u.array = (void *)vt;
 			vp = (void *)vt;

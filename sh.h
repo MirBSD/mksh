@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1022 2023/09/17 00:44:36 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1023 2023/09/17 01:54:05 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -1934,11 +1934,7 @@ struct tbl {
 
 union tbl_static {
 	struct tbl tbl;
-#ifdef MKSH_BROKEN_OFFSETOF
-	char storage[sizeof(struct tbl) + /* wasteful */ 4];
-#else
-	char storage[offsetof(struct tbl, name[0]) + 4];
-#endif
+	char storage[offsetof(struct tbl, name) + 4];
 };
 
 EXTERN struct tbl *vtemp;

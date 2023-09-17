@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.358 2023/09/17 00:44:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.359 2023/09/17 01:54:04 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -90,7 +90,7 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 mbCTA_BEG(sh_flags_gen);
 #define FN(sname,cname,flags,ochar) mbccCTA(o_ ## cname, ( \
 	offsetof(struct shoptionS_ ## cname, optflags) == 1 && \
-	offsetof(struct shoptionS_ ## cname, name[0]) == 2));
+	offsetof(struct shoptionS_ ## cname, name) == 2));
 #include "sh_flags.gen"
 mbCTA_END(sh_flags_gen);
 

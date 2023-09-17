@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.436 2023/09/17 00:44:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.437 2023/09/17 01:54:03 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -302,7 +302,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	/* initialise permanent Area */
 	ainit(&aperm);
 	/* max. name length: -2147483648 = 11 (+ NUL) */
-	vtemp = alloc(offsetof(struct tbl, name[0]) + 12U, APERM);
+	vtemp = alloc(offsetof(struct tbl, name) + 12U, APERM);
 #if !HAVE_GET_CURRENT_DIR_NAME
 	getwd_bufp = alloc(getwd_bufsz + 1U, APERM);
 	getwd_bufp[getwd_bufsz] = '\0';
@@ -1643,14 +1643,14 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
 	/* add "/shXXXXXX.tmp" plus NUL */
 	len = strlen(dir);
-	cp = alloc1(offsetof(struct temp, tffn[0]) + 14U, len, ap);
+	cp = alloc1(offsetof(struct temp, tffn) + 14U, len, ap);
 
 	tp = (void *)cp;
 	tp->shf = NULL;
 	tp->pid = procpid;
 	tp->type = type;
 
-	cp += offsetof(struct temp, tffn[0]);
+	cp += offsetof(struct temp, tffn);
 	memcpy(cp, dir, len);
 	cp += len;
 	memstr(cp, "/shXXXXXX.tmp");
@@ -1814,7 +1814,7 @@ ktenter(struct table *tp, const char *n, k32 h)
 
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = alloc1(offsetof(struct tbl, name[0]), len, tp->areap);
+	p = alloc1(offsetof(struct tbl, name), len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
