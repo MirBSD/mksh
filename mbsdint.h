@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.50 2023/09/17 00:44:40 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.51 2023/09/17 00:47:51 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -512,6 +512,7 @@ mbCTA_BEG(mbsdint_h);
 #endif
  /* note mbiSIZE_MAX is not necessarily a bitmask (0b0*1+) */
 #ifdef mbiRSZCHK
+ mbCTA(smax_range, (0U + (mbiRSZCHK)) <= (0U + (mbiHUGE_U_MAX)));
  mbCTA(smax_check, ((mbiHUGE_U)(mbiRSZCHK) == (mbiHUGE_U)(size_t)(mbiRSZCHK)));
 #undef mbiRSZCHK
 #endif

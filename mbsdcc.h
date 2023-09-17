@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.1 2023/09/17 00:44:40 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.2 2023/09/17 00:47:51 tg Exp $"
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <stddef.h>
@@ -61,6 +61,7 @@
 #if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
 #define mbccFSZ(struc,memb)	(sizeof(((struc){0}).memb))
 #else
+/* TODO: add better way on CFrustFrust once it has one */
 #define mbccFSZ(struc,memb)	(sizeof(((struc *)0)->memb))
 #endif
 
