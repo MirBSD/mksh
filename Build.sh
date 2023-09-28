@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.844 2023/09/17 01:54:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.845 2023/09/28 02:30:34 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -616,7 +616,7 @@ ebcdic=false
 for i
 do
 	case $last:$i in
-	c:dragonegg|c:llvm)
+	c:dragonegg|c:llvm|c:trace)
 		cm=$i
 		last=
 		;;
@@ -1592,6 +1592,15 @@ case $cm in
 dragonegg|llvm)
 	vv '|' "llc -version"
 	;;
+trace)
+	case $ct in
+	gcc) ;;
+	*)
+		echo >&2 "E: -c trace does not work with $cm"
+		exit 1
+		;;
+	esac
+	;;
 esac
 etd=" on $et"
 # still imake style but… can’t be helped
@@ -2222,6 +2231,12 @@ EOF
 		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -c conftest.c" || fv=0
 		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
 		;;
+	trace)
+		rm -f conftest.d conftest.o
+		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -MD -c conftest.c" || fv=0
+		test -f conftest.d && test -s conftest.d || fv=0
+		test -f conftest.o && test -s conftest.o || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn conftest.o $LIBS -Wl,-t,-t $ccpr"
 	esac
 	test -f $tcfn || fv=0
 	ac_testdone
@@ -3072,6 +3087,10 @@ for file in $optfiles; do
 	$e "+ Running genopt on '$file'..."
 	do_genopt "$srcdir/$file" || exit 1
 done
+if test $cm = trace; then
+	emitbc='-MD -c'
+	rm -f *.d
+fi
 if test $cm = combine; then
 	objs="-o $buildoutput"
 	for file in $SRCS; do
@@ -3105,11 +3124,92 @@ dragonegg|llvm)
 	;;
 esac
 tcfn=$buildoutput
-test $cm = combine || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+case $cm in
+combine)
+	;;
+trace)
+	rm -f $tfn.*.t
+	v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS -Wl,-t,-t >$tfn.l.t $ccpr"
+	;;
+*)
+	v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+	;;
+esac
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rmf mksh.cat1
 test 1 = $r || v "(set -- ''; . '$srcdir/FAQ2HTML.sh')" || rmf FAQ.htm
+if test $cm = trace; then
+	echo >&2 "I: tracing compilation, linking and binding inputs"
+    (
+	if test -n "$KSH_VERSION"; then
+		Xe='print -r --'
+	elif test -n "$BASH_VERSION"; then
+		Xe='printf "%s\\n"'
+	else
+		Xe=echo
+	fi
+	Xgrep() {
+		set +e
+		grep "$@"
+		XgrepRV=$?
+		set -e
+		test $XgrepRV -lt 2
+	}
+	set -e
+	tsrc=$(readlink -f "$srcdir")
+	tdst=$(readlink -f .)
+
+	cat *.d >$tfn.c1.t
+	set -o noglob
+	while read dst src; do
+		for f in $src; do
+			$Xe "$f"
+		done
+	done <$tfn.c1.t >$tfn.c2.t
+	set +o noglob
+	sort -u <$tfn.c2.t >$tfn.c3.t
+	while IFS= read -r name; do
+		r=$(readlink -f "$name")
+		case $r in #((
+		"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+		"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+		esac
+		$Xe "$r"
+	done <$tfn.c3.t >$tfn.c4.t
+	sort -u <$tfn.c4.t >$tfn.cz.t
+
+	sort -u <$tfn.l.t >$tfn.l1.t
+	sed -n '/^(/s///p' <$tfn.l1.t >$tfn.l2l.t #)
+	Xgrep -v '^(' <$tfn.l1.t >$tfn.l2.t
+	b=
+	while IFS=')' read -r lib memb; do
+		test x"$lib" = x"$b" || {
+			Xgrep -F -v -x "$lib" <$tfn.l2.t >$tfn.l2a.t
+			mv $tfn.l2a.t $tfn.l2.t
+			b=$lib
+			r=$(readlink -f "$lib")
+			case $r in #((
+			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+			esac
+		}
+		$Xe "$r($memb)"
+	done <$tfn.l2l.t >$tfn.l3.t
+	while IFS= read -r name; do
+		r=$(readlink -f "$name")
+		case $r in #((
+		"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+		"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+		esac
+		$Xe "$r"
+	done <$tfn.l2.t >>$tfn.l3.t
+	sort -u <$tfn.l3.t >$tfn.lz.t
+	cat $tfn.cz.t $tfn.lz.t >$tfn.trace
+	rm $tfn.*.t
+    )
+	test 0 = $eq && sed 's/^/- /' <$tfn.trace
+fi
 test 0 = $eq && v $SIZE $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
