@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.845 2023/09/28 02:30:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.846 2023/09/28 04:08:00 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3159,6 +3159,23 @@ if test $cm = trace; then
 	set -e
 	tsrc=$(readlink -f "$srcdir")
 	tdst=$(readlink -f .)
+	if test ${#tsrc} -lt ${#tdst}; then
+		mkr() {
+			r=$(readlink -f "$1")
+			case $r in #((
+			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+			esac
+		}
+	else
+		mkr() {
+			r=$(readlink -f "$1")
+			case $r in #((
+			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+			esac
+		}
+	fi
 
 	cat *.d >$tfn.c1.t
 	set -o noglob
@@ -3170,11 +3187,7 @@ if test $cm = trace; then
 	set +o noglob
 	sort -u <$tfn.c2.t >$tfn.c3.t
 	while IFS= read -r name; do
-		r=$(readlink -f "$name")
-		case $r in #((
-		"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
-		"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
-		esac
+		mkr "$name"
 		$Xe "$r"
 	done <$tfn.c3.t >$tfn.c4.t
 	sort -u <$tfn.c4.t >$tfn.cz.t
@@ -3188,20 +3201,12 @@ if test $cm = trace; then
 			Xgrep -F -v -x "$lib" <$tfn.l2.t >$tfn.l2a.t
 			mv $tfn.l2a.t $tfn.l2.t
 			b=$lib
-			r=$(readlink -f "$lib")
-			case $r in #((
-			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
-			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
-			esac
+			mkr "$lib"
 		}
 		$Xe "$r($memb)"
 	done <$tfn.l2l.t >$tfn.l3.t
 	while IFS= read -r name; do
-		r=$(readlink -f "$name")
-		case $r in #((
-		"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
-		"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
-		esac
+		mkr "$name"
 		$Xe "$r"
 	done <$tfn.l2.t >>$tfn.l3.t
 	sort -u <$tfn.l3.t >$tfn.lz.t
