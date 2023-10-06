@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1023 2023/09/17 01:54:05 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1024 2023/10/06 21:56:50 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -174,13 +174,6 @@
 /* monkey-patch nil pointer constant */
 #undef NULL
 #define NULL mbnil
-
-/* monkey-patch known-bad offsetof versions to quell a warning */
-#if (defined(__KLIBC__) || defined(__dietlibc__)) && \
-    ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
-#undef offsetof
-#define offsetof(s,e)		__builtin_offsetof(s, e)
-#endif
 
 /* conflict with GCC attributes; fixed in later dietlibcs */
 #ifdef __dietlibc__
@@ -1448,7 +1441,7 @@ struct temp {
 	pid_t pid;
 	Temp_type type;
 	/* name */
-	mbccFAM(char, tffn);
+	mbccFAMslot(char, tffn);
 };
 
 /*
@@ -1929,12 +1922,12 @@ struct tbl {
 	/* flags (see below) */
 	kui flag;
 
-	mbccFAM(char, name);
+	mbccFAMslot(char, name);
 };
 
 union tbl_static {
 	struct tbl tbl;
-	char storage[offsetof(struct tbl, name) + 4];
+	char storage[mbccFAMSZ(struct tbl, name, 4)];
 };
 
 EXTERN struct tbl *vtemp;
@@ -2537,6 +2530,9 @@ EXTERN struct timeval j_usrtime, j_systime;
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
 		    Tintovfl, (size_t)(val), '+', (size_t)(cnst));	\
 } while (/* CONSTCOND */ 0)
+#undef mbccABEND
+#define mbccABEND(reason)	kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | \
+				    KWF_ONEMSG | KWF_NOERRNO, (reason))
 
 /* lalloc.c */
 void ainit(Area *);

@@ -5,12 +5,46 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.4 2023/09/17 02:00:47 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.5 2023/10/06 21:56:46 tg Exp $"
+
+/*
+ * Note: this header uses the SIZE_MAX (or similar) definitions
+ * from <basetsd.h> or <limits.h> if present, so either include
+ * these before this header or include "mbsdint.h", which fixes
+ * up the corresponding definition.
+ *
+ * Furthermore, either include <stdlib.h> for abort(3), or pro‐
+ * vide an mbccABEND macro (preferred).
+ */
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <stddef.h>
 #else
 #include <sys/stddef.h>
+#endif
+
+/* mbccABEND should be provided by the user, called by mbsd*.h only */
+#ifndef mbccABEND
+#define mbccABEND(reasonstr) abort()
+#endif
+
+/* monkey-patch known-bad offsetof versions */
+#if (defined(__KLIBC__) || defined(__dietlibc__)) && \
+    ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
+#undef offsetof
+#define offsetof(struc,memb)	__builtin_offsetof(struc, memb)
+#endif
+
+/* mbsdint.h replaces this with mbiSIZE_MAX */
+#undef mbccSIZE_MAX
+#if defined(SIZE_MAX)
+#define mbccSIZE_MAX		((size_t)(SIZE_MAX)
+#elif defined(SIZE_T_MAX)
+#define mbccSIZE_MAX		((size_t)(SIZE_T_MAX)
+#elif defined(MAXSIZE_T)
+#define mbccSIZE_MAX		((size_t)(MAXSIZE_T)
+#else
+#define mbccSIZE_MAX		((size_t)~(size_t)0)
 #endif
 
 #ifdef __cplusplus
@@ -39,22 +73,70 @@
 #define mbmscWpop
 #endif
 
-/* flexible array member (use with offsetof, NOT C99-style sizeof!) */
+/* in-expression compile-time check evaluating to 0 */
+#ifdef __cplusplus
+template<bool> struct mbccChkExpr_sa;
+template<> struct mbccChkExpr_sa<true>{};
+#define mbccChkExpr(test)	(sizeof((mbccChkExpr_sa<!!(test)>())) * 0)
+#else
+#define mbccChkExpr(test)	mbmscWs(4116) \
+				(sizeof(struct { int (mbccChkExpr):((test) ? 1 : -1); }) * 0)
+#endif
+
+/* ensure value x is a constant expression */
+#ifdef __cplusplus
+template<bool,bool> struct mbccCEX_sa;
+template<> struct mbccCEX_sa<true,false>{};
+template<> struct mbccCEX_sa<false,true>{};
+#define mbccCEX(x)		(sizeof((mbccCEX_sa<!!(0+(x)), !(0+(x))>())) * 0 + (x))
+#else
+#define mbccCEX(x)		mbmscWs(4116) \
+				(sizeof(struct { int (mbccCEX):(((0+(x)) && 1) + 1); }) * 0 + (x))
+#endif
+
+/* flexible array member */
 #if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L)) || \
     defined(__cpp_flexible_array_members)
-#define mbccFAM(type,name)	type name[]
+#define mbccFAMslot(type,memb)	type memb[]
 #elif defined(__GNUC__) || defined(__cplusplus)
-#define mbccFAM(type,name)	type name[0] mbmscWs(4200 4820)
+#define mbccFAMslot(type,memb)	type memb[0] mbmscWs(4200 4820)
 #else
-#define mbccFAM(type,name)	type name[1] mbmscWs(4820) /* SOL */
+#define mbccFAMslot(type,memb)	type memb[1] mbmscWs(4820) /* SOL */
 #endif
+#define mbccFAMsz_i(t,memb,sz)	/*private*/ (size_t)(offsetof(t, memb) + (size_t)sz)
+/* compile-time constant */
+#define mbccFAMSZ(struc,memb,sz) ((size_t)( \
+	    mbccChkExpr(mbccSIZE_MAX - sizeof(struc) > mbccCEX((size_t)(sz))) + \
+	    (mbccFAMsz_i(struc, memb, (sz)) > sizeof(struc) ? \
+	     mbccFAMsz_i(struc, memb, (sz)) : sizeof(struc))))
+/* run-time */
+#define mbccFAMsz(struc,memb,sz) ((size_t)( \
+	    !(mbccSIZE_MAX - sizeof(struc) > (size_t)(sz)) ? \
+	    (mbccABEND("mbccFAMsz: " mbccS(sz) " too large for " mbccS(struc) "." mbccS(memb)), 0) : \
+	    (mbccFAMsz_i(struc, memb, (sz)) > sizeof(struc) ? \
+	     mbccFAMsz_i(struc, memb, (sz)) : sizeof(struc))))
 /* example:
  *
  * struct s {
- *	int size;
- *	mbccFAM(char, label);	// like char label[…];
+ *	int type;
+ *	mbccFAMslot(char, label);	// like char label[…];
  * };
- * struct s *sp = malloc(offsetof(struct s, label) + labellen);
+ * struct t {
+ *	int count;
+ *	mbccFAMslot(time_t, value);
+ * };
+ * union fixed_s {
+ *	struct s s;
+ *	char storage[mbccFAMSZ(struct s, label, 28)];
+ * };
+ * struct s *sp = malloc(mbccFAMsz(struct s, label, strlen(labelvar) + 1U));
+ * struct t *tp = malloc(mbccFAMsz(struct t, value, sizeof(time_t[cnt])));
+ * tp->count = cnt;
+ * struct s *np = malloc(mbccFAMSZ(struct s, label, sizeof("myname")));
+ * memcpy(np->label, "myname", sizeof("myname"));
+ * static union fixed_s preallocated;
+ * preallocated.s.label[0] = '\0';
+ * somefunc((struct s *)&preallocated);
  */
 
 /* field sizeof */

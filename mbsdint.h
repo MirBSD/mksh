@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.51 2023/09/17 00:47:51 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.52 2023/10/06 21:56:47 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -194,6 +194,10 @@
 #define mbiRSZCHK	PTRDIFF_MAX
 #define mbiSIZE_MAX	((size_t)PTRDIFF_MAX)
 #endif
+
+/* update mbsdcc.h definition */
+#undef mbccSIZE_MAX
+#define mbccSIZE_MAX	mbiSIZE_MAX
 
 /* largest integer (need not fit a full wide pointer, e.g. on CHERI) */
 #if defined(INTMAX_MIN)

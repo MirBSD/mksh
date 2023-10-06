@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.160 2023/09/17 01:54:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.161 2023/10/06 21:56:49 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1283,8 +1283,8 @@ j_waitj(Job *j,
 		goto got_array;
 
 		while (p != NULL) {
-			vt = alloc(offsetof(struct tbl, name) +
-			    sizeof(Tpipest), vp_pipest->areap);
+			vt = alloc(mbccFAMSZ(struct tbl, name,
+			    sizeof(Tpipest)), vp_pipest->areap);
 			memset(vt, 0, offsetof(struct tbl, name));
 			memcpy(vt + offsetof(struct tbl, name),
 			    Tpipest, sizeof(Tpipest));

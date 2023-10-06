@@ -25,7 +25,7 @@
 #define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.125 2023/09/17 01:54:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.126 2023/10/06 21:56:48 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -650,7 +650,7 @@ tempvar(const char *vname)
 
 	/* vname is either "" or vtemp->name which maxes at 12 */
 	vsize = strlen(vname) + 1U;
-	vp = alloc(offsetof(struct tbl, name) + vsize, ATEMP);
+	vp = alloc(mbccFAMsz(struct tbl, name, vsize), ATEMP);
 	memcpy(vp->name, vname, vsize);
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;

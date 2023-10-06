@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.281 2023/09/17 01:54:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.282 2023/10/06 21:56:52 tg Exp $");
 
 /*-
  * Variables
@@ -1652,9 +1652,8 @@ arraysearch(struct tbl *vp, k32 idx)
 	} else
 		news = NULL;
 	if (!news) {
-		len = strlen(vp->name) + 1;
-		/* no need to checkoktoadd, it comes from a vp->name */
-		news = alloc(offsetof(struct tbl, name) + len, vp->areap);
+		len = strlen(vp->name) + 1U;
+		news = alloc(mbccFAMsz(struct tbl, name, len), vp->areap);
 		memcpy(news->name, vp->name, len);
 	}
 	news->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;
