@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.5 2023/10/06 21:56:46 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.6 2023/10/07 01:29:57 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -77,10 +77,10 @@
 #ifdef __cplusplus
 template<bool> struct mbccChkExpr_sa;
 template<> struct mbccChkExpr_sa<true>{};
-#define mbccChkExpr(test)	(sizeof((mbccChkExpr_sa<!!(test)>())) * 0)
+#define mbccChkExpr(test)	(sizeof((mbccChkExpr_sa<!!(0+(test))>())) * 0)
 #else
 #define mbccChkExpr(test)	mbmscWs(4116) \
-				(sizeof(struct { int (mbccChkExpr):((test) ? 1 : -1); }) * 0)
+				(sizeof(struct { int (mbccChkExpr):((0+(test)) ? 1 : -1); }) * 0)
 #endif
 
 /* ensure value x is a constant expression */
