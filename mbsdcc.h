@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.6 2023/10/07 01:29:57 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.7 2023/10/12 15:32:12 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -149,6 +149,7 @@ template<> struct mbccCEX_sa<false,true>{};
 
 /* stringification with expansion */
 #define mbccS(x)		#x
+#define mbccS2(x)		mbccS(x)
 
 /* compile-time assertions */
 #undef mbccCTA
