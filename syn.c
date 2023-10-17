@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.151 2023/08/16 13:53:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.152 2023/10/17 16:34:56 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -699,9 +699,10 @@ function_body(char *name, int sALIAS,
 	 * have allowed more; the following were never allowed:
 	 *	NUL TAB NL SP " $ & ' ( ) ; < = > \ ` |
 	 * C_QUOTE|C_SPC covers all but adds # * ? [ ]
+	 * CiQCM, as desired, adds / but also ^ (as collateral)
 	 */
 	for (p = sname; *p; p++)
-		if (ctype(*p, C_QUOTE | C_SPC))
+		if (ctype(*p, C_QUOTE | C_SPC | CiQCM))
 			yyerror(Tinvname, sname, Tfunction);
 
 	/*
