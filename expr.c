@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2016, 2017, 2018, 2019,
- *		 2021, 2022
+ *		 2021, 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 #define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.126 2023/10/06 21:56:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.127 2023/10/23 20:59:39 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -203,38 +203,41 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 		default:
 			s = opname[(int)es->tok];
 		}
-		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
-		    es->expression, Tunexpected, s);
+		kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+		    Tf_sD_s_qs, es->expression, Tunexpected, s);
 		break;
 
 	case ET_BADLIT:
 		if (!strcmp(es->expression, str))
-			kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG,
-			    es->expression, Tbadnum);
+			kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_TWOMSG, es->expression, Tbadnum);
 		else
-			kwarnf0(KWF_PREFIX | KWF_FILELINE, Tf_sD_s_qs,
-			    es->expression, Tbadnum, str);
+			kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE,
+			    Tf_sD_s_qs, es->expression, Tbadnum, str);
 		break;
 
 	case ET_RECURSIVE:
-		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
+		kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+		    Tf_sD_s_qs,
 		    es->expression, "expression recurses on parameter", str);
 		break;
 
 	case ET_LVALUE:
-		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_s,
+		kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+		    Tf_sD_s_s,
 		    es->expression, str, "requires lvalue");
 		break;
 
 	case ET_RDONLY:
-		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_s,
+		kwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+		    Tf_sD_s_s,
 		    es->expression, str, "applied to read-only variable");
 		break;
 
 	default: /* keep gcc happy */
 	case ET_STR:
-		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
-		    es->expression, str);
+		kwarnf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO |
+		    KWF_TWOMSG, es->expression, str);
 		break;
 	}
 	unwind(LAEXPR);
