@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.53 2023/12/05 08:31:49 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.54 2023/12/05 09:08:04 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -209,6 +209,7 @@
 #define mbiSIZE_U	unsigned long
 #define mbiSIZE_P(c)	"l" #c
 #endif
+#define mbiSIZE_PV(v)	((mbiSIZE_U)(v))
 #ifndef SSIZE_MAX
 #undef mbiSIZE_S
 #endif
