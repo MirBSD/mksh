@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.54 2023/12/05 09:08:04 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.55 2023/12/05 09:17:00 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -291,8 +291,8 @@
 #endif
 #if MBSDINT_H_MBIPTR_IS_SIZET || \
     (!defined(__CHERI__) && !defined(UINTPTR_MAX))
-#define mbiPTR_P(c)		"z" #c
-#define mbiPTR_PV(v)		((size_t)(v))
+#define mbiPTR_P		mbiSIZE_P
+#define mbiPTR_PV(v)		((mbiSIZE_U)(v))
 #elif MBSDINT_H_MBIPTR_IN_LARGE
 #define mbiPTR_P		mbiLARGE_P
 #define mbiPTR_PV(v)		((mbiLARGE_U)(v))
