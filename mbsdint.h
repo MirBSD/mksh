@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.52 2023/10/06 21:56:47 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.53 2023/12/05 08:31:49 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -193,6 +193,24 @@
 #else
 #define mbiRSZCHK	PTRDIFF_MAX
 #define mbiSIZE_MAX	((size_t)PTRDIFF_MAX)
+#endif
+/* size_t must fit %lu/%llu if there is no %zu support yet */
+#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L)) || \
+    (defined(__cplusplus) && ((__cplusplus) >= 201103L))
+#define mbiSIZE_S	ssize_t
+#define mbiSIZE_U	size_t
+#define mbiSIZE_P(c)	"z" #c
+#elif defined(ULLONG_MAX) && defined(SIZE_MAX) && ((SIZE_MAX) > (ULONG_MAX))
+#define mbiSIZE_S	long long
+#define mbiSIZE_U	unsigned long long
+#define mbiSIZE_P(c)	"ll" #c
+#else
+#define mbiSIZE_S	long
+#define mbiSIZE_U	unsigned long
+#define mbiSIZE_P(c)	"l" #c
+#endif
+#ifndef SSIZE_MAX
+#undef mbiSIZE_S
 #endif
 
 /* update mbsdcc.h definition */
@@ -514,6 +532,11 @@ mbCTA_BEG(mbsdint_h);
 	mbiMASK_BITS(SIZE_MAX) <= mbiTYPE_UBITS(size_t) &&
 	((mbiHUGE_U)(SIZE_MAX) == (mbiHUGE_U)(size_t)(SIZE_MAX)));
 #endif
+ /* mbiSIZE_S is only defined if ssize_t is defined */
+ /* but consistently mapped, no extra checks here */
+ mbCTA(basic_sizet_P,
+	sizeof(size_t) <= sizeof(mbiSIZE_U) &&
+	mbiTYPE_UBITS(size_t) <= mbiTYPE_UBITS(mbiSIZE_U));
  /* note mbiSIZE_MAX is not necessarily a bitmask (0b0*1+) */
 #ifdef mbiRSZCHK
  mbCTA(smax_range, (0U + (mbiRSZCHK)) <= (0U + (mbiHUGE_U_MAX)));
