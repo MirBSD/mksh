@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.7 2023/10/12 15:32:12 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.8 2023/12/11 11:57:40 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -95,10 +95,15 @@ template<> struct mbccCEX_sa<false,true>{};
 #endif
 
 /* flexible array member */
-#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L)) || \
-    defined(__cpp_flexible_array_members)
+#if defined(__cplusplus)
+#ifdef __cpp_flexible_array_members
 #define mbccFAMslot(type,memb)	type memb[]
-#elif defined(__GNUC__) || defined(__cplusplus)
+#else
+#define mbccFAMslot(type,memb)	type memb[0] mbmscWs(4200 4820)
+#endif
+#elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
+#define mbccFAMslot(type,memb)	type memb[]
+#elif defined(__GNUC__)
 #define mbccFAMslot(type,memb)	type memb[0] mbmscWs(4200 4820)
 #else
 #define mbccFAMslot(type,memb)	type memb[1] mbmscWs(4820) /* SOL */
@@ -140,10 +145,12 @@ template<> struct mbccCEX_sa<false,true>{};
  */
 
 /* field sizeof */
-#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
+#if defined(__cplusplus)
+/* TODO: add better way on CFrustFrust once it has one */
+#define mbccFSZ(struc,memb)	(sizeof(((struc *)0)->memb))
+#elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
 #define mbccFSZ(struc,memb)	(sizeof(((struc){0}).memb))
 #else
-/* TODO: add better way on CFrustFrust once it has one */
 #define mbccFSZ(struc,memb)	(sizeof(((struc *)0)->memb))
 #endif
 
@@ -153,13 +160,16 @@ template<> struct mbccCEX_sa<false,true>{};
 
 /* compile-time assertions */
 #undef mbccCTA
-#if (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 202311L)) || \
-    defined(__cpp_static_assert)
+#if defined(__cplusplus)
+#ifdef __cpp_static_assert
+#define mbccCTA(fldn,cond)	static_assert(cond, mbccS(fldn))
+#endif
+#elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 202311L))
 #define mbccCTA(fldn,cond)	static_assert(cond, mbccS(fldn))
 #elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 201112L))
 #define mbccCTA(fldn,cond)	_Static_assert(cond, mbccS(fldn))
-#elif !defined(__cplusplus) && defined(__GNUC__) && ((__GNUC__ > 4) || \
-    (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#elif defined(__GNUC__) && \
+    ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #define mbccCTA(fldn,cond)	__extension__ _Static_assert(cond, mbccS(fldn))
 #endif
 #ifndef mbccCTA
