@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.913 2023/09/16 22:45:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.914 2023/12/11 11:47:27 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1982,6 +1982,7 @@ expected-stderr-pattern: /not set/
 name: expand-bang-2
 description:
 	Check corner case of ${!var} vs. ${var op} with var=!
+time-limit: 15
 stdin:
 	echo 1 $! .
 	echo 2 ${!#} .
@@ -2061,7 +2062,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-category: !os:cygwin,!os:lynxos,!os:midipix,!os:msys,!os:os2
+category: !os:cygwin,!os:lynxos,!os:midipix,!os:msys,!os:os2,!noweirdfilenames
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
@@ -2556,7 +2557,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
+category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390,!noweirdfilenames
 need-pass: no
 file-setup: file 644 "aÂc"
 stdin:
@@ -10085,7 +10086,7 @@ name: varexpand-special-hash
 description:
 	Check special ${var@x} expansion for x=hash
 category: !shell:ebcdic-yes
-perl-setup: open XF,">","xf" or die; print XF "a"x1000000 or die; close XF or die;
+perl-setup: open XF,">xf" or die; print XF "a"x1000000 or die; close XF or die;
 stdin:
 	typeset -i8 foo=10
 	bar=baz
