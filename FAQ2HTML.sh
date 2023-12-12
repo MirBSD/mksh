@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.6 2023/12/12 15:05:08 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.7 2023/12/12 15:54:04 tg Exp $'
 #-
 # Copyright © 2020, 2023
 #	mirabilos <m@mirbsd.org>
@@ -144,4 +144,5 @@ cat FAQ.tmp4 - <<EOF
 EOF
 exec >/dev/null
 rm FAQ.tmp?
-mv FAQ.htm~ FAQ.htm
+mv FAQ.htm~ FAQ.htm || die 'final mv'
+exit 0
