@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.848 2023/12/12 13:55:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.849 2023/12/12 15:57:48 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -844,7 +844,6 @@ case $TARGET_OS in
 	;;
 4.4BSD)
 	osnote='; we assume BSD-on-Windows'
-	: "${MKSH_UNLIMITED=1}"
 	check_categories="$check_categories nopiddependent"
 	check_categories="$check_categories nosymlink noweirdfilenames"
 	;;
@@ -2072,6 +2071,7 @@ EOF
 ac_header sys/select.h sys/types.h
 test "11" = "$HAVE_SYS_TIME_H$HAVE_SYS_SELECT_H" || HAVE_SELECT_TIME_H=1
 ac_test select_time_h '' 'whether <sys/time.h> and <sys/select.h> can both be included' <<-'EOF'
+	#include <sys/types.h>
 	#include <sys/time.h>
 	#include <sys/select.h>
 	#include <unistd.h>
@@ -2096,7 +2096,6 @@ ac_header stdint.h stdarg.h
 ac_header strings.h sys/types.h string.h
 ac_header termios.h
 ac_header ulimit.h sys/types.h
-ac_header values.h
 
 #
 # Environment: definitions
