@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.4 2021/07/27 02:36:55 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.5 2023/12/12 14:25:10 tg Exp $'
 #-
 # Copyright © 2020
 #	mirabilos <m@mirbsd.org>
@@ -27,8 +27,10 @@ nl='
 '
 srcdir=`dirname "$0" 2>/dev/null`
 
-p=--posix
-sed $p -e q </dev/null >/dev/null 2>&1 || p=
+p=
+if sed --posix -e q </dev/null >/dev/null; then
+	p=--posix
+fi
 
 v=$1
 if test -z "$v"; then
