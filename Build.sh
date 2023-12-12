@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.846 2023/09/28 04:08:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.847 2023/12/12 13:46:32 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3157,11 +3157,11 @@ if test $cm = trace; then
 		test $XgrepRV -lt 2
 	}
 	set -e
-	tsrc=$(readlink -f "$srcdir")
-	tdst=$(readlink -f .)
+	tsrc=`readlink -f "$srcdir"`
+	tdst=`readlink -f .`
 	if test ${#tsrc} -lt ${#tdst}; then
 		mkr() {
-			r=$(readlink -f "$1")
+			r=`readlink -f "$1"`
 			case $r in #((
 			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
 			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
@@ -3169,7 +3169,7 @@ if test $cm = trace; then
 		}
 	else
 		mkr() {
-			r=$(readlink -f "$1")
+			r=`readlink -f "$1"`
 			case $r in #((
 			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
 			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
@@ -3265,8 +3265,8 @@ LIBS				default empty; added after sources
 				[Interix] default: -lcrypt (XXX still needed?)
 NOWARN				-Wno-error or similar
 NROFF				default: nroff
-TARGET_OS			default: $(uname -s || uname)
-TARGET_OSREV			default: $(uname -r) [only needed on some OS]
+TARGET_OS			default: `uname -s || uname`
+TARGET_OSREV			default: `uname -r` [only needed on some OS]
 
 ==== feature selectors ====
 MKSH_UNLIMITED			1 to omit ulimit builtin completely
