@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1027 2023/12/12 15:57:49 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1028 2023/12/12 16:55:16 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -255,7 +255,7 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KUL_FM ULONG_MAX
 #define KUL_HM LONG_MAX
 /* if mbiHUGE is wider than long, then that, else long */
-#if mbiMASK__BITS(mbiHUGE_U_MAX) > mbiMASK__BITS(ULONG_MAX)
+#if mbiHUGE_UBITS > mbiMASK__BITS(ULONG_MAX)
 #define MKSH_HAVE_HUGE
 typedef mbiHUGE_U kuH;
 typedef mbiHUGE_S ksH;
