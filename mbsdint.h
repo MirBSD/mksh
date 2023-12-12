@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.57 2023/12/12 15:52:40 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.58 2023/12/12 16:08:36 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -721,37 +721,37 @@ mbCTA_BEG(mbsdint_h);
  mbCTA(ushrt_width, (USHRT_WIDTH) == mbiMASK_BITS(USHRT_MAX));
 #endif
 #ifdef SHRT_WIDTH
- mbCTA(shrt_width, (SHRT_WIDTH) == mbiMASK_BITS(SHRT_MAX));
+ mbCTA(shrt_width, (SHRT_WIDTH) == mbiMASK_BITS(SHRT_MAX) + 1);
 #endif
 #ifdef UINT_WIDTH
  mbCTA(uint_width, (UINT_WIDTH) == mbiMASK_BITS(UINT_MAX));
 #endif
 #ifdef INT_WIDTH
- mbCTA(int_width, (INT_WIDTH) == mbiMASK_BITS(INT_MAX));
+ mbCTA(int_width, (INT_WIDTH) == mbiMASK_BITS(INT_MAX) + 1);
 #endif
 #ifdef ULONG_WIDTH
  mbCTA(ulong_width, (ULONG_WIDTH) == mbiMASK_BITS(ULONG_MAX));
 #endif
 #ifdef LONG_WIDTH
- mbCTA(long_width, (LONG_WIDTH) == mbiMASK_BITS(LONG_MAX));
+ mbCTA(long_width, (LONG_WIDTH) == mbiMASK_BITS(LONG_MAX) + 1);
 #endif
 #ifdef ULLONG_WIDTH
  mbCTA(ullong_width, (ULLONG_WIDTH) == mbiMASK_BITS(ULLONG_MAX));
 #endif
 #ifdef LLONG_WIDTH
- mbCTA(llong_width, (LLONG_WIDTH) == mbiMASK_BITS(LLONG_MAX));
+ mbCTA(llong_width, (LLONG_WIDTH) == mbiMASK_BITS(LLONG_MAX) + 1);
 #endif
 #ifdef UINTMAX_WIDTH
  mbCTA(uintmax_width, (UINTMAX_WIDTH) == mbiMASK_BITS(UINTMAX_MAX));
 #endif
 #ifdef INTMAX_WIDTH
- mbCTA(intmax_width, (INTMAX_WIDTH) == mbiMASK_BITS(INTMAX_MAX));
+ mbCTA(intmax_width, (INTMAX_WIDTH) == mbiMASK_BITS(INTMAX_MAX) + 1);
 #endif
 #if defined(UINTPTR_WIDTH) && !defined(__CHERI__)
  mbCTA(uintptr_width, (UINTPTR_WIDTH) == mbiMASK_BITS(UINTPTR_MAX));
 #endif
 #ifdef PTRDIFF_WIDTH
- mbCTA(ptrdiff_width, (PTRDIFF_WIDTH) == mbiMASK_BITS(PTRDIFF_MAX));
+ mbCTA(ptrdiff_width, (PTRDIFF_WIDTH) == mbiMASK_BITS(PTRDIFF_MAX) + 1);
 #endif
 #ifdef SIZE_WIDTH
  mbCTA(size_width, (SIZE_WIDTH) == mbiMASK_BITS(SIZE_MAX));
