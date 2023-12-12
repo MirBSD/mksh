@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.847 2023/12/12 13:46:32 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.848 2023/12/12 13:55:14 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -841,6 +841,12 @@ case $TARGET_OS in
 	: "${HAVE_CAN_OTWO=0}"
 	cpp_define MKSH_NO_SIGSETJMP 1
 	cpp_define MKSH_TYPEDEF_SIG_ATOMIC_T int
+	;;
+4.4BSD)
+	osnote='; we assume BSD-on-Windows'
+	: "${MKSH_UNLIMITED=1}"
+	check_categories="$check_categories nopiddependent"
+	check_categories="$check_categories nosymlink noweirdfilenames"
 	;;
 A/UX)
 	add_cppflags -D_POSIX_SOURCE

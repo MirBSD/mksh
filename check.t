@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.914 2023/12/11 11:47:27 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.915 2023/12/12 13:55:16 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1982,6 +1982,7 @@ expected-stderr-pattern: /not set/
 name: expand-bang-2
 description:
 	Check corner case of ${!var} vs. ${var op} with var=!
+category: !nopiddependent
 time-limit: 15
 stdin:
 	echo 1 $! .
