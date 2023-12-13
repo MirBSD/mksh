@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.7 2023/12/12 15:54:04 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.8 2023/12/13 10:07:19 tg Exp $'
 #-
 # Copyright © 2020, 2023
 #	mirabilos <m@mirbsd.org>
@@ -54,8 +54,8 @@ sed $p \
     -e '/^RCSID: \$/s/^.*$/----/' \
     -e 's!@@RELPATH@@!http://www.mirbsd.org/!g' \
     -e 's^	<span style="display:none;">	</span>' \
-    "$srcdir"/mksh.faq >FAQ.tmp1 || die 'sed (1)'
-tr '\n' '' <FAQ.tmp1 >FAQ.tmp2 || die 'tr (2)'
+    "$srcdir"/mksh.faq >FAQ.tm1 || die 'sed (1)'
+tr '\n' '' <FAQ.tm1 >FAQ.tm2 || die 'tr (2)'
 sed $p \
     -e 'sg' \
     -e 's----g' \
@@ -66,10 +66,10 @@ sed $p \
     -e 's^</div>*' \
     -e 's$</div>' \
     -e 's<><error><>g' \
-    -e 'sg' <FAQ.tmp2 >FAQ.tmp3 || die 'sed (3)'
-tr '' '\n' <FAQ.tmp3 >FAQ.tmp4 || die 'tr (4)'
+    -e 'sg' <FAQ.tm2 >FAQ.tm3 || die 'sed (3)'
+tr '' '\n' <FAQ.tm3 >FAQ.tm4 || die 'tr (4)'
 
-exec >FAQ.htm~
+exec >FAQ.tm5
 cat <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -130,19 +130,19 @@ cat <<EOF
 EOF
 sed $p -n \
     '/^<h2 id="\([^"]*"\)><a[^>]*\(>.*<\/a><\/\)h2>$/s//<li><a href="#\1\2li>/p' \
-    <FAQ.tmp4 || die 'sed (ToC)'
+    <FAQ.tm4 || die 'sed (ToC)'
 cat <<EOF
 </ul>
 
 <h1>Frequently Asked Questions</h1>
 EOF
-cat FAQ.tmp4 - <<EOF
+cat FAQ.tm4 - <<EOF
 <h1>Imprint</h1>
 <p>This offline HTML page for mksh $v was automatically generated
  from the sources.</p>
 </body></html>
 EOF
 exec >/dev/null
-rm FAQ.tmp?
-mv FAQ.htm~ FAQ.htm || die 'final mv'
+rm FAQ.tm1 FAQ.tm2 FAQ.tm3 FAQ.tm4
+mv FAQ.tm5 FAQ.htm || die 'final mv'
 exit 0
