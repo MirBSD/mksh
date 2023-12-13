@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.851 2023/12/13 14:46:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.852 2023/12/13 14:58:21 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -375,8 +375,8 @@ ac_testnndnd() {
 	else
 		fr=0
 	fi
-	ac_testinit "$@" || return 1
 	cat_h_blurb >conftest.c
+	ac_testinit "$@" || return 1
 	vv ']' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
@@ -400,13 +400,17 @@ ac_testnndnd() {
 	return 0
 }
 ac_testn() {
-	ac_testnndnd "$@" || return
-	rmf conftest.c conftest.o ${tcfn}* vv.out
-	ac_testdone
+	if ac_testnndnd "$@"; then
+		rmf conftest.c conftest.o ${tcfn}* vv.out
+		ac_testdone
+	else
+		rm -f conftest.c
+	fi
 }
 ac_testnnd() {
-	ac_testnndnd "$@" || return
-	ac_testdone
+	if ac_testnndnd "$@"; then
+		ac_testdone
+	fi
 }
 
 # ac_ifcpp cppexpr [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
