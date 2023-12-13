@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.849 2023/12/12 15:57:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.850 2023/12/13 10:18:32 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3164,7 +3164,8 @@ if test $cm = trace; then
 	set -e
 	tsrc=`readlink -f "$srcdir"`
 	tdst=`readlink -f .`
-	if test ${#tsrc} -lt ${#tdst}; then
+	# some sh don’t like ${foo#bar} or ${#foo} at parse time
+	eval 'if test ${#tsrc} -lt ${#tdst}; then
 		mkr() {
 			r=`readlink -f "$1"`
 			case $r in #((
@@ -3180,7 +3181,7 @@ if test $cm = trace; then
 			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
 			esac
 		}
-	fi
+	fi'
 
 	cat *.d >$tfn.c1.t
 	set -o noglob
