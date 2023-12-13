@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.915 2023/12/12 13:55:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.916 2023/12/13 14:46:16 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7953,7 +7953,7 @@ name: exit-enoent-2
 description:
 	SUSv4 says that the shell should exit with 126 in some situations
 # fails because x permissions handled wrong
-category: !os:skyos
+category: !os:skyos,!noxperms
 stdin:
 	(echo; echo :) >x
 	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo 0 $r .
@@ -8999,7 +8999,7 @@ name: utf8bom-1
 description:
 	Check that the UTF-8 Byte Order Mark is not ignored any more
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
-category: !os:darwin,!shell:ebcdic-yes
+category: !os:darwin,!shell:ebcdic-yes,!noweirdfilenames
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
