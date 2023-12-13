@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.16 2023/12/13 14:46:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.17 2023/12/13 14:52:18 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -413,7 +413,7 @@ print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 #if HAVE_RLIMIT
 	if (how & SOFT)
 		val = limit.rlim_cur;
-	else if (how & HARD)
+	else
 		val = limit.rlim_max;
 #endif
 	if (val == RL_U)
