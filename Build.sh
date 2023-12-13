@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.852 2023/12/13 14:58:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.853 2023/12/13 15:01:55 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2404,6 +2404,7 @@ if test 10 = "$HAVE_RLIMIT$HAVE_RLIM_T"; then
 				esac ;;
 			esac
 		done <x
+		echo "[ $fr"
 		fr=`echo " $fr" | sed \
 		    -e 's/[	 ][	 ]*/ /g' \
 		    -e 's/^ *struct rlimit *[{] *//' \
