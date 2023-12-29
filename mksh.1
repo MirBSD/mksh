@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.540 2023/08/03 22:15:23 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.541 2023/12/29 00:44:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -21,6 +21,11 @@
 .\" damage or existence of a defect, except proven that it results out
 .\" of said person’s immediate fault when using the work as intended.
 .\"-
+.\" $miros: contrib/samples/portmdoc,v 1.22 2023/12/28 23:47:20 tg Exp $
+.\"-
+.\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020, 2023
+.\"	mirabilos <m@mirbsd.org>
+.\"
 .\" Glue GNU groff (BSD and GNU mdoc both) to AT&T nroff (UCB mdoc).
 .\" * ` generates ‘ in gnroff, so use \`
 .\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
@@ -49,11 +54,12 @@
 .\" .Dd must come before most everything, because when called
 .\" with -mandoc it loads -mdoc via .so in .Dd (first macro).
 .\"
-.Dd $Mdocdate: August 3 2023 $
+.Dd $Mdocdate: December 29 2023 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
 .ie \n(.g \{\
+.	if n .ss \n[.ss] 0
 .	if \*[.T]ascii .tr \-\N'45'
 .	if \*[.T]latin1 .tr \-\N'45'
 .	if \*[.T]utf8 .tr \-\N'45'
@@ -111,7 +117,7 @@
 .	if (\n[arg-limit] > \n[arg-ptr]) \{\
 .	nr arg-ptr +1
 .	ie (\n[type\n[arg-ptr]] == 2) \
-.	as str-Mx1 \~\*[arg\n[arg-ptr]]
+.	ds str-Mx1 \*(tN\%MirBSD\~#\*[arg\n[arg-ptr]]\*[str-Mx]
 .	el \
 .	nr arg-ptr -1
 .	\}
@@ -123,6 +129,19 @@
 .	if \n[num-args] \
 .	parse-space-vector
 .	print-recursive
+..
+.	de Aq
+.	if !\n[arg-limit] \
+.	ds macro-name Aq
+.	ie \n[in-authors-section] \{\
+.		ds quote-left \*(Lt
+.		ds quote-right \*(Gt
+.	\}
+.	el \{\
+.		ds quote-left \[la]
+.		ds quote-right \[ra]
+.	\}
+.	enclose-string \$@
 ..
 .	ec
 .\}
@@ -144,7 +163,7 @@
 .	if (\n[doc-arg-limit] > \n[doc-arg-ptr]) \{\
 .	nr doc-arg-ptr +1
 .	ie (\n[doc-type\n[doc-arg-ptr]] == 2) \
-.	as doc-str-Mx1 \~\*[doc-arg\n[doc-arg-ptr]]
+.	ds doc-str-Mx1 \*(tN\%MirBSD\~#\*[doc-arg\n[doc-arg-ptr]]\*[doc-str-Mx]
 .	el \
 .	nr doc-arg-ptr -1
 .	\}
@@ -165,13 +184,18 @@
 .	nr cZ \\n(.s
 .	ds aa \&\f\\n(cF\s\\n(cZ
 .	if \\n(aC==0 \{\
-.		ie \\n(.$==0 \&MirBSD\\*(aa
+.		ie \\n(.$==0 \&\\*(tNMirBSD\\*(aa
 .		el .aV \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8 \\$9
 .	\}
 .	if \\n(aC>\\n(aP \{\
 .		nr aP \\n(aP+1
 .		ie \\n(C\\n(aP==2 \{\
-.			as b1 \&MirBSD\ #\&\\*(A\\n(aP\\*(aa
+.			nr xX 0
+.			nr xX 1+\\*(A\\n(aP
+.			as b1 \&\\*(tNMirBSD\ \&
+.			if \\n(xX>0 .as b1 #\&
+.			as b1 \&\\*(A\\n(aP\\*(aa
+.			rr xX
 .			ie \\n(aC>\\n(aP \{\
 .				nr aP \\n(aP+1
 .				nR
@@ -179,12 +203,13 @@
 .			el .aZ
 .		\}
 .		el \{\
-.			as b1 \&MirBSD\\*(aa
+.			as b1 \&\\*(tNMirBSD\\*(aa
 .			nR
 .		\}
 .	\}
 ..
 .\}
+.\" </MirCVS://contrib/samples/portmdoc>
 .\"-
 .Dt MKSH 1
 .Os MirBSD
