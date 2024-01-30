@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1028 2023/12/12 16:55:16 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1029 2024/01/30 19:09:45 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -1690,7 +1690,7 @@ extern void ebcdic_init(void);
 #define isCh(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 /* POSIX locale ordering */
-#define asciibetical(c)	ord(c)
+#define asciibetical(c)	KUI(ord(c)) /* ranging to USHRT_MAX */
 /* if inspecting numerical values (mapping on EBCDIC) */
 #define rtt2asc(c)	KBY(c)
 #define asc2rtt(c)	KBY(c)
