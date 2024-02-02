@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.916 2023/12/13 14:46:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.917 2024/02/02 04:04:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020, 2021, 2022, 2023
+#	      2019, 2020, 2021, 2022, 2023, 2024
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/09/16
+	KSH R59 2024/02/01
 description:
 	Check base version of full shell
 stdin:
@@ -8995,6 +8995,41 @@ expected-stdout:
 	<12345678910 345678920
 	<               .  aáº> 2)
 ---
+name: typeset-unset
+description:
+	Check that typeset -p correctly distinguishes unset and empty
+stdin:
+	unset u
+	typeset -p u
+	echo 1 ${u-a} ${u:-b} .
+	x1=$(typeset -p u)
+	export u
+	typeset -p u
+	echo 2 ${u-a} ${u:-b} .
+	x2=$(typeset -p u)
+	u=
+	typeset -p u
+	echo 3 ${u-a} ${u:-b} .
+	x3=$(typeset -p u)
+	unset u
+	eval "$x1"
+	echo 4 ${u-a} ${u:-b} .
+	unset u
+	eval "$x2"
+	echo 5 ${u-a} ${u:-b} .
+	unset u
+	eval "$x3"
+	echo 6 ${u-a} ${u:-b} .
+expected-stdout:
+	1 a b .
+	typeset -x u
+	2 a b .
+	typeset -x u=''
+	3 b .
+	4 a b .
+	5 a b .
+	6 b .
+---
 name: utf8bom-1
 description:
 	Check that the UTF-8 Byte Order Mark is not ignored any more
@@ -14145,6 +14180,11 @@ stdin:
 	typeset -p s
 expected-stdout:
 	typeset s=$'\001\002\003\004\t\006\007\010\011\012\v\f\r\016\017\020\021\022\023\024\n\b\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\E\050\051\052\053\054\055\056\a\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077  âäàáãåçñ¢.<(+|&éêëèíîïìß!$*);^-/ÂÄÀÁÃÅÇÑ¦,%_>?øÉÊËÈÍÎÏÌ`:#@\175="Øabcdefghi«»ğış±°jklmnopqrªºæ¸Æ¤µ~stuvwxyz¡¿Ğ[Ş®¬£¥·©§¶¼½¾İ¨¯]´×{ABCDEFGHI­ôöòóõ}JKLMNOPQR¹ûüùúÿ\\÷STUVWXYZ²ÔÖÒÓÕ0123456789³ÛÜÙÚ\377'
+---
+name: the-next-test-takes-very-long-on-retro-systems
+category: !system:fast-no
+stdin:
+	:
 ---
 name: stateptr-underflow
 description:

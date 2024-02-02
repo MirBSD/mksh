@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.282 2023/10/06 21:56:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.283 2024/02/02 04:04:22 tg Exp $");
 
 /*-
  * Variables
@@ -2389,8 +2389,8 @@ c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
 		shf_puts(vp->name, shl_stdout);
 		if (any_set)
 			shprintf(Tf_SQlu, arrayindex(vp));
-		if ((!thing && !flag && pflag) ||
-		    (thing == '-' && (vp->flag & ISSET))) {
+		if (((!thing && !flag && pflag) || thing == '-') &&
+		    (vp->flag & ISSET)) {
 			shf_putc('=', shl_stdout);
 			if (baseone)
 				shprintf(vp->val.u > 0xFF ? "16#%04X" :
