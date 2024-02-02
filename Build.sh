@@ -1,10 +1,10 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.853 2023/12/13 15:01:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.854 2024/02/02 04:58:40 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020, 2021, 2022, 2023
+#		2020, 2021, 2022, 2023, 2024
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -841,6 +841,13 @@ BeOS|HP-UX|QNX|SCO_SV)
 	;;
 esac
 
+# SVR4 (some) workaround
+int_as_ssizet() {
+	cpp_define SSIZE_MIN INT_MIN
+	cpp_define SSIZE_MAX INT_MAX
+	cpp_define ssize_t int
+}
+
 cmplrflgs=
 
 # Configuration depending on OS name
@@ -1173,7 +1180,7 @@ scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	cpp_define MKSH__NO_SETEUGID 1
 	: "${HAVE_SETRESUGID=0}"
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	cpp_define MKSH_UNEMPLOYED 1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}${HAVE_TERMIOS_H=0}"
 	;;
@@ -1199,6 +1206,10 @@ SerenityOS)
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	;;
+SINIX-Z)
+	: "${CC=cc -Xa}"
+	cmplrflgs=-DMKSH_MAYBE_SCDE
+	;;
 skyos)
 	oswarn="; it has minor issues"
 	;;
@@ -1213,7 +1224,7 @@ syllable)
 	;;
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 UnixWare|UNIX_SV)
@@ -1238,7 +1249,7 @@ XENIX)
 	cpp_define _setjmp setjmp
 	cpp_define _longjmp longjmp
 	cpp_define USE_REALLOC_MALLOC 0
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	# per http://www.polarhome.com/service/man/?qf=signal&of=Xenix
 	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	cpp_define MKSH_UNEMPLOYED 1
@@ -1251,8 +1262,10 @@ XENIX)
 	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
-	# this duplicates the * target below
 	oswarn='; it may or may not work'
+	: "${CC=cc -Xa}"
+	cmplrflgs=-DMKSH_MAYBE_SCDE
+	int_as_ssizet #XXX maybe not for *all* _svr4? here for Dell UNIX
 	;;
 *)
 	oswarn='; it may or may not work'
@@ -1393,6 +1406,8 @@ ct="quickc"
 #elif defined(MKSH_MAYBE_KENCC)
 /* and none of the above matches */
 ct="kencc"
+#elif defined(MKSH_MAYBE_SCDE)
+ct="tryscde"
 #else
 ct="unknown"
 #endif
@@ -1419,6 +1434,23 @@ cat_h_blurb >conftest.c <<'EOF'
 int main(void) { return (isatty(0)); }
 EOF
 test_z "$Cg" || Cg=-g  # generic
+case $ct:$TARGET_OS in
+tryscde:*)
+	case `LC_ALL=C; export LC_ALL; $CC -V 2>&1` in
+	*'Standard C Development Environment'*)
+		ct=scde ;;
+	*)
+		ct=unknown ;;
+	esac
+	;;
+gcc:_svr4)
+	# weirdly needed to find NSIG
+	case $CC$CPPFLAGS in
+	*STDC*) ;;
+	*) CC="$CC -U__STDC__ -D__STDC__=0" ;;
+	esac
+	;;
+esac
 case $ct in
 ack)
 	# work around "the famous ACK const bug"
@@ -1550,6 +1582,10 @@ pgi)
 	;;
 quickc)
 	# no version information
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
+	;;
+scde)
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 sdcc)
@@ -1715,6 +1751,8 @@ msc)
 	;;
 quickc)
 	;;
+scde)
+	;;
 sunpro)
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
@@ -1767,7 +1805,7 @@ hpcc)
 	ac_flags 1 otwo +O2
 	phase=x
 	;;
-kencc|quickc|tcc|tendra)
+kencc|quickc|scde|tcc|tendra)
 	# no special optimisation
 	;;
 sunpro)
@@ -2845,9 +2883,6 @@ if test 0 = $HAVE_SOME_SIGNAME; then
 #define cfg_NSIG (SIGMAX + 1)
 #elif defined(_SIGMAX)
 #define cfg_NSIG (_SIGMAX + 1)
-#else
-/*XXX better error out, see sh.h */
-#define cfg_NSIG 64
 #endif
 int
 mksh_cfg= cfg_NSIG
@@ -3395,7 +3430,6 @@ MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_SMALL_BUT_FAST		disable some hard-for-size optim. (modern sys.)
 MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
-MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
 USE_REALLOC_MALLOC		define as 0 to not use realloc as malloc
 
