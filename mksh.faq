@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.40 2023/07/26 03:09:21 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.41 2024/02/03 05:34:30 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -635,6 +635,54 @@ Title: I get an error in this regex comparison
  <tt>[[ foo =~ (foo|bar).*baz ]]</tt><br />
  … becomes…<br />
  <tt>[[ foo = *@(foo|bar)*baz* ]]</tt></p>
+----
+ToC: cfor
+Title: How can I do C-style “for” loops?
+
+<p>The <tt>for</tt> loop in shell is always a “foreach” loop,
+ not a C-style “for” loop. However, you <em>can</em> use the
+ <tt>while</tt> loop.</p>
+<p class="boxhead">The following three constructs are equivalent:
+ the first is using the GNU bash‑ and AT&amp;T ksh93 C-style for
+ loop, which the second naïvely transfers into a <tt>while</tt>
+ loop that the third example does natively:</p>
+<div class="boxtext">
+ <pre>
+	#     expr1    expr2    expr3
+	for ((idx = 9; idx &gt; 6; --idx)); do
+		echo $idx
+	done
+
+	idx=9
+	while (( idx &gt; 6 )); do
+		echo $idx
+		(( --idx ))
+	done
+
+	idx=10
+	while (( --idx &gt; 6 )); do
+		echo $idx
+	done
+</pre>
+</div><p class="boxfoot">The latter two also run on bash and ksh93,
+ so it’s better to use that anyway.</p>
+<p>The last (native) example rolls the “expr3” part, which otherwise
+ is run at the end of every body, into the loop condition (“expr2”)
+ accounting for the extra first execution by “undoing” its effect in
+ the “expr1” initialisation, here by pre-incrementing as the “expr3”
+ is a decrement.</p>
+<p class="boxhead">Classic counting loops look like this:</p>
+<div class="boxtext">
+ <pre>
+	i=-1
+	while (( ++i &lt; 6 )); do
+		(( j = i ))
+		while (( ++j &lt; 6 )); do
+			print -r -- $i, $j
+		done
+	done
+</pre>
+</div><p class="boxfoot">Here, the increment is offset by a pre-decrement.</p>
 ----
 ToC: local-arrays
 Title: How can I do local arrays?
