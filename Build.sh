@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.854 2024/02/02 04:58:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.855 2024/02/04 03:57:48 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3266,11 +3266,11 @@ if test $cm = trace; then
 	echo >&2 "I: tracing compilation, linking and binding inputs"
     (
 	if test -n "$KSH_VERSION"; then
-		Xe='print -r --'
+		Xe() { print -r -- "$1"; }
 	elif test -n "$BASH_VERSION"; then
-		Xe='printf "%s\\n"'
+		Xe() { printf '%s\n' "$1"; }
 	else
-		Xe=echo
+		Xe() { echo "$1"; }
 	fi
 	Xgrep() {
 		set +e
@@ -3305,14 +3305,14 @@ if test $cm = trace; then
 	set -o noglob
 	while read dst src; do
 		for f in $src; do
-			$Xe "$f"
+			Xe "$f"
 		done
 	done <$tfn.c1.t >$tfn.c2.t
 	set +o noglob
 	sort -u <$tfn.c2.t >$tfn.c3.t
 	while IFS= read -r name; do
 		mkr "$name"
-		$Xe "$r"
+		Xe "$r"
 	done <$tfn.c3.t >$tfn.c4.t
 	sort -u <$tfn.c4.t >$tfn.cz.t
 
@@ -3327,11 +3327,11 @@ if test $cm = trace; then
 			b=$lib
 			mkr "$lib"
 		}
-		$Xe "$r($memb)"
+		Xe "$r($memb)"
 	done <$tfn.l2l.t >$tfn.l3.t
 	while IFS= read -r name; do
 		mkr "$name"
-		$Xe "$r"
+		Xe "$r"
 	done <$tfn.l2.t >>$tfn.l3.t
 	sort -u <$tfn.l3.t >$tfn.lz.t
 	cat $tfn.cz.t $tfn.lz.t >$tfn.trace
