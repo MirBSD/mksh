@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.855 2024/02/04 03:57:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.856 2024/04/02 10:51:35 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2468,20 +2468,20 @@ if test 10 = "$HAVE_RLIMIT$HAVE_RLIM_T"; then
 			fv=RLT_SI ;;
 		u_int|unsigned|unsigned\ int)
 			fv=RLT_UI ;;
-		long|signed\ long)
+		long|long\ int|signed\ long|signed\ long\ int)
 			fv=RLT_SL ;;
-		u_long|unsigned\ long)
+		u_long|unsigned\ long|unsigned\ long\ int)
 			fv=RLT_UL ;;
-		long\ long|signed\ long\ long)
+		long\ long|long\ long\ int|signed\ long\ long|signed\ long\ long\ int)
 			fv=RLT_SQ ;;
-		unsigned\ long\ long)
+		unsigned\ long\ long|unsigned\ long\ long\ int)
 			fv=RLT_UQ ;;
 		[a-z_]*_t)
 			fv=`echo " $fr" | sed -n '/^ \([a-z0-9_]*_t\)$/s//\1/p'` ;;
 		*)
-			fx="(could not be determined from $fr)"
 			fv= ;;
 		esac
+		test_n "$fv" || fx="(could not be determined from $fr)"
 	else
 		fx=' (cached)'
 	fi
