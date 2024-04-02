@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.161 2023/10/06 21:56:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.162 2024/04/02 03:33:48 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1091,10 +1091,11 @@ j_set_async(Job *j)
 			    (!oldest || jl->age < oldest->age))
 				oldest = jl;
 		if (!oldest) {
-			/* XXX debugging */
 			if (!(async_job->flags & JF_ZOMBIE) || nzombie != 1) {
+#ifdef DEBUG
 				kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
 				    "%s: bad nzombie (%d)", "j_async", nzombie);
+#endif
 				nzombie = 0;
 			}
 			break;
