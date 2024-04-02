@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1030 2024/02/02 04:58:41 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1031 2024/04/02 03:16:52 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -355,14 +355,6 @@ typedef MKSH_TYPEDEF_SIG_ATOMIC_T sig_atomic_t;
 #undef BAD		/* AIX defines that somewhere */
 #undef PRINT		/* LynxOS defines that somewhere */
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
-
-/* compiler shenanigans… */
-#ifdef _FORTIFY_SOURCE
-/* workaround via https://stackoverflow.com/a/64407070/2171120 */
-#define SHIKATANAI	(void)!
-#else
-#define SHIKATANAI	(void)
-#endif
 
 #ifndef MKSH_INCLUDES_ONLY
 

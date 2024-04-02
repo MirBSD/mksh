@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.8 2023/12/11 11:57:40 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.9 2024/04/02 03:16:49 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -76,30 +76,32 @@
 /* in-expression compile-time check evaluating to 0 */
 #ifdef __cplusplus
 template<bool> struct mbccChkExpr_sa;
-template<> struct mbccChkExpr_sa<true>{};
-#define mbccChkExpr(test)	(sizeof((mbccChkExpr_sa<!!(0+(test))>())) * 0)
+template<> struct mbccChkExpr_sa<true> { typedef int Type; };
+#define mbccChkExpr(test)	(static_cast<mbccChkExpr_sa<!!(0+(test))>::Type>(0))
 #else
 #define mbccChkExpr(test)	mbmscWs(4116) \
-				(sizeof(struct { int (mbccChkExpr):((0+(test)) ? 1 : -1); }) * 0)
+				(sizeof(struct { unsigned int (mbccChkExpr):((0+(test)) ? 1 : -1); }) * 0)
 #endif
 
 /* ensure value x is a constant expression */
 #ifdef __cplusplus
 template<bool,bool> struct mbccCEX_sa;
-template<> struct mbccCEX_sa<true,false>{};
-template<> struct mbccCEX_sa<false,true>{};
-#define mbccCEX(x)		(sizeof((mbccCEX_sa<!!(0+(x)), !(0+(x))>())) * 0 + (x))
+template<> struct mbccCEX_sa<true,false> { typedef int Type; };
+template<> struct mbccCEX_sa<false,true> { typedef int Type; };
+#define mbccCEX(x)		(static_cast<mbccCEX_sa<!!(0+(x)), !(0+(x))>::Type>(0) + (x))
 #else
 #define mbccCEX(x)		mbmscWs(4116) \
-				(sizeof(struct { int (mbccCEX):(((0+(x)) && 1) + 1); }) * 0 + (x))
+				(sizeof(struct { unsigned int (mbccCEX):(((0+(x)) && 1) + 1); }) * 0 + (x))
 #endif
 
 /* flexible array member */
 #if defined(__cplusplus)
 #ifdef __cpp_flexible_array_members
 #define mbccFAMslot(type,memb)	type memb[]
-#else
+#elif defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)
 #define mbccFAMslot(type,memb)	type memb[0] mbmscWs(4200 4820)
+#else
+#define mbccFAMslot(type,memb)	type memb[1] mbmscWs(4820)
 #endif
 #elif (defined(__STDC_VERSION__) && ((__STDC_VERSION__) >= 199901L))
 #define mbccFAMslot(type,memb)	type memb[]
@@ -160,6 +162,15 @@ template<> struct mbccCEX_sa<false,true>{};
 
 /* compile-time assertions */
 #undef mbccCTA
+#if defined(__WATCOMC__) && !defined(__WATCOM_CPLUSPLUS__)
+				/* “Comparison result always 0” */
+#define mbccCTA_wb		_Pragma("warning 124 5")
+				/*XXX no pop so set to visible info */
+#define mbccCTA_we		_Pragma("warning 124 4")
+#else
+#define mbccCTA_wb		/* nothing */
+#define mbccCTA_we		/* nothing */
+#endif
 #if defined(__cplusplus)
 #ifdef __cpp_static_assert
 #define mbccCTA(fldn,cond)	static_assert(cond, mbccS(fldn))
@@ -173,20 +184,24 @@ template<> struct mbccCEX_sa<false,true>{};
 #define mbccCTA(fldn,cond)	__extension__ _Static_assert(cond, mbccS(fldn))
 #endif
 #ifndef mbccCTA
-/* single assertion for macros (needs fldn prefixed, cond parenthesised) */
-#define mbccCTA(fldn,cond)	unsigned char fldn:(cond ? 1 : -1)
+/* single assertion for macros (with fldn prefixed, cond parenthesised) */
+#define mbccCTA(fldn,cond)	unsigned int fldn:(cond ? 1 : -1)
 /* begin/end assertion block */
-#define mbCTA_BEG(name)		struct ctassert_ ## name {		\
-					char ctabeg /* plus user semicolon */
-#define mbCTA_END(name)			char ctaend;			\
+#define mbCTA_BEG(name)		struct ctassert_ ## name { mbccCTA_wb	\
+					int _ctabeg /* plus user semicolon */
+#define mbCTA_END(name)			int _ctaend;			\
 				};					\
 				struct ctassert2 ## name {		\
-					char ok[sizeof(struct ctassert_ ## name) > 2 ? 1 : -1]; \
-				} /* semicolon provided by user */
+					char t[sizeof(struct ctassert_ ## name) > 1U ? 1 : -1]; \
+				mbccCTA_we } /* semicolon provided by user */
 #else
 /* nothing, but syntax-check equally to manual compile-time assert macro */
-#define mbCTA_BEG(name)		struct ctassert_ ## name { char ctabeg; }
-#define mbCTA_END(name)		struct ctassert2 ## name { char ctaend; }
+#define mbCTA_BEG(name)		struct ctassert_ ## name { mbccCTA_wb	\
+					char t[2];			\
+				} /* semicolon provided by user */
+#define mbCTA_END(name)		struct ctassert2 ## name {		\
+					char t[sizeof(struct ctassert_ ## name) > 1U ? 1 : -1]; \
+				mbccCTA_we } /* semicolon provided by user */
 #endif
 /* single assertion */
 #define mbCTA(name,cond)	mbccCTA(cta_ ## name, (cond))
@@ -201,6 +216,14 @@ template<> struct mbccCEX_sa<false,true>{};
 #define mbnil			(size_t)0UL	/* wtf, why? */
 #else
 #define mbnil			(void *)0UL
+#endif
+
+/* præfix to avoid -Wunused-result when it really cannot be helped */
+#ifdef _FORTIFY_SOURCE
+/* workaround via https://stackoverflow.com/a/64407070/2171120 */
+#define SHIKATANAI		(void)!
+#else
+#define SHIKATANAI		(void)
 #endif
 
 #endif /* !SYSKERN_MBSDCC_H */
