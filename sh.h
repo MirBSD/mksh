@@ -30,7 +30,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1015 2023/08/16 13:53:28 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1031 2024/04/02 03:16:52 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -74,6 +74,9 @@
 #include <sys/stream.h>
 /* struct winsize */
 #include <sys/ptem.h>
+#endif
+#if defined(HAVE_GETRANDOM) && (HAVE_GETRANDOM)
+#include <sys/random.h>
 #endif
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -147,9 +150,6 @@
 #include <ulimit.h>
 #endif
 #include <unistd.h>
-#if HAVE_VALUES_H
-#include <values.h>
-#endif
 #ifdef MIRBSD_BOOTFLOPPY
 #include <wchar.h>
 #endif
@@ -165,17 +165,16 @@
 #define MBSDINT_H_WANT_INT32 1
 /* the code cannot cope without yet */
 #define MBSDINT_H_WANT_SAFEC 1
+#include "mbsdcc.h"
 #include "mbsdint.h"
 
 /* monkey-patch nil pointer constant */
 #undef NULL
-#define NULL mbi_nil
+#define NULL mbnil
 
-/* monkey-patch known-bad offsetof versions to quell a warning */
-#if (defined(__KLIBC__) || defined(__dietlibc__)) && \
-    ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
-#undef offsetof
-#define offsetof(s,e)		__builtin_offsetof(s, e)
+/* conflict with GCC attributes; fixed in later dietlibcs */
+#ifdef __dietlibc__
+#undef __noinline__
 #endif
 
 #undef __attribute__
@@ -243,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2023/08/16"
+#define MKSH_VERSION "R59 2024/02/01"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -256,7 +255,7 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KUL_FM ULONG_MAX
 #define KUL_HM LONG_MAX
 /* if mbiHUGE is wider than long, then that, else long */
-#if mbiMASK__BITS(mbiHUGE_U_MAX) > mbiMASK__BITS(ULONG_MAX)
+#if mbiHUGE_UBITS > mbiMASK__BITS(ULONG_MAX)
 #define MKSH_HAVE_HUGE
 typedef mbiHUGE_U kuH;
 typedef mbiHUGE_S ksH;
@@ -341,10 +340,6 @@ typedef void (*sig_t)(int);
 typedef MKSH_TYPEDEF_SIG_ATOMIC_T sig_atomic_t;
 #endif
 
-#ifdef MKSH_TYPEDEF_SSIZE_T
-typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
-#endif
-
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 #define MKSH_SHF_NO_INLINE
 #endif
@@ -360,14 +355,6 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #undef BAD		/* AIX defines that somewhere */
 #undef PRINT		/* LynxOS defines that somewhere */
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
-
-/* compiler shenanigans… */
-#ifdef _FORTIFY_SOURCE
-/* workaround via https://stackoverflow.com/a/64407070/2171120 */
-#define SHIKATANAI	(void)!
-#else
-#define SHIKATANAI	(void)
-#endif
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1438,8 +1425,8 @@ struct temp {
 	/* pid of process parsed here-doc */
 	pid_t pid;
 	Temp_type type;
-	/* actually longer: name (variable length) */
-	char tffn[3];
+	/* name */
+	mbccFAMslot(char, tffn);
 };
 
 /*
@@ -1691,7 +1678,7 @@ extern void ebcdic_init(void);
 #define isCh(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 /* POSIX locale ordering */
-#define asciibetical(c)	ord(c)
+#define asciibetical(c)	KUI(ord(c)) /* ranging to USHRT_MAX */
 /* if inspecting numerical values (mapping on EBCDIC) */
 #define rtt2asc(c)	KBY(c)
 #define asc2rtt(c)	KBY(c)
@@ -1920,8 +1907,12 @@ struct tbl {
 	/* flags (see below) */
 	kui flag;
 
-	/* actually longer: name (variable length) */
-	char name[4];
+	mbccFAMslot(char, name);
+};
+
+union tbl_static {
+	struct tbl tbl;
+	char storage[mbccFAMSZ(struct tbl, name, 4)];
 };
 
 EXTERN struct tbl *vtemp;
@@ -2524,6 +2515,9 @@ EXTERN struct timeval j_usrtime, j_systime;
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
 		    Tintovfl, (size_t)(val), '+', (size_t)(cnst));	\
 } while (/* CONSTCOND */ 0)
+#undef mbccABEND
+#define mbccABEND(reason)	kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | \
+				    KWF_ONEMSG | KWF_NOERRNO, (reason))
 
 /* lalloc.c */
 void ainit(Area *);
@@ -3007,7 +3001,7 @@ size_t array_ref_len(const char *);
 struct tbl *arraybase(const char *);
 mksh_uari_t set_array(const char *, Wahr, const char **);
 k32 hash(const void *);
-k32 chvt_rndsetup(const void *, size_t);
+void chvt_rndsetup(const void *, size_t);
 k32 rndget(void);
 void rndset(unsigned long);
 void rndpush(const void *, size_t);

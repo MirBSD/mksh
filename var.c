@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.272 2023/08/12 01:32:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.283 2024/02/02 04:04:22 tg Exp $");
 
 /*-
  * Variables
@@ -1652,9 +1652,8 @@ arraysearch(struct tbl *vp, k32 idx)
 	} else
 		news = NULL;
 	if (!news) {
-		len = strlen(vp->name) + 1;
-		/* no need to checkoktoadd, it comes from a vp->name */
-		news = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
+		len = strlen(vp->name) + 1U;
+		news = alloc(mbccFAMsz(struct tbl, name, len), vp->areap);
 		memcpy(news->name, vp->name, len);
 	}
 	news->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;
@@ -1810,16 +1809,25 @@ change_winsz(void)
 		int ioc;
 		int eno;
 #endif
+#ifdef SIGWINCH
+		sig_atomic_t gotsig;
+#endif
 	} z;
 
 	memset(&z, 0, sizeof(z));
 	mksh_TIME(z.tv);
+#ifdef SIGWINCH
+	z.gotsig = got_winch;
+#endif
 
 #ifdef TIOCGWINSZ
 	if ((z.tif = tty_init_fd()) < 2) {
 		/* check if window size has changed */
 		z.ioc = ioctl(tty_fd, TIOCGWINSZ, &z.ws);
 		z.eno = errno;
+#ifdef SIGWINCH
+		got_winch = 0;
+#endif
 		if (z.ioc >= 0) {
 			if (z.ws.ws_col)
 				x_cols = z.ws.ws_col;
@@ -1827,18 +1835,16 @@ change_winsz(void)
 				x_lins = z.ws.ws_row;
 		}
 	}
+#elif defined(SIGWINCH)
+	got_winch = 0;
 #endif
+	rndpush(&z, sizeof(z));
 
 	/* bounds check for sane values, use defaults otherwise */
 	if (x_cols < MIN_COLS)
 		x_cols = 80;
 	if (x_lins < MIN_LINS)
 		x_lins = 24;
-
-	rndpush(&z, sizeof(z));
-#ifdef SIGWINCH
-	got_winch = 0;
-#endif
 }
 
 k32
@@ -1852,14 +1858,13 @@ hash(const void *s)
 	return (h);
 }
 
-k32
+void
 chvt_rndsetup(const void *bp, size_t sz)
 {
 	register k32 h;
 
-	/* use LCG as seed but try to get them to deviate immediately */
 	h = lcg_state;
-	rndget();
+	BAFHUpdateVLQ(h, size_t, sz);
 	BAFHFinish(h);
 	/* variation through pid, ppid, and the works */
 	BAFHUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
@@ -1867,8 +1872,7 @@ chvt_rndsetup(const void *bp, size_t sz)
 	BAFHUpdateMem(h, bp, sz);
 	/* mix them all up */
 	BAFHFinish(h);
-
-	return (h);
+	lcg_state = h;
 }
 
 k32
@@ -1884,6 +1888,16 @@ rndget(void)
 	    mbiMKshr(k32, K32_FM, lcg_state, 16), &, 0x7FFFU));
 }
 
+#ifndef KSH_USE_ARC4RANDOM
+#if HAVE_GETRANDOM || defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+#define KSH_USE_ARC4RANDOM 0
+#elif defined(__OpenBSD__)
+#define KSH_USE_ARC4RANDOM 1
+#else
+#define KSH_USE_ARC4RANDOM 0
+#endif
+#endif
+
 void
 rndset(unsigned long v)
 {
@@ -1895,14 +1909,28 @@ rndset(unsigned long v)
 		struct timeval tv;
 		void *sp;
 		k32 qh;
+#if HAVE_GETRANDOM
+		char xby[4];
+#endif
+#if KSH_USE_ARC4RANDOM
+		unsigned int xu32;
+#endif
 		pid_t pp;
 		unsigned short r;
 	} z;
+#if HAVE_GETRANDOM
+#ifdef GRND_INSECURE
+	static unsigned int grnd_iflag = GRND_INSECURE;
+#define grnd_flags (GRND_NONBLOCK | grnd_iflag)
+#else /* !GRND_INSECURE */
+#define grnd_flags GRND_NONBLOCK
+#endif /* !GRND_INSECURE */
+#endif /* HAVE_GETRANDOM */
 
 	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(&z, 0, sizeof(z));
 
-	h = lcg_state;
+	h = lcg_state ? lcg_state : (k32)1U;
 	BAFHFinish(h);
 	BAFHUpdateMem(h, &v, sizeof(v));
 
@@ -1910,6 +1938,38 @@ rndset(unsigned long v)
 	z.sp = &z;
 	z.pp = procpid;
 	z.r = rndget();
+	/* nōn-blocking extra bytes from OS… if cheap and available */
+#if HAVE_GETRANDOM
+ try_getrandom:
+	if (getrandom(z.xby, sizeof(z.xby), grnd_flags) == -1)
+		switch (errno) {
+		case EINVAL:
+#ifdef GRND_INSECURE
+			if (grnd_iflag) {
+				/* try without again, old kernel? */
+				grnd_iflag = 0;
+				goto try_getrandom;
+			}
+#endif
+			/* FALLTHROUGH */
+		default:
+			/* warn for other errors */
+			kwarnf(KWF_WARNING | KWF_PREFIX | KWF_ONEMSG,
+			    "getrandom");
+			/* FALLTHROUGH */
+		case EAGAIN:
+		case ENOSYS:
+			/* ignore */
+			break;
+		case EINTR:
+			/* repeat */
+			goto try_getrandom;
+		}
+	/* otherwise, use whatever we got */
+#endif
+#if KSH_USE_ARC4RANDOM
+	z.xu32 = arc4random();
+#endif
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
 	z.qh = (qh_state & 0xFFFF8000U) | rndget();
@@ -1942,7 +2002,7 @@ rndset(unsigned long v)
 void
 rndpush(const void *s, size_t n)
 {
-	register k32 h = qh_state;
+	register k32 h = qh_state ? qh_state : (k32)1U;
 
 	BAFHUpdateMem(h, s, n);
 	BAFHFinish(h);
@@ -2329,8 +2389,8 @@ c_typeset_vardump(struct tbl *vp, kui flag, int thing, int any_set,
 		shf_puts(vp->name, shl_stdout);
 		if (any_set)
 			shprintf(Tf_SQlu, arrayindex(vp));
-		if ((!thing && !flag && pflag) ||
-		    (thing == '-' && (vp->flag & ISSET))) {
+		if (((!thing && !flag && pflag) || thing == '-') &&
+		    (vp->flag & ISSET)) {
 			shf_putc('=', shl_stdout);
 			if (baseone)
 				shprintf(vp->val.u > 0xFF ? "16#%04X" :

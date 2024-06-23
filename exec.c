@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.246 2023/01/31 01:05:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.247 2023/09/16 23:07:45 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1193,7 +1193,7 @@ builtin(const char *name, int (*func) (const char **))
 struct tbl *
 findcom(const char *name, int flags)
 {
-	static struct tbl temp;
+	static union tbl_static temp;
 	k32 h = hash(name);
 	struct tbl *tp = NULL, *tbi;
 	/* insert if not found */
@@ -1248,7 +1248,7 @@ findcom(const char *name, int flags)
 				tp = ktenter(&taliases, name, h);
 				tp->type = CTALIAS;
 			} else {
-				tp = &temp;
+				tp = (struct tbl *)&temp;
 				tp->type = CEXEC;
 			}
 			/* make ~ISSET */
@@ -1272,7 +1272,7 @@ findcom(const char *name, int flags)
 			 * even if the command hasn't been set up as an
 			 * autoloaded function (ie, no typeset -uf).
 			 */
-			tp = &temp;
+			tp = (struct tbl *)&temp;
 			tp->type = CFUNC;
 			/* make ~ISSET */
 			tp->flag = DEFINED;

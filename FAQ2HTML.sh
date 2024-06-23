@@ -1,7 +1,7 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.4 2021/07/27 02:36:55 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.8 2023/12/13 10:07:19 tg Exp $'
 #-
-# Copyright © 2020
+# Copyright © 2020, 2023
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -20,12 +20,16 @@ rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.4 2021/07/27 02:36:55 tg Exp $'
 # of said person’s immediate fault when using the work as intended.
 #-
 
-set -e
+die() {
+	echo >&2 "E: $*"
+	exit 1
+}
+
 LC_ALL=C; LANGUAGE=C
 export LC_ALL; unset LANGUAGE
 nl='
 '
-srcdir=`dirname "$0" 2>/dev/null`
+srcdir=`dirname "$0" 2>/dev/null` || die 'cannot find srcdir'
 
 p=--posix
 sed $p -e q </dev/null >/dev/null 2>&1 || p=
@@ -34,19 +38,25 @@ v=$1
 if test -z "$v"; then
 	v=`sed $p -n '/^#define MKSH_VERSION "\(.*\)"$/s//\1/p' "$srcdir"/sh.h`
 fi
+test -n "$v" || die 'cannot find version'
 src_id=`sed $p -n '/^RCSID: /s///p' "$srcdir"/mksh.faq`
 # sanity check
-case $src_id in
+case x$src_id in
+x)
+	die 'cannot find RCSID'
+	;;
 *"$nl"*)
-	echo >&2 "E: more than one RCSID in mksh.faq?"
-	exit 1 ;;
+	die 'more than one RCSID in mksh.faq?'
+	;;
 esac
 
 sed $p \
     -e '/^RCSID: \$/s/^.*$/----/' \
     -e 's!@@RELPATH@@!http://www.mirbsd.org/!g' \
     -e 's^	<span style="display:none;">	</span>' \
-    "$srcdir"/mksh.faq | tr '\n' '' | sed $p \
+    "$srcdir"/mksh.faq >FAQ.tm1 || die 'sed (1)'
+tr '\n' '' <FAQ.tm1 >FAQ.tm2 || die 'tr (2)'
+sed $p \
     -e 'sg' \
     -e 's----g' \
     -e 's\([^]*\)\1g' \
@@ -56,9 +66,10 @@ sed $p \
     -e 's^</div>*' \
     -e 's$</div>' \
     -e 's<><error><>g' \
-    -e 'sg' | tr '' '\n' >FAQ.tmp
+    -e 'sg' <FAQ.tm2 >FAQ.tm3 || die 'sed (3)'
+tr '' '\n' <FAQ.tm3 >FAQ.tm4 || die 'tr (4)'
 
-exec >FAQ.htm~
+exec >FAQ.tm5
 cat <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -119,18 +130,19 @@ cat <<EOF
 EOF
 sed $p -n \
     '/^<h2 id="\([^"]*"\)><a[^>]*\(>.*<\/a><\/\)h2>$/s//<li><a href="#\1\2li>/p' \
-    <FAQ.tmp
+    <FAQ.tm4 || die 'sed (ToC)'
 cat <<EOF
 </ul>
 
 <h1>Frequently Asked Questions</h1>
 EOF
-cat FAQ.tmp - <<EOF
+cat FAQ.tm4 - <<EOF
 <h1>Imprint</h1>
 <p>This offline HTML page for mksh $v was automatically generated
  from the sources.</p>
 </body></html>
 EOF
 exec >/dev/null
-rm FAQ.tmp
-mv FAQ.htm~ FAQ.htm
+rm FAQ.tm1 FAQ.tm2 FAQ.tm3 FAQ.tm4
+mv FAQ.tm5 FAQ.htm || die 'final mv'
+exit 0

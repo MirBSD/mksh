@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.258 2023/06/24 23:05:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.261 2023/09/16 23:07:44 tg Exp $");
 
 /*
  * string expansion
@@ -76,7 +76,11 @@ typedef struct {
 #define STYPE_SINGLE	0x2FF
 #define STYPE_MASK	0x300
 
-static int varsub(Expand *, const char *, const char *, unsigned int *, int *);
+static int varsub(Expand *, const char *, const char *, unsigned int *, int *)
+#if defined(__GNUC__) && (__GNUC__ >= 13)
+    __attribute__((__noinline__))
+#endif
+    ;
 static int comsub(Expand *, const char *, int);
 static char *valsub(struct op *, Area *);
 static void funsub(struct op *);
@@ -367,16 +371,17 @@ expand(
 					}
 					*dp++ = ')'; *dp++ = ')';
 				} else {
-					struct tbl v;
+					union tbl_static v;
 
-					v.flag = DEFINED|ISSET|INTEGER;
+					v.tbl.flag = DEFINED|ISSET|INTEGER;
 					/* not default */
-					v.type = 10;
-					v.name[0] = '\0';
-					v_evaluate(&v, substitute(sp, 0),
+					v.tbl.type = 10;
+					v.tbl.name[0] = '\0';
+					v_evaluate((struct tbl *)&v,
+					    substitute(sp, 0),
 					    KSH_UNWIND_ERROR, Ja);
 					sp = strnul(sp) + 1;
-					x.str = str_val(&v);
+					x.str = str_val((struct tbl *)&v);
 					type = XSUB;
 					if (f & DOBLANK)
 						doblank++;
@@ -396,7 +401,7 @@ expand(
 				int slen = 0;
 
 				/* skip variable */
-				sp = cstrchr(sp, '\0') + 1;
+				sp = strnul(sp) + 1;
 				type = varsub(&x, varname, sp, &stype, &slen);
 				if (type < 0) {
 					char *beg, *end, *str;
@@ -404,8 +409,8 @@ expand(
 					/* restore sp */
 					sp = varname - 2;
 					beg = wdcopy(sp, ATEMP);
-					end = (wdscan(cstrchr(sp, '\0') + 1,
-					    CSUBST) - sp) + beg;
+					end = (wdscan(strnul(sp) + 1, CSUBST) -
+					    sp) + beg;
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;

@@ -5,7 +5,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021, 2022, 2023
+ *		 2019, 2020, 2021, 2022, 2023, 2024
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.412 2023/03/14 15:09:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.415 2024/02/02 02:33:06 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -48,6 +48,7 @@ static int c_suspend(const char **);
 #endif
 
 static int do_whence(const char **, int, Wahr, Wahr);
+static int do_evalcmd(const char **);
 
 /* getn() that prints error */
 static int
@@ -120,6 +121,8 @@ const struct builtin mkshbuiltins[] = {
 	{Tsuspend, c_suspend},
 #endif
 	{"test", c_test},
+	/* normally a syntax element but as_builtin or 'x=y time foo' do: */
+	{Ttime, do_evalcmd},
 	{"*=times", c_times},
 	{"*=trap", c_trap},
 	{Ttrue, c_true},
@@ -182,9 +185,9 @@ const struct t_op u_ops[] = {
 	{"-z",	TO_STZER },
 	{"",	TO_NONOP }
 };
-mbiCTAS(funcs_c) {
-	mbiCTA(u_ops_size, NELEM(u_ops) == 26);
-};
+mbCTA_BEG(funcs_c);
+	mbCTA(u_ops_size, NELEM(u_ops) == 26);
+mbCTA_END(funcs_c);
 const struct t_op b_ops[] = {
 	{"=",	TO_STEQL },
 	{"==",	TO_STEQL },
@@ -2013,13 +2016,19 @@ c_read(const char **wp)
 int
 c_eval(const char **wp)
 {
+	if (ksh_getopt(wp, &builtin_opt, null) == '?')
+		return (1);
+	return (do_evalcmd(wp + builtin_opt.optind));
+}
+
+static int
+do_evalcmd(const char **wp)
+{
 	struct source *s, *saves = source;
 	int rv;
 
-	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
 	s = pushs(SWORDS, ATEMP);
-	s->u.strv = wp + builtin_opt.optind;
+	s->u.strv = wp;
 	s->line = current_lineno;
 
 	/*-

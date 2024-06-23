@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.911 2023/08/16 13:53:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.917 2024/02/02 04:04:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020, 2021, 2022, 2023
+#	      2019, 2020, 2021, 2022, 2023, 2024
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2023/08/16
+	KSH R59 2024/02/01
 description:
 	Check base version of full shell
 stdin:
@@ -1982,6 +1982,8 @@ expected-stderr-pattern: /not set/
 name: expand-bang-2
 description:
 	Check corner case of ${!var} vs. ${var op} with var=!
+category: !nopiddependent
+time-limit: 15
 stdin:
 	echo 1 $! .
 	echo 2 ${!#} .
@@ -2061,7 +2063,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-category: !os:cygwin,!os:lynxos,!os:midipix,!os:msys,!os:os2
+category: !os:cygwin,!os:lynxos,!os:midipix,!os:msys,!os:os2,!noweirdfilenames
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
@@ -2556,7 +2558,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
+category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390,!noweirdfilenames
 need-pass: no
 file-setup: file 644 "aÂc"
 stdin:
@@ -7951,7 +7953,7 @@ name: exit-enoent-2
 description:
 	SUSv4 says that the shell should exit with 126 in some situations
 # fails because x permissions handled wrong
-category: !os:skyos
+category: !os:skyos,!noxperms
 stdin:
 	(echo; echo :) >x
 	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo 0 $r .
@@ -8993,11 +8995,46 @@ expected-stdout:
 	<12345678910 345678920
 	<               .  aáºž> 2)
 ---
+name: typeset-unset
+description:
+	Check that typeset -p correctly distinguishes unset and empty
+stdin:
+	unset u
+	typeset -p u
+	echo 1 ${u-a} ${u:-b} .
+	x1=$(typeset -p u)
+	export u
+	typeset -p u
+	echo 2 ${u-a} ${u:-b} .
+	x2=$(typeset -p u)
+	u=
+	typeset -p u
+	echo 3 ${u-a} ${u:-b} .
+	x3=$(typeset -p u)
+	unset u
+	eval "$x1"
+	echo 4 ${u-a} ${u:-b} .
+	unset u
+	eval "$x2"
+	echo 5 ${u-a} ${u:-b} .
+	unset u
+	eval "$x3"
+	echo 6 ${u-a} ${u:-b} .
+expected-stdout:
+	1 a b .
+	typeset -x u
+	2 a b .
+	typeset -x u=''
+	3 b .
+	4 a b .
+	5 a b .
+	6 b .
+---
 name: utf8bom-1
 description:
 	Check that the UTF-8 Byte Order Mark is not ignored any more
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
-category: !os:darwin,!shell:ebcdic-yes
+category: !os:darwin,!shell:ebcdic-yes,!noweirdfilenames
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
@@ -10085,7 +10122,7 @@ name: varexpand-special-hash
 description:
 	Check special ${var@x} expansion for x=hash
 category: !shell:ebcdic-yes
-perl-setup: open XF,">","xf" or die; print XF "a"x1000000 or die; close XF or die;
+perl-setup: open XF,">xf" or die; print XF "a"x1000000 or die; close XF or die;
 stdin:
 	typeset -i8 foo=10
 	bar=baz
@@ -10629,6 +10666,18 @@ stdin:
 	echo 1 $? .
 expected-stdout:
 	1 0 .
+---
+name: dot-args
+description:
+	Ensure dot can take arguments
+file-setup: file 644 "t"
+	print -r -- "$#,${1-},${2-},${3-}"
+stdin:
+	"$__progname" -c '. ./t a b'
+	"$__progname" -c 'source t c d'
+expected-stdout:
+	2,a,b,
+	2,c,d,
 ---
 name: alias-function-no-conflict
 description:
@@ -14132,10 +14181,15 @@ stdin:
 expected-stdout:
 	typeset s=$'\001\002\003\004\t\006\007\010\011\012\v\f\r\016\017\020\021\022\023\024\n\b\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\E\050\051\052\053\054\055\056\a\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077  âäàáãåçñ¢.<(+|&éêëèíîïìß!$*);^-/ÂÄÀÁÃÅÇÑ¦,%_>?øÉÊËÈÍÎÏÌ`:#@\175="Øabcdefghi«»ðýþ±°jklmnopqrªºæ¸Æ¤µ~stuvwxyz¡¿Ð[Þ®¬£¥·©§¶¼½¾Ý¨¯]´×{ABCDEFGHI­ôöòóõ}JKLMNOPQR¹ûüùúÿ\\÷STUVWXYZ²ÔÖÒÓÕ0123456789³ÛÜÙÚ\377'
 ---
+name: the-next-test-takes-very-long-on-retro-systems
+category: !system:fast-no
+stdin:
+	:
+---
 name: stateptr-underflow
 description:
 	This check overflows an Xrestpos stored in a short in R40
-category: fastbox
+category: !system:fast-no
 stdin:
 	function Lb64decode {
 		[[ -o utf8-mode ]]; local u=$?

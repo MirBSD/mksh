@@ -24,16 +24,12 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.15 2023/04/17 00:51:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.17 2023/12/13 14:52:18 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
 
 #if HAVE_RLIMIT
-
-#if !HAVE_RLIM_T
-typedef unsigned long rlim_t;
-#endif
 
 /* Magic to divine the 'm' and 'v' limits */
 
@@ -282,8 +278,22 @@ c_ulimit(const char **wp)
 }
 
 #if HAVE_RLIMIT
-#define RL_T rlim_t
-#define RL_U (rlim_t)RLIM_INFINITY
+#ifndef MKSH_RLIM_T
+#define MKSH_RLIM_T rlim_t
+#else
+/* because add_cppflags does not handle spaces */
+#define RLT_SI signed int
+#define RLT_UI unsigned int
+#define RLT_SL signed long
+#define RLT_UL unsigned long
+#define RLT_SQ signed long long
+#define RLT_UQ unsigned long long
+#endif
+#define RL_T MKSH_RLIM_T
+#define RL_U (MKSH_RLIM_T)RLIM_INFINITY
+mbCTA_BEG(ulimit_c);
+ mbCTA(rlinf_fits, (RLIM_INFINITY) == (RL_U));
+mbCTA_END(ulimit_c);
 #else
 #define RL_T long
 #define RL_U LONG_MAX
@@ -403,7 +413,7 @@ print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 #if HAVE_RLIMIT
 	if (how & SOFT)
 		val = limit.rlim_cur;
-	else if (how & HARD)
+	else
 		val = limit.rlim_max;
 #endif
 	if (val == RL_U)

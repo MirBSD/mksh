@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021,
- *		 2022
+ *		 2022, 2023
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.157 2023/03/14 15:09:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.162 2024/04/02 03:33:48 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -39,33 +39,28 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.157 2023/03/14 15:09:21 tg Exp $");
 #define PSIGNALLED	2
 #define PSTOPPED	3
 
-#define PROC_TGTSZ	256
+#define PROC_TGTSZ	256U
 
 typedef struct proc Proc;
 /* to take alignment into consideration */
 struct proc_dummy {
 	Proc *next;
-	pid_t pid;
 	int state;
 	int status;
-	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 32)];
+	pid_t pid;
+	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 14U)];
 };
-#ifdef MKSH_BROKEN_OFFSETOF
-/* assumes no padding; check manually! */
-#define PROC_OFS (sizeof(Proc *) + sizeof(pid_t) + 2 * sizeof(int))
-#else
-#define PROC_OFS (offsetof(struct proc_dummy, command[0]))
-#endif
+#define PROC_OFS (offsetof(struct proc_dummy, command))
 /* real structure */
 struct proc {
 	/* next process in pipeline (if any) */
 	Proc *next;
-	/* process id of this Unix process in the job */
-	pid_t pid;
 	/* one of the four P… above */
 	int state;
 	/* wait status */
 	int status;
+	/* process ID of this Unix process in the job */
+	pid_t pid;
 	/* process command string from vistree */
 	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + PROC_OFS)];
 };
@@ -528,8 +523,6 @@ exchild(struct op *t, int flags,
 		sleep(forksleep);
 		forksleep <<= 1;
 	}
-	/* ensure $RANDOM changes between parent and child */
-	rndset((unsigned long)cldpid);
 	/* fork failed? */
 	if (cldpid < 0) {
 		kill_job(j, SIGKILL);
@@ -541,6 +534,8 @@ exchild(struct op *t, int flags,
 		    KWF_ONEMSG, eno, "can't fork - try again");
 	}
 	p->pid = cldpid ? cldpid : (procpid = getpid());
+	/* ensure $RANDOM changes between parent and child */
+	rndset((unsigned long)cldpid);
 
 #ifndef MKSH_UNEMPLOYED
 	/* job control set up */
@@ -1096,10 +1091,11 @@ j_set_async(Job *j)
 			    (!oldest || jl->age < oldest->age))
 				oldest = jl;
 		if (!oldest) {
-			/* XXX debugging */
 			if (!(async_job->flags & JF_ZOMBIE) || nzombie != 1) {
+#ifdef DEBUG
 				kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
 				    "%s: bad nzombie (%d)", "j_async", nzombie);
+#endif
 				nzombie = 0;
 			}
 			break;
@@ -1288,10 +1284,10 @@ j_waitj(Job *j,
 		goto got_array;
 
 		while (p != NULL) {
-			vt = alloc(offsetof(struct tbl, name[0]) +
-			    sizeof(Tpipest), vp_pipest->areap);
-			memset(vt, 0, offsetof(struct tbl, name[0]));
-			memcpy(vt + offsetof(struct tbl, name[0]),
+			vt = alloc(mbccFAMSZ(struct tbl, name,
+			    sizeof(Tpipest)), vp_pipest->areap);
+			memset(vt, 0, offsetof(struct tbl, name));
+			memcpy(vt + offsetof(struct tbl, name),
 			    Tpipest, sizeof(Tpipest));
 			vp->u.array = (void *)vt;
 			vp = (void *)vt;

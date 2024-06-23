@@ -1,10 +1,10 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.838 2023/08/12 01:32:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.856 2024/04/02 10:51:35 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020, 2021, 2022, 2023
+#		2020, 2021, 2022, 2023, 2024
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -368,15 +368,15 @@ cat_h_blurb() {
 }
 
 # pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
-ac_testnnd() {
+ac_testnndnd() {
 	if test x"$1" = x"!"; then
 		fr=1
 		shift
 	else
 		fr=0
 	fi
-	ac_testinit "$@" || return 1
 	cat_h_blurb >conftest.c
+	ac_testinit "$@" || return 1
 	vv ']' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
@@ -400,9 +400,17 @@ ac_testnnd() {
 	return 0
 }
 ac_testn() {
-	ac_testnnd "$@" || return
-	rmf conftest.c conftest.o ${tcfn}* vv.out
-	ac_testdone
+	if ac_testnndnd "$@"; then
+		rmf conftest.c conftest.o ${tcfn}* vv.out
+		ac_testdone
+	else
+		rm -f conftest.c
+	fi
+}
+ac_testnnd() {
+	if ac_testnndnd "$@"; then
+		ac_testdone
+	fi
 }
 
 # ac_ifcpp cppexpr [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
@@ -616,7 +624,7 @@ ebcdic=false
 for i
 do
 	case $last:$i in
-	c:dragonegg|c:llvm)
+	c:dragonegg|c:llvm|c:trace)
 		cm=$i
 		last=
 		;;
@@ -833,6 +841,13 @@ BeOS|HP-UX|QNX|SCO_SV)
 	;;
 esac
 
+# SVR4 (some) workaround
+int_as_ssizet() {
+	cpp_define SSIZE_MIN INT_MIN
+	cpp_define SSIZE_MAX INT_MAX
+	cpp_define ssize_t int
+}
+
 cmplrflgs=
 
 # Configuration depending on OS name
@@ -841,6 +856,11 @@ case $TARGET_OS in
 	: "${HAVE_CAN_OTWO=0}"
 	cpp_define MKSH_NO_SIGSETJMP 1
 	cpp_define MKSH_TYPEDEF_SIG_ATOMIC_T int
+	;;
+4.4BSD)
+	osnote='; assuming BOW (BSD on Windows)'
+	check_categories="$check_categories nopiddependent noxperms"
+	check_categories="$check_categories nosymlink noweirdfilenames"
 	;;
 A/UX)
 	add_cppflags -D_POSIX_SOURCE
@@ -1160,8 +1180,7 @@ scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	cpp_define MKSH__NO_SETEUGID 1
 	: "${HAVE_SETRESUGID=0}"
-	cpp_define MKSH_BROKEN_OFFSETOF 1
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	cpp_define MKSH_UNEMPLOYED 1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}${HAVE_TERMIOS_H=0}"
 	;;
@@ -1187,6 +1206,10 @@ SerenityOS)
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	;;
+SINIX-Z)
+	: "${CC=cc -Xa}"
+	cmplrflgs=-DMKSH_MAYBE_SCDE
+	;;
 skyos)
 	oswarn="; it has minor issues"
 	;;
@@ -1201,7 +1224,7 @@ syllable)
 	;;
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 UnixWare|UNIX_SV)
@@ -1226,8 +1249,7 @@ XENIX)
 	cpp_define _setjmp setjmp
 	cpp_define _longjmp longjmp
 	cpp_define USE_REALLOC_MALLOC 0
-	cpp_define MKSH_BROKEN_OFFSETOF 1
-	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	int_as_ssizet
 	# per http://www.polarhome.com/service/man/?qf=signal&of=Xenix
 	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	cpp_define MKSH_UNEMPLOYED 1
@@ -1240,8 +1262,10 @@ XENIX)
 	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
-	# this duplicates the * target below
 	oswarn='; it may or may not work'
+	: "${CC=cc -Xa}"
+	cmplrflgs=-DMKSH_MAYBE_SCDE
+	int_as_ssizet #XXX maybe not for *all* _svr4? here for Dell UNIX
 	;;
 *)
 	oswarn='; it may or may not work'
@@ -1382,6 +1406,8 @@ ct="quickc"
 #elif defined(MKSH_MAYBE_KENCC)
 /* and none of the above matches */
 ct="kencc"
+#elif defined(MKSH_MAYBE_SCDE)
+ct="tryscde"
 #else
 ct="unknown"
 #endif
@@ -1408,6 +1434,23 @@ cat_h_blurb >conftest.c <<'EOF'
 int main(void) { return (isatty(0)); }
 EOF
 test_z "$Cg" || Cg=-g  # generic
+case $ct:$TARGET_OS in
+tryscde:*)
+	case `LC_ALL=C; export LC_ALL; $CC -V 2>&1` in
+	*'Standard C Development Environment'*)
+		ct=scde ;;
+	*)
+		ct=unknown ;;
+	esac
+	;;
+gcc:_svr4)
+	# weirdly needed to find NSIG
+	case $CC$CPPFLAGS in
+	*STDC*) ;;
+	*) CC="$CC -U__STDC__ -D__STDC__=0" ;;
+	esac
+	;;
+esac
 case $ct in
 ack)
 	# work around "the famous ACK const bug"
@@ -1541,6 +1584,10 @@ quickc)
 	# no version information
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
+scde)
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
+	;;
 sdcc)
 	echo >&2 'Warning: sdcc (http://sdcc.sourceforge.net), the small devices
     C compiler for embedded systems detected. This has not yet
@@ -1593,6 +1640,15 @@ esac
 case $cm in
 dragonegg|llvm)
 	vv '|' "llc -version"
+	;;
+trace)
+	case $ct in
+	gcc) ;;
+	*)
+		echo >&2 "E: -c trace does not work with $cm"
+		exit 1
+		;;
+	esac
 	;;
 esac
 etd=" on $et"
@@ -1695,6 +1751,8 @@ msc)
 	;;
 quickc)
 	;;
+scde)
+	;;
 sunpro)
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
@@ -1747,7 +1805,7 @@ hpcc)
 	ac_flags 1 otwo +O2
 	phase=x
 	;;
-kencc|quickc|tcc|tendra)
+kencc|quickc|scde|tcc|tendra)
 	# no special optimisation
 	;;
 sunpro)
@@ -2059,6 +2117,7 @@ EOF
 ac_header sys/select.h sys/types.h
 test "11" = "$HAVE_SYS_TIME_H$HAVE_SYS_SELECT_H" || HAVE_SELECT_TIME_H=1
 ac_test select_time_h '' 'whether <sys/time.h> and <sys/select.h> can both be included' <<-'EOF'
+	#include <sys/types.h>
 	#include <sys/time.h>
 	#include <sys/select.h>
 	#include <unistd.h>
@@ -2083,7 +2142,6 @@ ac_header stdint.h stdarg.h
 ac_header strings.h sys/types.h string.h
 ac_header termios.h
 ac_header ulimit.h sys/types.h
-ac_header values.h
 
 #
 # Environment: definitions
@@ -2120,6 +2178,7 @@ ac_testn mbi_ctas '' 'if integer types are sane enough' <<-'EOF'
 	#include <limits.h>
 	#include <stddef.h>
 	#undef MBSDINT_H_SKIP_CTAS
+	#include "mbsdcc.h"
 	#include "mbsdint.h"
 	#include <unistd.h>
 	int main(void) { return (isatty(0)); }
@@ -2191,6 +2250,7 @@ else
 		#define MKSH_DO_MBI_CTAS
 		#include "sh.h"
 		__RCSID("$srcversion");
+		__IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 		__IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 		__IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 		int main(void) {
@@ -2222,6 +2282,12 @@ EOF
 		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -c conftest.c" || fv=0
 		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
 		;;
+	trace)
+		rm -f conftest.d conftest.o
+		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -MD -c conftest.c" || fv=0
+		test -f conftest.d && test -s conftest.d || fv=0
+		test -f conftest.o && test -s conftest.o || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn conftest.o $LIBS -Wl,-t,-t $ccpr"
 	esac
 	test -f $tcfn || fv=0
 	ac_testdone
@@ -2329,7 +2395,7 @@ ac_test rlimit '' 'getrlimit and setrlimit' <<-'EOF'
 	}
 EOF
 
-ac_test rlim_t rlimit 0 <<-'EOF'
+ac_testnnd rlim_t rlimit 0 <<-'EOF'
 	#include <sys/types.h>
 	#if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 	#include <sys/time.h>
@@ -2349,10 +2415,93 @@ ac_test rlim_t rlimit 0 <<-'EOF'
 	int main(void) { return (((int)(rlim_t)0) + isatty(0)); }
 EOF
 
+if test 10 = "$HAVE_RLIMIT$HAVE_RLIM_T"; then
+	fv=$MKSH_RLIM_T
+	fd='for what rlim_t could have been'
+	# reuses here document from above
+	if test x"$fv" = x"" || test x"$fv" = x"x"; then
+		$e ... $fd
+		vv ']' "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN conftest.c | grep -v '^#' | tr -d \\\\015 >x"
+		fx=0
+		fr=
+		while read line; do
+			case $fx in
+			0)
+				case $line in
+				*struct*[\	\ ]rlimit|*struct*[\	\ ]rlimit[\	\ \{]*)
+					fr=$line
+					fx=1
+					;;
+				esac ;;
+			1)
+				fr="$fr $line"
+				case $line in
+				*\}*)
+					fx=2
+					;;
+				esac ;;
+			esac
+		done <x
+		echo "[ $fr"
+		fr=`echo " $fr" | sed \
+		    -e 's/[	 ][	 ]*/ /g' \
+		    -e 's/^ *struct rlimit *[{] *//' \
+		    -e 's/ *;.*$//'`
+		fx=
+		case $fr in
+		*\ rlim_cur)
+			fr=`echo " $fr" | sed \
+			    -e 's/^ //' \
+			    -e 's/ rlim_cur$//'`
+			;;
+		*\ rlim_max)
+			fr=`echo " $fr" | sed \
+			    -e 's/^ //' \
+			    -e 's/ rlim_max$//'`
+			;;
+		*)
+			fr=
+			;;
+		esac
+		case $fr in
+		int|signed\ int)
+			fv=RLT_SI ;;
+		u_int|unsigned|unsigned\ int)
+			fv=RLT_UI ;;
+		long|long\ int|signed\ long|signed\ long\ int)
+			fv=RLT_SL ;;
+		u_long|unsigned\ long|unsigned\ long\ int)
+			fv=RLT_UL ;;
+		long\ long|long\ long\ int|signed\ long\ long|signed\ long\ long\ int)
+			fv=RLT_SQ ;;
+		unsigned\ long\ long|unsigned\ long\ long\ int)
+			fv=RLT_UQ ;;
+		[a-z_]*_t)
+			fv=`echo " $fr" | sed -n '/^ \([a-z0-9_]*_t\)$/s//\1/p'` ;;
+		*)
+			fv= ;;
+		esac
+		test_n "$fv" || fx="(could not be determined from $fr)"
+	else
+		fx=' (cached)'
+	fi
+	test_z "$fv" || cpp_define MKSH_RLIM_T "$fv"
+	$e "$bi==> $fd...$ao $ui$fv$ao$fx"
+	fx=
+fi
+
 ac_test get_current_dir_name <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (!get_current_dir_name()); }
+EOF
+
+ac_test getrandom <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#define HAVE_GETRANDOM 1
+	#include "sh.h"
+	char buf;
+	int main(void) { return ((int)getrandom(&buf, 1, GRND_NONBLOCK)); }
 EOF
 
 ac_test getrusage <<-'EOF'
@@ -2632,9 +2781,10 @@ ac_test intconstexpr_rsize_max '' 'whether RSIZE_MAX is an integer constant expr
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int tstarr[((int)(RSIZE_MAX) & 1) + 1] = {0};
-	mbiCTAS(conftest_c) { mbiCTA(rsizemax_check,
+	mbCTA_BEG(conftest_c);
+	 mbCTA(rsizemax_check,
 	    ((mbiHUGE_U)(RSIZE_MAX) == (mbiHUGE_U)(size_t)(RSIZE_MAX)));
-	};
+	mbCTA_END(conftest_c);
 	int main(void) { return (isatty(0)); }
 EOF
 
@@ -2659,12 +2809,12 @@ if test $legacy = 1; then
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS(conftest) {
-			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
-			mbiCTA(long_is_4_chars, sizeof(long) == 4);
-			mbiCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
-			mbiCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
-		};
+		mbCTA_BEG(conftest);
+			mbCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbCTA(long_is_4_chars, sizeof(long) == 4);
+			mbCTA(ulong_is_32_bits, mbiTYPE_UBITS(unsigned long) == 32U);
+			mbCTA(slong_is_31_bits, mbiMASK_BITS(LONG_MAX) == 31U);
+		mbCTA_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
@@ -2674,12 +2824,12 @@ EOF
 		#ifndef CHAR_BIT
 		#define CHAR_BIT 0
 		#endif
-		mbiCTAS(conftest) {
-			mbiCTA(char_is_8_bits, (CHAR_BIT) == 8);
-			mbiCTA(long_is_8_chars, sizeof(long) == 8);
-			mbiCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
-			mbiCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
-		};
+		mbCTA_BEG(conftest);
+			mbCTA(char_is_8_bits, (CHAR_BIT) == 8);
+			mbCTA(long_is_8_chars, sizeof(long) == 8);
+			mbCTA(ulong_is_64_bits, mbiTYPE_UBITS(unsigned long) == 64U);
+			mbCTA(slong_is_63_bits, mbiMASK_BITS(LONG_MAX) == 63U);
+		mbCTA_END(conftest);
 		int main(void) { return (sizeof(struct ctassert_conftest)); }
 EOF
 
@@ -2733,9 +2883,6 @@ if test 0 = $HAVE_SOME_SIGNAME; then
 #define cfg_NSIG (SIGMAX + 1)
 #elif defined(_SIGMAX)
 #define cfg_NSIG (_SIGMAX + 1)
-#else
-/*XXX better error out, see sh.h */
-#define cfg_NSIG 64
 #endif
 int
 mksh_cfg= cfg_NSIG
@@ -2847,11 +2994,12 @@ cat >test.sh <<-EOF
 	set -A check_categories -- $check_categories
 	pflag='$curdisp/$buildoutput'
 	sflag='$srcdir/check.t'
-	usee=0 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
+	usee=0 usef=1 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
 	while getopts "C:e:fPp:QSs:t:U:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
-	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
+	(f)	usef=1 ;;
+	(+f)	usef=0 ;;
 	(P)	Pflag=1 ;;
 	(+P)	Pflag=0 ;;
 	(p)	pflag=\$OPTARG ;;
@@ -2871,6 +3019,11 @@ cat >test.sh <<-EOF
 	set -A args -- '$srcdir/check.pl' -p "\$pflag"
 	if $ebcdic; then
 		args[\${#args[*]}]=-E
+	fi
+	if (( usef )); then
+		check_categories[\${#check_categories[*]}]=system:fast-yes
+	else
+		check_categories[\${#check_categories[*]}]=system:fast-no
 	fi
 	x=
 	for y in "\${check_categories[@]}"; do
@@ -2982,7 +3135,7 @@ echo tcfn=$buildoutput >>Rebuild.sh
 echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h exprtok.h mbsdint.h mirhash.h mksh.faq rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
+	extras='emacsfn.h exprtok.h mbsdcc.h mbsdint.h mirhash.h mksh.faq rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
 	test 0 = $HAVE_SOME_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do
@@ -3057,6 +3210,10 @@ for file in $optfiles; do
 	$e "+ Running genopt on '$file'..."
 	do_genopt "$srcdir/$file" || exit 1
 done
+if test $cm = trace; then
+	emitbc='-MD -c'
+	rm -f *.d
+fi
 if test $cm = combine; then
 	objs="-o $buildoutput"
 	for file in $SRCS; do
@@ -3090,11 +3247,98 @@ dragonegg|llvm)
 	;;
 esac
 tcfn=$buildoutput
-test $cm = combine || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+case $cm in
+combine)
+	;;
+trace)
+	rm -f $tfn.*.t
+	v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS -Wl,-t,-t >$tfn.l.t $ccpr"
+	;;
+*)
+	v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+	;;
+esac
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rmf mksh.cat1
 test 1 = $r || v "(set -- ''; . '$srcdir/FAQ2HTML.sh')" || rmf FAQ.htm
+if test $cm = trace; then
+	echo >&2 "I: tracing compilation, linking and binding inputs"
+    (
+	if test -n "$KSH_VERSION"; then
+		Xe() { print -r -- "$1"; }
+	elif test -n "$BASH_VERSION"; then
+		Xe() { printf '%s\n' "$1"; }
+	else
+		Xe() { echo "$1"; }
+	fi
+	Xgrep() {
+		set +e
+		grep "$@"
+		XgrepRV=$?
+		set -e
+		test $XgrepRV -lt 2
+	}
+	set -e
+	tsrc=`readlink -f "$srcdir"`
+	tdst=`readlink -f .`
+	# some sh don’t like ${foo#bar} or ${#foo} at parse time
+	eval 'if test ${#tsrc} -lt ${#tdst}; then
+		mkr() {
+			r=`readlink -f "$1"`
+			case $r in #((
+			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+			esac
+		}
+	else
+		mkr() {
+			r=`readlink -f "$1"`
+			case $r in #((
+			"$tsrc"|"$tsrc/"*) r="<<SRCDIR>>${r#"$tsrc"}" ;;
+			"$tdst"|"$tdst/"*) r="<<BLDDIR>>${r#"$tdst"}" ;;
+			esac
+		}
+	fi'
+
+	cat *.d >$tfn.c1.t
+	set -o noglob
+	while read dst src; do
+		for f in $src; do
+			Xe "$f"
+		done
+	done <$tfn.c1.t >$tfn.c2.t
+	set +o noglob
+	sort -u <$tfn.c2.t >$tfn.c3.t
+	while IFS= read -r name; do
+		mkr "$name"
+		Xe "$r"
+	done <$tfn.c3.t >$tfn.c4.t
+	sort -u <$tfn.c4.t >$tfn.cz.t
+
+	sort -u <$tfn.l.t >$tfn.l1.t
+	sed -n '/^(/s///p' <$tfn.l1.t >$tfn.l2l.t #)
+	Xgrep -v '^(' <$tfn.l1.t >$tfn.l2.t
+	b=
+	while IFS=')' read -r lib memb; do
+		test x"$lib" = x"$b" || {
+			Xgrep -F -v -x "$lib" <$tfn.l2.t >$tfn.l2a.t
+			mv $tfn.l2a.t $tfn.l2.t
+			b=$lib
+			mkr "$lib"
+		}
+		Xe "$r($memb)"
+	done <$tfn.l2l.t >$tfn.l3.t
+	while IFS= read -r name; do
+		mkr "$name"
+		Xe "$r"
+	done <$tfn.l2.t >>$tfn.l3.t
+	sort -u <$tfn.l3.t >$tfn.lz.t
+	cat $tfn.cz.t $tfn.lz.t >$tfn.trace
+	rm $tfn.*.t
+    )
+	test 0 = $eq && sed 's/^/- /' <$tfn.trace
+fi
 test 0 = $eq && v $SIZE $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
@@ -3145,8 +3389,8 @@ LIBS				default empty; added after sources
 				[Interix] default: -lcrypt (XXX still needed?)
 NOWARN				-Wno-error or similar
 NROFF				default: nroff
-TARGET_OS			default: $(uname -s || uname)
-TARGET_OSREV			default: $(uname -r) [only needed on some OS]
+TARGET_OS			default: `uname -s || uname`
+TARGET_OSREV			default: `uname -r` [only needed on some OS]
 
 ==== feature selectors ====
 MKSH_UNLIMITED			1 to omit ulimit builtin completely
@@ -3186,7 +3430,6 @@ MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_SMALL_BUT_FAST		disable some hard-for-size optim. (modern sys.)
 MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
-MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
 USE_REALLOC_MALLOC		define as 0 to not use realloc as malloc
 
@@ -3198,7 +3441,7 @@ them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
 MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
 
 Normally, the following command is what you want to run, then:
-$ (sh Build.sh -r && ./test.sh -f) 2>&1 | tee log
+$ (sh Build.sh -r && ./test.sh) 2>&1 | tee log
 
 Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
 /bin; install the manpage, if omitting the -r flag a catmanpage is made

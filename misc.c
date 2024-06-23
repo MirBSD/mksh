@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.355 2023/04/17 00:51:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.359 2023/09/17 01:54:04 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -87,12 +87,12 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 	};
 #include "sh_flags.gen"
 
-mbiCTAS(sh_flags_gen) {
-#define FN(sname,cname,flags,ochar) mbiCTA(cta_ ## cname, \
+mbCTA_BEG(sh_flags_gen);
+#define FN(sname,cname,flags,ochar) mbccCTA(o_ ## cname, ( \
 	offsetof(struct shoptionS_ ## cname, optflags) == 1 && \
-	offsetof(struct shoptionS_ ## cname, name[0]) == 2);
+	offsetof(struct shoptionS_ ## cname, name) == 2));
 #include "sh_flags.gen"
-};
+mbCTA_END(sh_flags_gen);
 
 #define OFC(i) (options[i][-2])
 #define OFF(i) (((const unsigned char *)options[i])[-1])
@@ -2698,7 +2698,7 @@ chvt(const Getopt *go)
 #endif
 	if (fd > 2)
 		close(fd);
-	rndset((unsigned long)chvt_rndsetup(go, sizeof(Getopt)));
+	chvt_rndsetup(go, sizeof(Getopt));
 	chvt_reinit();
 	/* signal parent the all OK */
 	if (write(pfd[1], Tdot, 1) != 1)

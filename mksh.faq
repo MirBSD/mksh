@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.40 2023/07/26 03:09:21 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.42 2024/03/12 21:44:53 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -62,9 +62,10 @@ Title: How does this relate to ksh or the Korn Shell?
  flavours exist (ksh88 and ksh93), the latter having been maintained
  until 2012 (last formal release) and 2014 (last beta snapshot, buggy).
  A ksh86 did exist.</p>
-<p>There’s now <tt>ksh2020</tt>, a project having restarted development
- around November 2017 forking the last <tt>ksh93 v-</tt> (beta) snapshot
- and continuing to develop it, presented at FOSDEM.</p>
+<p>The <tt>ksh2020</tt> project to restart development around November
+ 2017 forking the last <tt>ksh93 v-</tt> (beta) snapshot is now dead,
+ but the <tt>ksh93u+m</tt> project from 2021 onwards is active and more
+ stable.</p>
 <p>AT&amp;T ksh88 is “the (original) Korn Shell”. Other implementations,
  of varying quality (MKS Toolkit’s MKS ksh being named as an example of
  the lower end, MirBSD’s mksh at the upper end). They are all <em>not</em>
@@ -258,9 +259,10 @@ so you are probably best off starting with a shell-agnostic, POSIX
 or ksh88 reference such as the first edition (the second one deals
 with ksh93 which differs far more from mksh than ksh88, as ancient
 as it is, does) of the O’Reilly book (⚠ disclaimer: only an example,
-not a recommendation) and going forward by reading scripts (the
-“shellsnippets” repository referenced in the <tt>#ksh</tt> channel
-homepage (see the top of this document) has many examples) and
+not a recommendation) “Learning the Korn Shell” and going forward
+by reading scripts (the “shellsnippets” repository referenced in <a
+href="@@RELPATH@@ksh-chan.htm">the <tt>#ksh</tt> channel homepage</a>
+has many examples) and
 trying to understand them and the mksh specifics from the manpage.
 ----
 ToC: ps1conv
@@ -636,6 +638,54 @@ Title: I get an error in this regex comparison
  … becomes…<br />
  <tt>[[ foo = *@(foo|bar)*baz* ]]</tt></p>
 ----
+ToC: cfor
+Title: How can I do C-style “for” loops?
+
+<p>The <tt>for</tt> loop in shell is always a “foreach” loop,
+ not a C-style “for” loop. However, you <em>can</em> use the
+ <tt>while</tt> loop.</p>
+<p class="boxhead">The following three constructs are equivalent:
+ the first is using the GNU bash‑ and AT&amp;T ksh93 C-style for
+ loop, which the second naïvely transfers into a <tt>while</tt>
+ loop that the third example does natively:</p>
+<div class="boxtext">
+ <pre>
+	#     expr1    expr2    expr3
+	for ((idx = 9; idx &gt; 6; --idx)); do
+		echo $idx
+	done
+
+	idx=9
+	while (( idx &gt; 6 )); do
+		echo $idx
+		(( --idx ))
+	done
+
+	idx=10
+	while (( --idx &gt; 6 )); do
+		echo $idx
+	done
+</pre>
+</div><p class="boxfoot">The latter two also run on bash and ksh93,
+ so it’s better to use that anyway.</p>
+<p>The last (native) example rolls the “expr3” part, which otherwise
+ is run at the end of every body, into the loop condition (“expr2”)
+ accounting for the extra first execution by “undoing” its effect in
+ the “expr1” initialisation, here by pre-incrementing as the “expr3”
+ is a decrement.</p>
+<p class="boxhead">Classic counting loops look like this:</p>
+<div class="boxtext">
+ <pre>
+	i=-1
+	while (( ++i &lt; 6 )); do
+		(( j = i ))
+		while (( ++j &lt; 6 )); do
+			print -r -- $i, $j
+		done
+	done
+</pre>
+</div><p class="boxfoot">Here, the increment is offset by a pre-decrement.</p>
+----
 ToC: local-arrays
 Title: How can I do local arrays?
 
@@ -879,7 +929,10 @@ Title: I use “set -eo pipefail” and my code unexpectedly errors out
 ToC: faq
 Title: My question is not answered here!
 
-Do read the mksh(1) and lksh(1) manual page. You might also wish to read the <a
+Do read the mksh(1) and lksh(1) manual pages and the <a
+ href="@@RELPATH@@mksh.htm">homepage</a> and other pages like the <a
+ href="@@RELPATH@@mksh_oe.htm">operating environment-specific notes
+ for mksh</a> overview page. You might also wish to read the <a
  href="@@RELPATH@@ksh-chan.htm">homepage of the <tt>#ksh</tt> IRC channel</a>
 which lists several resources for Korn or POSIX-compatible shells in general.
 Or, <a href="#contact">contact</a> us (developer and users).
@@ -897,5 +950,6 @@ Title: How do I contact you (to say thanks, for bugreports and questions)?
  an external gratis service provided by a company, can also be used if you
  like web-based issue trackers better.</p>
 <p>The primary developer can be reached via Fediverse at
- <tt>@mirabilos@toot.mirbsd.org</tt> (bonus, alpha status).</p>
+ <tt>@mirabilos@toot.mirbsd.org</tt> (bonus, alpha status) or
+ <tt>@mirabilos@ipv6.camp</tt> (backup account).</p>
 ----

@@ -28,7 +28,8 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.428 2023/06/03 22:45:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.438 2023/10/06 21:56:49 tg Exp $");
+__IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
 
@@ -53,7 +54,7 @@ static void main_init(int, const char *[], Source **);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
-static mksh_uari_t rndsetup(void);
+static void rndsetup(void);
 static void init_environ(void);
 #ifdef SIGWINCH
 static void x_sigwinch(int);
@@ -115,62 +116,59 @@ static size_t getwd_bufsz = 448U;
 static char *getwd_bufp = NULL;
 
 /* many compile-time assertions */
-mbiCTAS(main_c) {
+mbCTA_BEG(main_c);
 
-/* require char to be 8 bit long */
-mbiCTA(char_8bit, (CHAR_BIT) == 8 &&
+ /* require char to be 8 bit long */
+ mbCTA(char_8bit, (CHAR_BIT) == 8 &&
     (((unsigned int)(unsigned char)255U) == 255U) &&
     (((unsigned int)(unsigned char)256U) == 0U) &&
     mbiTYPE_UBITS(unsigned char) == 8U &&
     mbiMASK_BITS(SCHAR_MAX) == 7U);
 
-/* the next assertion is probably not really needed */
-mbiCTA(short_is_2_char, sizeof(short) == 2);
-/* the next assertion is probably not really needed */
-mbiCTA(int_is_4_char, sizeof(int) == 4);
+ /* the next assertion is probably not really needed */
+ mbCTA(short_is_2_char, sizeof(short) == 2);
+ /* the next assertion is probably not really needed */
+ mbCTA(int_is_4_char, sizeof(int) == 4);
 
 #ifndef MKSH_LEGACY_MODE
-mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
-mbiCTA_TYPE_MBIT(uari, mksh_uari_t);
-mbiCTA(basic_int32_smask, mbiMASK_CHK(INT32_MAX));
-mbiCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
-mbiCTA(basic_int32_ari,
+ mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
+ mbiCTA_TYPE_MBIT(uari, mksh_uari_t);
+ mbCTA(basic_int32_smask, mbiMASK_CHK(INT32_MAX));
+ mbCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
+ mbCTA(basic_int32_ari,
     mbiTYPE_UMAX(mksh_uari_t) == (UINT32_MAX) &&
     /* require two’s complement */
     ((INT32_MIN)+1 == -(INT32_MAX)));
-/* the next assertion is probably not really needed */
-mbiCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
-/* but this is */
-mbiCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
-/* the next assertion is probably not really needed */
-mbiCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
-mbiCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
+ /* the next assertion is probably not really needed */
+ mbCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
+ /* but this is */
+ mbCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
+ /* the next assertion is probably not really needed */
+ mbCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
+ mbCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);
 #else
-mbiCTA(long_complement, (LONG_MIN)+1 == -(LONG_MAX));
+ mbCTA(long_complement, (LONG_MIN)+1 == -(LONG_MAX));
 #endif
-/* these are always required */
-mbiCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
-mbiCTA(uari_is_unsigned, mbiTYPE_ISU(mksh_uari_t));
-/* we require these to have the precisely same size and assume 2s complement */
-mbiCTA(ari_size_no_matter_of_signedness,
+ /* these are always required */
+ mbCTA(ari_is_signed, !mbiTYPE_ISU(mksh_ari_t));
+ mbCTA(uari_is_unsigned, mbiTYPE_ISU(mksh_uari_t));
+ /* we require these to have the precisely same size and assume 2s complement */
+ mbCTA(ari_size_no_matter_of_signedness,
     sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
-/* our formatting routines assume this */
-mbiCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
+ /* our formatting routines assume this */
+ mbCTA(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 
-};
+mbCTA_END(main_c);
 /* end of compile-time asserts */
 
-static mksh_uari_t
+static void
 rndsetup(void)
 {
-	register k32 h;
 	struct {
 		ALLOC_ITEM alloc_INT;
 		void *bssptr, *dataptr, *stkptr, *mallocptr;
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
-		sigjmp_buf jbuf;
-#endif
+		kshjmp_buf jbuf;
 		struct timeval tv;
 	} *bufptr;
 	char *cp;
@@ -187,8 +185,10 @@ rndsetup(void)
 	bufptr->stkptr = &bufptr;
 	/* randomised malloc in BSD (and possibly others) */
 	bufptr->mallocptr = bufptr;
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 	/* glibc pointer guard */
+#ifdef MKSH_NO_SIGSETJMP
+	setjmp(bufptr->jbuf);
+#else
 	sigsetjmp(bufptr->jbuf, 1);
 #endif
 	/* introduce variation (cannot use gettimeofday *tzp portably) */
@@ -197,10 +197,8 @@ rndsetup(void)
 #ifdef MKSH_ALLOC_CATCH_UNDERRUNS
 	mprotect(((char *)bufptr) + 4096, 4096, PROT_READ | PROT_WRITE);
 #endif
-	h = chvt_rndsetup(bufptr, sizeof(*bufptr));
-
+	chvt_rndsetup(bufptr, sizeof(*bufptr));
 	afree(cp, APERM);
-	return ((mksh_uari_t)h);
 }
 
 /* pre-initio() */
@@ -304,7 +302,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	/* initialise permanent Area */
 	ainit(&aperm);
 	/* max. name length: -2147483648 = 11 (+ NUL) */
-	vtemp = alloc(offsetof(struct tbl, name[0]) + 12U, APERM);
+	vtemp = alloc(mbccFAMSZ(struct tbl, name, 12), APERM);
 #if !HAVE_GET_CURRENT_DIR_NAME
 	getwd_bufp = alloc(getwd_bufsz + 1U, APERM);
 	getwd_bufp[getwd_bufsz] = '\0';
@@ -480,6 +478,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	kshuid = getuid();
 	kshgid = getgid();
 	kshegid = getegid();
+	rndsetup();
 
 	safe_prompt = ksheuid ? "$ " : "# ";
 	vp = global("PS1");
@@ -488,6 +487,7 @@ main_init(int argc, const char *argv[], Source **sp)
 	    (!ksheuid && !vstrchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+	/* ensure several variables will be (unsigned) integers */
 	setint_n((vp = global("BASHPID")), 0, 10);
 	vp->flag |= INT_U;
 	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp, 10);
@@ -502,9 +502,13 @@ main_init(int argc, const char *argv[], Source **sp)
 	vp->flag |= INT_U;
 	setint_n((vp = global("KSHGID")), (mksh_uari_t)kshgid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("RANDOM")), rndsetup(), 10);
-	vp->flag |= INT_U;
+	/* this is needed globally */
 	setint_n((vp_pipest = global(Tpipest)), 0, 10);
+	/* unsigned integer, but avoid rndset call: done farther below */
+	vp = global("RANDOM");
+	vp->flag &= ~SPECIAL;
+	setint_n(vp, 0, 10);
+	vp->flag |= SPECIAL | INT_U;
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
@@ -715,6 +719,8 @@ main_init(int argc, const char *argv[], Source **sp)
 	/* mark as initialised */
 	baseline_flags[(int)FNFLAGS] = 1;
 #endif
+	rndpush(shell_flags, sizeof(shell_flags));
+	rndset(hash(/*=current_wd*/ cp) ^ hash(argv[0]));
 	if (as_builtin)
 		goto skip_startup_files;
 
@@ -848,7 +854,7 @@ include(const char *name, const char **argv, Wahr intr_ok)
 	if (argv) {
 		e->loc->argv = argv;
 		e->loc->argc = 0;
-		while (argv[e->loc->argc])
+		while (argv[e->loc->argc + 1])
 			++e->loc->argc;
 	}
 	s = pushs(SFILE, ATEMP);
@@ -1624,6 +1630,8 @@ coproc_cleanup(int reuse)
 	}
 }
 
+static const char temp_tpl[] = "/shXXXXXX.tmp";
+
 struct temp *
 maketemp(Area *ap, Temp_type type, struct temp **tlist)
 {
@@ -1637,17 +1645,17 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
 	/* add "/shXXXXXX.tmp" plus NUL */
 	len = strlen(dir);
-	cp = alloc1(offsetof(struct temp, tffn[0]) + 14U, len, ap);
+	cp = alloc1(mbccFAMSZ(struct temp, tffn, sizeof(temp_tpl)), len, ap);
 
 	tp = (void *)cp;
 	tp->shf = NULL;
 	tp->pid = procpid;
 	tp->type = type;
 
-	cp += offsetof(struct temp, tffn[0]);
+	cp += offsetof(struct temp, tffn);
 	memcpy(cp, dir, len);
 	cp += len;
-	memstr(cp, "/shXXXXXX.tmp");
+	memstr(cp, temp_tpl);
 
 	if (stat(dir, &sb) || !S_ISDIR(sb.st_mode))
 		goto maketemp_out;
@@ -1807,8 +1815,8 @@ ktenter(struct table *tp, const char *n, k32 h)
 	}
 
 	/* create new tbl entry */
-	len = strlen(n) + 1;
-	p = alloc1(offsetof(struct tbl, name[0]), len, tp->areap);
+	len = strlen(n) + 1U;
+	p = alloc(mbccFAMsz(struct tbl, name, len), tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
