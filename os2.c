@@ -289,7 +289,7 @@ access(const char *name, int mode)
 #define MAX_X_SUFFIX_LEN	4
 
 static const char *x_suffix_list[] =
-    { "", ".ksh", ".exe", ".sh", ".cmd", ".com", ".bat", NULL };
+    { "", ".exe", ".ksh", ".sh", ".cmd", ".com", ".bat", NULL };
 
 /* call fn() by appending executable extensions */
 static int
