@@ -519,7 +519,7 @@ add_temp(const char *name)
 	size_t len;
 
 	len = strlen(name) + 1U;
-	tp = alloc(mbccFAMSZ(struct temp, tffn, len), APERM);
+	tp = alloc(mbccFAMsz(struct temp, tffn, len), APERM);
 	memcpy(tp->tffn, name, len);
 	tp->next = templist;
 	templist = tp;
