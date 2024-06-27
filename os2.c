@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.22 2024/06/27 02:35:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.23 2024/06/27 12:52:14 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -289,7 +289,7 @@ access(const char *name, int mode)
 #define MAX_X_SUFFIX_LEN	4
 
 static const char *x_suffix_list[] =
-    { "", ".ksh", ".exe", ".sh", ".cmd", ".com", ".bat", NULL };
+    { "", ".exe", ".ksh", ".sh", ".cmd", ".com", ".bat", NULL };
 
 /* call fn() by appending executable extensions */
 static int
