@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.261 2023/09/16 23:07:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.262 2024/07/05 13:57:39 tg Exp $");
 
 /*
  * string expansion
@@ -76,11 +76,7 @@ typedef struct {
 #define STYPE_SINGLE	0x2FF
 #define STYPE_MASK	0x300
 
-static int varsub(Expand *, const char *, const char *, unsigned int *, int *)
-#if defined(__GNUC__) && (__GNUC__ >= 13)
-    __attribute__((__noinline__))
-#endif
-    ;
+static int varsub(Expand *, const char *, const char *, unsigned int *, int *);
 static int comsub(Expand *, const char *, int);
 static char *valsub(struct op *, Area *);
 static void funsub(struct op *);
