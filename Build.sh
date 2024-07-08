@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.856 2024/04/02 10:51:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.857 2024/07/08 16:16:55 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2773,6 +2773,15 @@ ac_testn st_mtim '!' st_mtimensec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
 EOF
 if test 1 = "$HAVE_ST_MTIM"; then
 	cpp_define st_mtimensec st_mtim.tv_nsec
+	HAVE_ST_MTIMENSEC=1
+fi
+ac_testn st_mtime_nsec '!' st_mtimensec 0 'for struct stat.st_mtime_nsec' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { struct stat sb; return (sizeof(sb.st_mtime_nsec)); }
+EOF
+if test 1 = "$HAVE_ST_MTIME_NSEC"; then
+	cpp_define st_mtimensec st_mtime_nsec
 	HAVE_ST_MTIMENSEC=1
 fi
 ac_cppflags ST_MTIMENSEC
