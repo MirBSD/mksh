@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023
+ *		 2019, 2020, 2021, 2022, 2023, 2024
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.247 2023/09/16 23:07:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.248 2024/07/25 00:29:04 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -914,9 +914,7 @@ scriptexec(struct op *tp, const char **ap)
 #ifndef MKSH_SMALL
 	if ((fd = binopen2(tp->str, O_RDONLY | O_MAYEXEC)) >= 0) {
 		unsigned char *cp;
-#ifndef MKSH_EBCDIC
 		unsigned short m;
-#endif
 		ssize_t n;
 
 		/* read first couple of octets from file */
@@ -928,28 +926,30 @@ scriptexec(struct op *tp, const char **ap)
 		/* terminate buffer */
 		buf[n] = '\0';
 
+		/* scan for shebang magic */
+		if (ord(buf[0]) == ORD('#') && ord(buf[1]) == ORD('!'))
+			n = 2;
+#ifdef __OS2__
+		else if (n > 8 && !strncmp(buf, Textproc, 7) &&
+		    ctype(buf[7], C_BLANK))
+			n = 8;
+#endif
+		else
+			goto noshebang;
 		/* scan for newline or NUL (end of buffer) */
-		cp = buf;
+		cp = buf + n;
 		while (!ctype(*cp, C_NL | C_NUL))
 			++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
 		if (!*cp)
-			goto noshebang;
+			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_NOERRNO, "%s: not executable: shebang too long",
+			    tp->str);
 		/* replace newline by NUL */
 		*cp = '\0';
 
 		/* restore start of shebang position */
-		cp = buf;
-		/* bail out if no shebang magic found */
-		if (cp[0] == '#' && cp[1] == '!')
-			cp += 2;
-#ifdef __OS2__
-		else if (!strncmp(cp, Textproc, 7) &&
-		    ctype(cp[7], C_BLANK))
-			cp += 8;
-#endif
-		else
-			goto noshebang;
+		cp = buf + n;
 		/* skip whitespace before shell name */
 		while (ctype(*cp, C_BLANK))
 			++cp;
@@ -988,12 +988,12 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 		goto nomagic;
  noshebang:
-#ifndef MKSH_EBCDIC
-		m = buf[0] << 8 | buf[1];
-		if (m == 0x7F45 && buf[2] == 'L' && buf[3] == 'F')
-			kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
-			    KWF_NOERRNO, "%s: not executable: %d-bit ELF file",
-			    tp->str, 32 * buf[4]);
+		m = ord(rtt2asc(buf[0])) << 8 | ord(rtt2asc(buf[1]));
+		if (m == 0x7F45 && ord(buf[2]) == ORD('L') &&
+		    ord(buf[3]) == ORD('F'))
+			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_NOERRNO, "%s: not executable: %u-bit ELF file",
+			    tp->str, 32U * buf[4]);
 		if ((m == /* OMAGIC */ 0407) ||
 		    (m == /* NMAGIC */ 0410) ||
 		    (m == /* ZMAGIC */ 0413) ||
@@ -1001,19 +1001,25 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ECOFF_I386 */ 0x4C01) ||
 		    (m == /* ECOFF_M68K */ 0x0150 || m == 0x5001) ||
 		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
-		    (m == /* bzip */ 0x425A) || (m == /* "MZ" */ 0x4D5A) ||
+		    (m == /* "MZ" */ 0x4D5A && !( /* cosmo libc APE */
+		     ord(buf[2]) == ORD('q') && ord(buf[3]) == ORD('F') &&
+		     ord(buf[4]) == ORD('p') && ord(buf[5]) == ORD('D') &&
+		     ord(buf[6]) == ORD('=') && ord(buf[7]) == ORD('\''))) ||
 		    (m == /* "NE" */ 0x4E45) || (m == /* "LX" */ 0x4C58) ||
 		    (m == /* ksh93 */ 0x0B13) || (m == /* LZIP */ 0x4C5A) ||
-		    (m == /* xz */ 0xFD37 && buf[2] == 'z' && buf[3] == 'X' &&
-		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
+		    (m == /* xz */ 0xFD37 && ord(buf[2]) == ORD('z') &&
+		     ord(buf[3]) == ORD('X') && ord(buf[4]) == ORD('Z')) ||
+		    (m == /* Zstd */ 0x28B5 && ord(rtt2asc(buf[2])) == 0x2FU &&
+		     ord(rtt2asc(buf[3])) == 0xFDU) ||
+		    (m == /* bzip */ 0x425A) || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D) ||
-		    (m == /* UTF-8 BOM */ 0xEFBB && buf[2] == 0xBF) ||
+		    (m == /* UTF-8 BOM */ 0xEFBB &&
+		     ord(rtt2asc(buf[2])) == 0xBFU) ||
 		    (m == /* UCS-4, may also be general binary */ 0x0000) ||
 		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
 			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: magic %04X",
 			    tp->str, m);
-#endif
 #ifdef __OS2__
 		cp = _getext(tp->str);
 		if (cp && (!stricmp(cp, ".cmd") || !stricmp(cp, ".bat"))) {
