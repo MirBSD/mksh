@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.60 2024/04/02 03:16:50 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.61 2024/07/25 02:29:43 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -33,7 +33,7 @@
  *	<basetsd.h>		// on Windows®
  *	<inttypes.h>		// some pre-C99
  *	<stdint.h>		// ISO C99
- *	"mbsdcc.h"		// from this directory
+ *	"mbsdcc.h"		// from this directory, in this order
  * … are included before this header, for full functionality.
  */
 
@@ -89,17 +89,6 @@
 #ifndef MBSDINT_H_WANT_LONG_IN_SIZET
 #define MBSDINT_H_WANT_LONG_IN_SIZET 1
 #endif
-
-/* should be in <sys/cdefs.h> via <limits.h> */
-#ifndef __predict_true
-#if defined(__GNUC__) && (__GNUC__ >= 3) /* 2.96, but keep it simple here */
-#define __predict_true(exp)	__builtin_expect(!!(exp), 1)
-#define __predict_false(exp)	__builtin_expect(!!(exp), 0)
-#else
-#define __predict_true(exp)	(!!(exp))
-#define __predict_false(exp)	(!!(exp))
-#endif /* !GCC 3.x */
-#endif /* ndef(__predict_true) */
 
 /* expose SIZE_MAX if possible and provided, not guessed */
 #ifndef SIZE_MAX
@@ -1123,7 +1112,7 @@ mbCTA_END(mbsdint_h);
 	(vl) -= (vr);							\
 } while (/* CONSTCOND */ 0)
 #define mbiCASmul(lim,vl,vr)	do {					\
-	if (__predict_true((vr) >= 0) ? __predict_false((vr) != 0 &&	\
+	if (((vr) >= 0) ? __predict_false((vr) != 0 &&			\
 	    mbi__sabovehalftype(lim ## _MAX, (vl), (vr)) && ((vl) < 0 ?	\
 	    (vl) < (lim ## _MIN / (vr)) :				\
 	    (vl) > (lim ## _MAX / (vr)))) :				\
