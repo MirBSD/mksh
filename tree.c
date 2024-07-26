@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.113 2022/02/19 21:22:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.114 2024/07/26 18:34:58 tg Exp $");
 
 #define INDENT	8
 
@@ -1300,7 +1300,7 @@ dumptree(struct shf *shf, struct op *t)
 		shf_putc('\n', shf);
 		dumptree(shf, t->left);
 /* middumprightandout: (unused) */
-		shf_fprintf(shf, "/%s:", name);
+		shf_fprintf(shf, " /%s:", name);
  dumprightandout:
 		t = t->right;
 		goto dumpandout;
