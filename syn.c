@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2018, 2020, 2021, 2023
+ *		 2018, 2020, 2021, 2023, 2024
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.152 2023/10/17 16:34:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.153 2024/07/26 18:39:09 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -459,7 +459,13 @@ get_command(int cf, int sALIAS)
 		nesting_push(&old_nesting, c);
 		t = newtp((c == WHILE) ? TWHILE : TUNTIL);
 		t->left = c_list(sALIAS, Ja);
+		if (!t->left)
+			syntaxerr(NULL);
 		t->right = dogroup(sALIAS);
+#ifndef MKSH_SMALL
+		if (!t->right)
+			syntaxerr(NULL);
+#endif
 		nesting_pop(&old_nesting);
 		break;
 
