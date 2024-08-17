@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.857 2024/07/08 16:16:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.858 2024/08/17 23:33:47 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -53,8 +53,8 @@ test_tool() {
 
 	test x"$y" = x"0" && test x"$x" = x"$4" && return
 	echo >&2 "E: your $1 does not work correctly!"
-	echo >&2 "N: 'echo $2 | $3' exited $y and returned '$x' instead of '$4'"
-	echo >&2 'N: install a better one and prepend e.g. /usr/local/bin to $PATH'
+	echo >&2 "N: 'echo $2 | $3' exited $y and returned '$x'; expected '$4'"
+	echo >&2 'N: install a better one and prepend its location to $PATH'
 	exit 1
 }
 test_tool grep foobarbaz 'grep bar' foobarbaz
@@ -343,6 +343,11 @@ ac_testinit() {
 			shift
 		fi
 		eval ft=\$HAVE_`upper $2`
+		if test_z "$ft"; then
+			echo >&2
+			echo >&2 "E: test $f depends on $2 which is not defined yet"
+			exit 255
+		fi
 		shift
 	fi
 	fd=${3-$f}
@@ -2019,6 +2024,7 @@ test $ct = pcc && phase=u
 #
 # Compiler: check for stuff that only generates warnings
 #
+: "${HAVE_ATTRIBUTE_EXTENSION=1}" # not a separate test but a dependency
 ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__))' <<-'EOF'
 	#include <string.h>
 	#undef __attribute__

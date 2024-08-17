@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.196 2024/02/02 04:58:41 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.197 2024/08/17 23:33:49 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021,
@@ -203,7 +203,7 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 	    awk '/Mir''OS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
 	    ${MKSH} ${BSDSRCDIR:Q}/contrib/hosted/tg/ps2pdfmir -p pa4 -c \
-	    -o ${_m}.${_n}.pdf '[' /Author '(The MirOS Project)' \
+	    -o ${_m}.${_n}.pdf '[' /Author '(MirBSD)' \
 	    /Title '('${CATS_TITLE_${_m}_${_n}:Q}')' \
 	    /Subject '(BSD Reference Manual)' /ModDate "(D:$$x)" \
 	    /Creator '(GNU groff version ${V_GROFF:S/groff-//} \(MirPorts\))' \
