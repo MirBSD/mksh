@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.197 2024/08/17 23:33:49 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.198 2024/08/18 00:17:13 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021,
-#		2022, 2023
+#		2022, 2023, 2024
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -179,8 +179,8 @@ CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
 .include <bsd.prog.mk>
 
 .ifmake cats
-V_GROFF!=	pkg_info -e 'groff-*'
-V_GHOSTSCRIPT!=	pkg_info -e 'ghostscript-*'
+V_GROFF!=	pkg_info -e 'groff-[0-9]*'
+V_GHOSTSCRIPT!=	pkg_info -e 'ghostscript-[0-9]*'
 .  if empty(V_GROFF) || empty(V_GHOSTSCRIPT)
 .    error empty V_GROFF=${V_GROFF} or V_GHOSTSCRIPT=${V_GHOSTSCRIPT}
 .  endif
