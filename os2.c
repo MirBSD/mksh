@@ -395,6 +395,17 @@ make_response_file(char * const *argv)
 	return (result);
 }
 
+static int child_pid = -1;
+
+/* kill a child process when exits */
+static VOID APIENTRY kill_child( void )
+{
+	if (child_pid != -1)
+		kill(child_pid, SIGTERM);
+
+	DosExitList(EXLST_EXIT, NULL);
+}
+
 /* alias of execve() */
 extern int _std_execve(const char *, char * const *, char * const *);
 
@@ -411,6 +422,7 @@ execve(const char *name, char * const *argv, char * const *envp)
 	int rc;
 	int saved_mode;
 	int saved_errno;
+	ULONG nesting;
 
 	/*
 	 * #! /bin/sh : append .exe
@@ -450,6 +462,9 @@ execve(const char *name, char * const *argv, char * const *envp)
 	if (errno == ENOEXEC)
 		return (-1);
 
+	nesting = 0;
+	DosEnterMustComplete(&nesting);
+
 	/*
 	 * Normal OS/2 programs expect that standard IOs, especially stdin,
 	 * are opened in text mode at the startup. By the way, on OS/2 kLIBC
@@ -483,10 +498,16 @@ execve(const char *name, char * const *argv, char * const *envp)
 
 	if (pid == -1) {
 		cleanup_temps();
+		DosExitMustComplete(&nesting);
 
 		errno = saved_errno;
 		return (-1);
 	}
+
+	child_pid = pid;
+	DosExitList(EXLST_ADD | 0x7000, (PFNEXITLIST)kill_child);
+
+	DosExitMustComplete(&nesting);
 
 	/* close all opened handles */
 	for (fd = 0; fd < NUFILE; fd++) {
