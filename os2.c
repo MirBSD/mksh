@@ -20,6 +20,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+#define OS2EMX_PLAIN_CHAR
 #define INCL_KBD
 #define INCL_DOS
 #include <os2.h>
