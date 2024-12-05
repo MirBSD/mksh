@@ -335,7 +335,7 @@ stat_ex(int (*fn)(const char *, struct stat *),
 {
 	struct a_s_arg arg;
 
-	arg.fn.p = fn;
+	arg.fn.p = (void *)fn;
 	arg.arg.p = buffer;
 	arg.isint = Nee;
 	return (access_stat_ex(name, &arg));
