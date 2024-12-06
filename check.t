@@ -14333,7 +14333,7 @@ expected-stdout:
 name: read-timeout-nexttesttakes15seconds
 description:
 	Check timeout functionality
-category: have:select:1
+category: have:select:1,!os:os2
 time-limit: 5
 stdin:
 	sleep 2 | {
@@ -14356,7 +14356,7 @@ expected-stdout:
 name: read-timeout-slow
 description:
 	Check timeout parser
-category: have:select:1
+category: have:select:1,!os:os2
 time-limit: 20
 stdin:
 	(sleep 14; echo foo) | {
