@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.10 2024/07/25 02:29:43 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.11 2025/02/11 03:56:07 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -109,7 +109,9 @@ template<> struct mbccCEX_sa<false,true> { typedef int Type; };
 #endif
 
 /* flexible array member */
-#if defined(__cplusplus)
+#if defined(MBSDCC_H_NO_FAM)
+#define mbccFAMslot(type,memb)	type memb[1] mbmscWs(4820)
+#elif defined(__cplusplus)
 #ifdef __cpp_flexible_array_members
 #define mbccFAMslot(type,memb)	type memb[]
 #elif defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)
