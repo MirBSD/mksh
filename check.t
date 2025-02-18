@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.918 2024/07/26 18:39:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.919 2025/02/18 23:30:35 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1473,7 +1473,8 @@ file-setup: file 644 "x"
 	cd -P$1 subdir
 	echo 2=$?,${PWD#$bwd/}
 	cd $bwd
-	chmod 755 noread renamed 2>/dev/null
+	chmod 755 noread 2>/dev/null
+	chmod 755 renamed 2>/dev/null
 	rm -rf noread link renamed
 stdin:
 	export TSHELL="$__progname"
