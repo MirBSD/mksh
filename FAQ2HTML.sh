@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.8 2023/12/13 10:07:19 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.9 2025/02/27 02:30:08 tg Exp $'
 #-
 # Copyright © 2020, 2023
 #	mirabilos <m@mirbsd.org>
@@ -75,6 +75,7 @@ cat <<EOF
  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+ <meta name="tdm-reservation" content="1" />
  <title>mksh $v FAQ (local copy)</title>
  <meta name="source" content="$src_id" />
  <meta name="generator" content="$rcsid" />
