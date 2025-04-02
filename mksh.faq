@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.42 2024/03/12 21:44:53 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.43 2025/04/02 21:28:28 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -268,7 +268,7 @@ trying to understand them and the mksh specifics from the manpage.
 ToC: ps1conv
 Title: My prompt from &lt;<i>some other shell</i>&gt; does not work!
 
-<a href="#contact">Contact</a> us on the mailing list or on IRC,
+<a href="#contact">Contact</a> us by eMail, Fediverse or on IRC,
 we’ll convert it for you. Also have a look at the PS1 section in
 the mksh(1) manpage (search for “otherwise unused char”, e.g. with
 <tt>/</tt> in less(1), to spot it quickly).
@@ -941,15 +941,15 @@ ToC: contact
 Title: How do I contact you (to say thanks, for bugreports and questions)?
 
 <p>You can say hi in the <tt>#!/bin/mksh</tt> channel on <a
- href="@@RELPATH@@irc.htm">IRC</a> (OFTC, for now).
-<br />The <a href="@@RELPATH@@rss.htm#lists">mailing list</a> can also
- be used for this. The <a href="#faq">extra resources</a> from the FAQ
+ href="@@RELPATH@@irc.htm">IRC</a> (OFTC, for now), where not
+ only the developer but also helpful other people idle around.</p>
+<p>The <a href="#faq">extra resources</a> from the FAQ
  entry just one above should also be considered ;-)</p>
-<p>If you insist on sending a bugreport, IRC and the mailing list are
+<p>If you insist on sending a bugreport, IRC, Fedi and eMail are
  great places for that; <a href="https://launchpad.net/mksh">Launchpad</a>,
  an external gratis service provided by a company, can also be used if you
  like web-based issue trackers better.</p>
 <p>The primary developer can be reached via Fediverse at
- <tt>@mirabilos@toot.mirbsd.org</tt> (bonus, alpha status) or
+ <tt>@mirabilos@toot.mirbsd.org</tt> (primary account) or
  <tt>@mirabilos@ipv6.camp</tt> (backup account).</p>
 ----
