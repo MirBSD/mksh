@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.43 2025/04/02 21:28:28 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.44 2025/04/15 01:27:57 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -302,6 +302,21 @@ Title: My prompt is weird!
 <li>If the prompt doesn’t leave enough space on the right, the shell inserts
  a line break after it when rendering.</li>
 </ul>
+----
+ToC: aliasify
+Title: How do I write an alias?
+
+<p class="boxhead">Define the following function:</p><div class="boxtext">
+ <pre>
+	function aliasify {
+		local x=$(fc -ln -1)
+		x=${x#$'\t'}
+		print -r -- "alias ${1@Q}=${x@Q}"
+	}
+</pre>
+</div><p class="boxfoot">Then type the command you want to aliasify, and
+ then <tt>aliasify <i>foo</i></tt>, where <i>foo</i> is what name you want
+ to give to the alias. Add the result to <tt>~/.mkshrc</tt> or so.</p>
 ----
 ToC: env
 Title: On startup files and <tt>$ENV</tt> across and detecting various shells
@@ -945,7 +960,7 @@ Title: How do I contact you (to say thanks, for bugreports and questions)?
  only the developer but also helpful other people idle around.</p>
 <p>The <a href="#faq">extra resources</a> from the FAQ
  entry just one above should also be considered ;-)</p>
-<p>If you insist on sending a bugreport, IRC, Fedi and eMail are
+<p>If you insist on sending a bugreport, IRC, Fedi (AP) and eMail are
  great places for that; <a href="https://launchpad.net/mksh">Launchpad</a>,
  an external gratis service provided by a company, can also be used if you
  like web-based issue trackers better.</p>
