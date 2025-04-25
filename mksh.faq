@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.44 2025/04/15 01:27:57 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.45 2025/04/25 23:14:17 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -260,9 +260,11 @@ or ksh88 reference such as the first edition (the second one deals
 with ksh93 which differs far more from mksh than ksh88, as ancient
 as it is, does) of the O’Reilly book (⚠ disclaimer: only an example,
 not a recommendation) “Learning the Korn Shell” and going forward
-by reading scripts (the “shellsnippets” repository referenced in <a
-href="@@RELPATH@@ksh-chan.htm">the <tt>#ksh</tt> channel homepage</a>
-has many examples) and
+by reading scripts (the “<a
+href="https://evolvis.org/plugins/scmgit/cgi-bin/gitweb.cgi?p=shellsnippets/shellsnippets.git;a=tree"
+>shellsnippets</a>” repository, also referenced in <a
+href="@@RELPATH@@ksh-chan.htm">the <tt>#ksh</tt> IRC channel
+homepage</a>, has many examples) and
 trying to understand them and the mksh specifics from the manpage.
 ----
 ToC: ps1conv
