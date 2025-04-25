@@ -4,7 +4,7 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021,
  *		 2022, 2023
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.162 2024/04/02 03:33:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.163 2025/04/25 23:14:57 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg

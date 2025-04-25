@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016, 2021, 2022
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 #endif
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.35 2023/08/16 13:46:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.36 2025/04/25 23:14:57 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)

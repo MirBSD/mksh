@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.55 2021/10/03 22:45:34 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.56 2025/04/25 23:14:50 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
 #		2012, 2013, 2014, 2015, 2017, 2021
-#	mirabilos <m@mirbsd.org>
+#	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission

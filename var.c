@@ -4,7 +4,7 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
  *		 2019, 2021, 2022, 2023
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.283 2024/02/02 04:04:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.284 2025/04/25 23:15:02 tg Exp $");
 
 /*-
  * Variables

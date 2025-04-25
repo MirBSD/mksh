@@ -5,7 +5,7 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019,
  *		 2021, 2022, 2023
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -26,7 +26,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.190 2023/08/22 22:31:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.191 2025/04/25 23:14:56 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 

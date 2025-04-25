@@ -7,7 +7,7 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
  *		 2019, 2020, 2021, 2022
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.400 2022/12/01 23:55:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.401 2025/04/25 23:14:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external

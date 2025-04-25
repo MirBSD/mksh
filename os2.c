@@ -2,7 +2,7 @@
  * Copyright (c) 2015, 2017, 2020
  *	KO Myung-Hun <komh@chollian.net>
  * Copyright (c) 2017, 2020, 2022
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.23 2024/06/27 12:52:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.24 2025/04/25 23:14:59 tg Exp $");
 
 struct a_s_arg {
 	union {

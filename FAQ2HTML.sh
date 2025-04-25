@@ -1,8 +1,9 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.9 2025/02/27 02:30:08 tg Exp $'
+# -*- mode: sh -*-
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.10 2025/04/25 23:14:50 tg Exp $'
 #-
 # Copyright © 2020, 2023
-#	mirabilos <m@mirbsd.org>
+#	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -19,6 +20,7 @@ rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.9 2025/02/27 02:30:08 tg Exp $'
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 #-
+# Generates a ./FAQ.htm out of source in the script directory.
 
 die() {
 	echo >&2 "E: $*"

@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2013, 2015, 2019, 2021
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -21,7 +21,7 @@
  */
 
 @RLIMITS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/rlimits.opt,v 1.6 2021/01/10 18:44:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/rlimits.opt,v 1.7 2025/04/25 23:14:59 tg Exp $");
 @RLIMITS_ITEMS
 #define FN(lname,lid,lfac,lopt) (const struct limits *)(&rlimits_ ## lid),
 @@

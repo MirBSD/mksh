@@ -1,11 +1,12 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.858 2024/08/17 23:33:47 tg Exp $'
+# -*- mode: sh -*-
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.859 2025/04/25 23:14:48 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
 #		2020, 2021, 2022, 2023, 2024
-#	mirabilos <m@mirbsd.org>
+#	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -363,7 +364,7 @@ ac_testinit() {
 
 cat_h_blurb() {
 	echo '#ifdef MKSH_USE_AUTOCONF_H
-/* things that “should” have been on the command line */
+/* things that "should" have been on the command line */
 #include "autoconf.h"
 #undef MKSH_USE_AUTOCONF_H
 #endif
@@ -1027,7 +1028,7 @@ LynxOS)
 	;;
 midipix)
 	add_cppflags -D_GNU_SOURCE
-	# their Perl (currently…) identifies as os:linux ☹
+	# their Perl (currently...) identifies as os:linux :(
 	check_categories="$check_categories os:midipix"
 	;;
 MidnightBSD)
@@ -1657,10 +1658,10 @@ trace)
 	;;
 esac
 etd=" on $et"
-# still imake style but… can’t be helped
+# still imake style but... cannot be helped
 case $et in
 dietlibc)
-	# live, BSD, live❣
+	# live, BSD, live\u2763
 	add_cppflags -D_BSD_SOURCE
 	# broken
 	HAVE_POSIX_UTF8_LOCALE=0
@@ -1672,7 +1673,7 @@ klibc)
 	: "${MKSH_UNLIMITED=1}"
 	;;
 unknown)
-	# nothing special detected, don’t worry
+	# nothing special detected, do not worry
 	etd=
 	;;
 *)
@@ -1864,7 +1865,7 @@ gcc1)
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
 	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
-	# we do not even use CFrustFrust in MirBSD so don’t code in it…
+	# we do not even use CFrustFrust in MirBSD so do not code in it...
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 data_abi_align -malign-data=abi
@@ -1875,7 +1876,7 @@ gcc)
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
 	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
-	# we do not even use CFrustFrust in MirBSD so don’t code in it…
+	# we do not even use CFrustFrust in MirBSD so do not code in it...
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorstrong -fstack-protector-strong
@@ -2006,7 +2007,7 @@ if test 1 = $i; then
 	ac_flags 1 fwrapv -fwrapv
 fi
 
-# “on demand” means: GCC version >= 4
+# "on demand" means: GCC version >= 4
 fd='whether to rely on compiler for string pooling'
 ac_cache string_pooling || case $HAVE_STRING_POOLING in
 2) fx=' (on demand, cached)' ;;
@@ -3297,7 +3298,7 @@ if test $cm = trace; then
 	set -e
 	tsrc=`readlink -f "$srcdir"`
 	tdst=`readlink -f .`
-	# some sh don’t like ${foo#bar} or ${#foo} at parse time
+	# some sh do not like ${foo#bar} or ${#foo} at parse time
 	eval 'if test ${#tsrc} -lt ${#tdst}; then
 		mkr() {
 			r=`readlink -f "$1"`
@@ -3416,7 +3417,7 @@ HAVE_STRING_H			ac_header
 HAVE_CAN_FSTACKPROTECTORALL	ac_flags
 
 ==== cpp definitions ====
-DEBUG				don’t use in production, wants gcc, implies:
+DEBUG				do not use in production, wants gcc, implies:
 DEBUG_LEAKS			enable freeing resources before exiting
 KSH_VERSIONNAME_VENDOR_EXT	when patching; space+plus+word (e.g. " +SuSE")
 MKSHRC_PATH			"~/.mkshrc" (do not change)

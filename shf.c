@@ -4,7 +4,7 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2015, 2016, 2017, 2018, 2019, 2021,
  *		 2022, 2023
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
  *
@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.134 2023/03/19 23:31:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.135 2025/04/25 23:15:01 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */

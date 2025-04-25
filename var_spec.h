@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2009, 2011, 2012, 2016, 2018
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -19,7 +19,7 @@
  */
 
 #if defined(VARSPEC_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.11 2018/01/13 21:38:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.12 2025/04/25 23:15:02 tg Exp $");
 #define FN(name)			/* nothing */
 #elif defined(VARSPEC_ENUMS)
 #define FN(name)			V_##name,

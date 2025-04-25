@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2016, 2020
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -19,7 +19,7 @@
  */
 
 #if defined(EXPRTOK_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.4 2020/04/07 11:56:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.5 2025/04/25 23:14:55 tg Exp $");
 /* see range comment below */
 #define IS_ASSIGNOP(op) ((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 #define FN(name,len,prec,enum)		/* nothing */

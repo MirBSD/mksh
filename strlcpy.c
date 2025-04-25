@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2006, 2008, 2009, 2013
- *	mirabilos <m@mirbsd.org>
+ *	mirabilos <m$(date +%Y)@mirbsd.de>
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.10 2015/11/29 17:05:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.11 2025/04/25 23:15:01 tg Exp $");
 
 /*
  * Copy src to string dst of size siz. At most siz-1 characters

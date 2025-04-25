@@ -1,26 +1,28 @@
-# $MirOS: src/bin/mksh/check.t,v 1.919 2025/02/18 23:30:35 tg Exp $
 # -*- mode: sh -*-
+# $MirOS: src/bin/mksh/check.t,v 1.920 2025/04/25 23:14:50 tg Exp $
 #-
-# Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020, 2021, 2022, 2023, 2024
-#	mirabilos <m@mirbsd.org>
+# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+#		2019, 2020, 2021, 2022, 2023, 2024
+#	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
-# is granted to deal in this work without restriction, including un‐
+# is granted to deal in this work without restriction, including un-
 # limited rights to use, publicly perform, distribute, sell, modify,
 # merge, give away, or sublicence.
 #
-# This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+# This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
 # the utmost extent permitted by applicable law, neither express nor
 # implied; without malicious intent or gross negligence. In no event
 # may a licensor, author or contributor be held liable for indirect,
 # direct, other damage, loss, or other issues arising in any way out
 # of dealing in the work, even if advised of the possibility of such
 # damage or existence of a defect, except proven that it results out
-# of said person’s immediate fault when using the work as intended.
+# of said person's immediate fault when using the work as intended.
 #-
+# WARNING: this file mixes UTF-8 with raw octets without encoding!
+#
 # You may also want to test IFS with the script at
 # http://www.research.att.com/~gsf/public/ifs.sh
 #
