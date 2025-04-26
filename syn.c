@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.154 2025/04/25 23:15:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.155 2025/04/26 22:37:30 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1216,7 +1216,7 @@ yyerror(const char *fmt, ...)
 	vwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
 	    0, fmt, ap);
 	va_end(ap);
-	unwind(LERROR);
+	unwind(LSHELL);
 }
 
 /* used by error reporting functions to print "ksh: .kshrc[25]: " */
