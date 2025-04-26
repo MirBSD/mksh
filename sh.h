@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1034 2025/04/26 03:51:40 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1035 2025/04/26 22:40:50 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -242,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2025/04/25"
+#define MKSH_VERSION "R59 2025/04/26"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */

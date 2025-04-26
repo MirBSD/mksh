@@ -1,5 +1,5 @@
 # -*- mode: sh -*-
-# $MirOS: src/bin/mksh/check.t,v 1.921 2025/04/26 03:51:34 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.922 2025/04/26 22:40:47 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
@@ -32,8 +32,9 @@
 # Integrated testsuites from:
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
+info-pre: testing begins
 expected-stdout:
-	KSH R59 2025/04/25
+	KSH R59 2025/04/26
 description:
 	Check base version of full shell
 stdin:
@@ -1454,6 +1455,7 @@ name: cd-pe
 description:
 	Check package for cd -Pe
 need-pass: no
+info-pre: test is flaky on at least Cygwin, LynxOS, z/OS, Hurd, QNX, ...
 # the mv command fails on Cygwin, LynxOS 3.0, z/OS
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
@@ -2563,6 +2565,7 @@ description:
 # breaks on QNX 6.4.1 (says RT)
 category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390,!noweirdfilenames
 need-pass: no
+info-pre: test breaks on non-POSIX filesystems, weird locales, etc.
 file-setup: file 644 "aÂc"
 stdin:
 	echo a[Á-Ú]*
@@ -3328,6 +3331,7 @@ name: heredoc-tmpfile-1
 description:
 	Check that heredoc temp files aren't removed too soon or too late.
 	Heredoc in simple command.
+info-pre: next couple of tests sleep for a few seconds each
 stdin:
 	TMPDIR=$PWD
 	eval '
@@ -3480,8 +3484,10 @@ description:
 	Check that heredoc temp files aren't removed too soon or too
 	late. Heredoc in function, backgrounded call to function.
 	This check can fail on slow machines (<100 MHz), or Cygwin,
-	that's normal.
+	please help fix this as it also triggers sometimes on Debian
+	reproducible-builds package rebuilds or debci tests somehow
 need-pass: no
+info-post: can fail on slow (<100 MHz) or Cygwin, but ought not to
 stdin:
 	TMPDIR=$PWD
 	# Background eval so main shell doesn't do parsing
@@ -4201,6 +4207,7 @@ description:
 category: stdout-ed
 need-ctty: yes
 need-pass: no
+info-pre: these three tests depend on ed(1) existing and working...
 arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4257,6 +4264,7 @@ description:
 category: stdout-ed
 need-ctty: yes
 need-pass: no
+info-post: above three tests need real (non-busybox) ed(1), too
 arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4290,6 +4298,7 @@ description:
 category: !no-stderr-ed
 need-ctty: yes
 need-pass: no
+info-pre: these three tests depend on ed(1) existing and working...
 arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4341,6 +4350,7 @@ description:
 category: !no-stderr-ed
 need-ctty: yes
 need-pass: no
+info-post: above three tests need real (non-busybox) ed(1), too
 arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -9095,6 +9105,7 @@ description:
 	note: A/UX perl5 returns 6400 (exit-code 25), passes #1-3
 	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
+info-pre: this test is deprecated, will go away with R60
 category: !os:aux,!os:cygwin,!os:midipix,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
 stdin:
@@ -9131,8 +9142,8 @@ expected-stdout:
 name: utf8opt-2
 description:
 	Check that the utf8-mode flag is set at interactive startup.
-	If your OS is old and fails this, contact the mksh developer.
 need-pass: no
+info-pre: if your OS fails this, contact the mksh developer
 category: !noutf8
 need-ctty: yes
 arguments: !-i!
@@ -14184,14 +14195,10 @@ stdin:
 expected-stdout:
 	typeset s=$'\001\002\003\004\t\006\007\010\011\012\v\f\r\016\017\020\021\022\023\024\n\b\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\E\050\051\052\053\054\055\056\a\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077  âäàáãåçñ¢.<(+|&éêëèíîïìß!$*);^-/ÂÄÀÁÃÅÇÑ¦,%_>?øÉÊËÈÍÎÏÌ`:#@\175="Øabcdefghi«»ðýþ±°jklmnopqrªºæ¸Æ¤µ~stuvwxyz¡¿Ð[Þ®¬£¥·©§¶¼½¾Ý¨¯]´×{ABCDEFGHI­ôöòóõ}JKLMNOPQR¹ûüùúÿ\\÷STUVWXYZ²ÔÖÒÓÕ0123456789³ÛÜÙÚ\377'
 ---
-name: the-next-test-takes-very-long-on-retro-systems
-category: !system:fast-no
-stdin:
-	:
----
 name: stateptr-underflow
 description:
 	This check overflows an Xrestpos stored in a short in R40
+info-pre: takes very long on retro systems
 category: !system:fast-no
 stdin:
 	function Lb64decode {
@@ -14333,7 +14340,7 @@ expected-stdout:
 	2 eh .
 	3 eh .
 ---
-name: read-timeout-nexttesttakes15seconds
+name: read-timeout-1
 description:
 	Check timeout functionality
 category: have:select:1
@@ -14359,6 +14366,7 @@ expected-stdout:
 name: read-timeout-slow
 description:
 	Check timeout parser
+info-pre: takes 15, at most 20, seconds
 category: have:select:1
 time-limit: 20
 stdin:
@@ -14416,4 +14424,38 @@ expected-stdout:
 	10 <1|-1><+1|-1>< 1|-1><+1|-1> : 0
 	11 <10|011><a|0xb><C|0XD> : 0
 	12 |  1|2  | +3|+4 |005|6  |7777|008|notyet| : 0
+---
+name: exit-trap-noninteractive
+description:
+	Check that !interactive shell does exit via EXIT trap on syntax error
+info-post: that was the last test
+file-setup: file 644 "t1"
+	<
+	echo in=$?
+file-setup: file 644 "t2"
+	trap -- EXIT
+	<
+	echo in=$?
+file-setup: file 644 "t3"
+	trap "echo tEXITrap" EXIT
+	<
+	echo in=$?
+stdin:
+	exec 2>se
+	echo "A 1["$("$__progname" t1; echo "]=$?")" 2["$("$__progname" t2; echo "]=$?")" 3["$("$__progname" t3; echo "]=$?")
+	echo "B 1["$("$__progname" -c '. ./t1; echo xd=$?'; echo "]=$?")" 2["$("$__progname" -c '. ./t2; echo xd=$?'; echo "]=$?")" 3["$("$__progname" -c '. ./t3; echo xd=$?'; echo "]=$?")
+	echo "C 1["$("$__progname" -c 'command . ./t1; echo xd=$?'; echo "]=$?")" 2["$("$__progname" -c 'command . ./t2; echo xd=$?'; echo "]=$?")" 3["$("$__progname" -c 'command . ./t3; echo xd=$?'; echo "]=$?")
+	exec 2>&1
+	cnt=0
+	while IFS= read -r line; do
+		[[ $line = *'syntax error'*'syntax error'* ]] && exit 4
+		[[ $line = *'syntax error'* ]] || exit 5
+		let ++count
+	done <se
+	(( count != 9 )) || echo 'stderr ok'
+expected-stdout:
+	A 1[]=1 2[]=1 3[tEXITrap ]=1
+	B 1[]=1 2[]=1 3[tEXITrap ]=1
+	C 1[]=1 2[]=1 3[tEXITrap ]=1
+	stderr ok
 ---
