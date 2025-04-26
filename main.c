@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.440 2025/04/26 03:51:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.441 2025/04/26 22:35:20 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -953,7 +953,9 @@ shell(Source * volatile s, volatile int level)
 			retrace_info = NULL;
 			herep = heres;
 			break;
-		}
+		} else if (i == LSHELL && level == 0)
+			/* run exit traps */
+			unwind(LEXIT);
 		/* FALLTHROUGH */
 	case LEXIT:
 	case LLEAVE:
