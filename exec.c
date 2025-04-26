@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023, 2024
+ *		 2019, 2020, 2021, 2022, 2023, 2024, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.249 2025/04/25 23:14:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.250 2025/04/26 03:48:16 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1413,11 +1413,13 @@ static int
 call_builtin(struct tbl *tp, const char **wp, const char *where, Wahr resetspec)
 {
 	int rv;
+	Wahr old_builtin_spec;
 
 	if (!tp)
 		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
 		    where, wp[0]);
 	builtin_argv0 = wp[0];
+	old_builtin_spec = builtin_spec;
 	builtin_spec = isWahr(!resetspec && (tp->flag & SPEC_BI));
 	shf_reopen(1, SHF_WR, shl_stdout);
 	shl_stdout_ok = Ja;
@@ -1430,7 +1432,7 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, Wahr resetspec)
 	}
 	shl_stdout_ok = Nee;
 	builtin_argv0 = NULL;
-	builtin_spec = Nee;
+	builtin_spec = old_builtin_spec;
 	return (rv);
 }
 
