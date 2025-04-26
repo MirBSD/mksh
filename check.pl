@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.56 2025/04/25 23:14:50 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.57 2025/04/26 22:36:31 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
-#		2012, 2013, 2014, 2015, 2017, 2021
+#		2012, 2013, 2014, 2015, 2017, 2021, 2025
 #	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -46,7 +46,7 @@
 #	PATH, PERLIO, SHELL, UNIXMODE, UNIXROOT, USER
 # Additionally, some parameters are set as follows (without the quotes):
 #	CYGWIN to "nodosfilewarning"
-#	ENV to "/nonexistant"
+#	ENV to "/nonexisting"
 #	LANG to "C"
 #	__perlname to $^X (perlexe)
 # Any -e option arguments are added, or, if no equals sign is given, removed.
@@ -144,6 +144,8 @@
 #					eg, linux, dec_osf).
 #	need-ctty			'yes' if the test needs a ctty, run
 #					with -C regress:no-ctty to disable.
+#	info-pre			shown before the test
+#	info-post			shown after the test
 # Flag meanings:
 #	r	tag is required (eg, a test must have a name tag).
 #	m	value can be multiple lines. Lines must be prefixed with
@@ -229,6 +231,8 @@ EOF
 	'category',			'm',
 	'need-ctty',			'',
 	'need-pass',			'',
+	'info-pre',			'',
+	'info-post',			'',
 	);
 # Filled in by read_test()
 %internal_test_fields = (
@@ -488,6 +492,10 @@ run_test
     local(*test) = @_;
     local($name) = $test{':full-name'};
 
+    if ($test{'info-pre'} ne '') {
+	print "info v[$test{'info-pre'}]\n";
+    }
+
     return undef if !&scrub_dir($tempdir);
 
     if (defined $test{'stdin'}) {
@@ -725,6 +733,9 @@ run_test
 	$npassed++;
     }
     print $why if $verbose;
+    if ($test{'info-post'} ne '') {
+	print "info ^[$test{'info-post'}]\n";
+    }
     return 0;
 }
 
