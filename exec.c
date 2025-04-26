@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.250 2025/04/26 03:48:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.251 2025/04/26 03:51:37 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -830,6 +830,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		case LERREXT:
 			rv = exstat & 0xFF;
 			break;
+		case LRDERR:
 		case LINTR:
 		case LEXIT:
 		case LLEAVE:

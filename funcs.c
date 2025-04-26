@@ -5,7 +5,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020, 2021, 2022, 2023, 2024
+ *		 2019, 2020, 2021, 2022, 2023, 2024, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.416 2025/04/25 23:14:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.417 2025/04/26 03:51:38 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1532,8 +1532,13 @@ c_dot(const char **wp)
 	/* SUSv4: OR with a high value never written otherwise */
 	exstat |= 0x4000;
 	if ((rv = include(file, argv, Nee)) < 0) {
-		/* should not happen */
-		bi_errorf(Tf_sD_s, cp, cstrerror(errno));
+		if (__predict_true(rv == -2)) {
+			/* error already printed */
+			bi_unwind(1);
+		} else {
+			/* should not happen */
+			kwarnf(KWF_BIERR | KWF_ONEMSG, cp);
+		}
 		return (1);
 	}
 	if (exstat & 0x4000)

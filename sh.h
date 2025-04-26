@@ -11,7 +11,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023
+ *		 2019, 2020, 2021, 2022, 2023, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1033 2025/04/25 23:14:59 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1034 2025/04/26 03:51:40 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -242,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2024/07/26"
+#define MKSH_VERSION "R59 2025/04/25"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -1035,6 +1035,7 @@ extern struct env {
 #define LSHELL	8	/* return to interactive shell() */
 #define LAEXPR	9	/* error in arithmetic expression */
 #define LLEAVE	10	/* untrappable exit/error */
+#define LRDERR	11	/* read error of script */
 
 /* sort of shell global state */
 EXTERN pid_t procpid;		/* PID of executing process */
@@ -1126,7 +1127,7 @@ EXTERN const char Tcant_filesub[] E_INIT("can't open $(<...) file");
 #define Tcd (Tcant_cd + 25)
 EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for fd#%d");
 #define T_command (T_funny_command + 9)
-#define Tcommand (T_funny_command + 10)
+#define Tcommand (Trderr + 14)
 EXTERN const char Tsgcontinue[] E_INIT("*=continue");
 #define Tcontinue (Tsgcontinue + 2)
 EXTERN const char Tcreate[] E_INIT("create");
@@ -1176,6 +1177,7 @@ EXTERN const char To_o_reset[] E_INIT(" -o .reset");
 #define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
+EXTERN const char Trderr[] E_INIT("while reading command");
 #define Tread (Tshf_read + 4)
 EXTERN const char Tdsgreadonly[] E_INIT("^*=readonly");
 #define Treadonly (Tdsgreadonly + 3)
@@ -1329,6 +1331,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tpv "pv"
 #define TpVv "Vpv"
 #define TPWD "PWD"
+#define Trderr "while reading command"
 #define Tread "read"
 #define Tdsgreadonly "^*=readonly"
 #define Treadonly "readonly"

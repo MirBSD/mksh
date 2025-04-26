@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2021, 2022, 2023
+ *		 2021, 2022, 2023, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.268 2025/04/25 23:14:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.269 2025/04/26 03:51:39 tg Exp $");
 
 /*
  * states while lexing word
@@ -1376,12 +1376,17 @@ getsc_line(Source *s)
 		while (/* CONSTCOND */ 1) {
 			char *p = shf_getse(xp, Xnleft(s->xs, xp), s->u.shf);
 
-			if (!p && shf_error(s->u.shf) &&
-			    shf_errno(s->u.shf) == EINTR) {
-				shf_clearerr(s->u.shf);
-				if (trap)
-					runtraps(0);
-				continue;
+			if (!p && shf_error(s->u.shf)) {
+				if (shf_errno(s->u.shf) == EINTR) {
+					shf_clearerr(s->u.shf);
+					if (trap)
+						runtraps(0);
+					continue;
+				}
+				kwarnf(KWF_ERR(128) | KWF_VERRNO | KWF_PREFIX |
+				    KWF_FILELINE | KWF_BUILTIN | KWF_ONEMSG |
+				    KWF_BIUNWIND, shf_errno(s->u.shf), Trderr);
+				unwind(LRDERR);
 			}
 			if (!p || (xp = p, xp[-1] == '\n'))
 				break;

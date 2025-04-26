@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023
+ *		 2019, 2020, 2021, 2022, 2023, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.439 2025/04/25 23:14:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.440 2025/04/26 03:51:39 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -827,6 +827,8 @@ include(const char *name, const char **argv, Wahr intr_ok)
 			e->loc->argc = old_argc;
 		}
 		switch (i) {
+		case LRDERR:
+			return (-2);
 		case LRETURN:
 		case LERROR:
 		case LERREXT:
@@ -866,7 +868,7 @@ include(const char *name, const char **argv, Wahr intr_ok)
 		e->loc->argv = old_argv;
 		e->loc->argc = old_argc;
 	}
-	/* & 0xff to ensure value not -1 */
+	/* & 0xFF to ensure value not -1 */
 	return (i & 0xFF);
 }
 
@@ -919,6 +921,11 @@ shell(Source * volatile s, volatile int level)
 		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
 		    Tf_cant_s, Tshell, i == LBREAK ? Tbreak : Tcontinue);
 		/* NOTREACHED */
+	case LRDERR:
+		if (level == 0)
+			/* run exit traps */
+			unwind(LEXIT);
+		/* FALLTHROUGH */
 	case LINTR:
 		/* we get here if SIGINT not caught or ignored */
 	case LERROR:

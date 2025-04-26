@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022
+ *		 2019, 2020, 2021, 2022, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.401 2025/04/25 23:14:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.402 2025/04/26 03:51:36 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -161,7 +161,15 @@ x_getc(void)
 	char c;
 	ssize_t n;
 
-	while ((n = blocking_read(0, &c, 1)) < 0 && errno == EINTR)
+	while ((n = blocking_read(0, &c, 1)) < 0) {
+		if (errno != EINTR) {
+			editmode = 0;
+			x_mode(Nee);
+			x_putc('\n');
+			kwarnf(KWF_ERR(128) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_ONEMSG | KWF_BIUNWIND, Trderr);
+			unwind(LRDERR);
+		}
 		if (trap) {
 			x_mode(Nee);
 			runtraps(0);
@@ -178,6 +186,7 @@ x_getc(void)
 #endif
 			x_mode(Ja);
 		}
+	}
 	return ((n == 1) ? (int)(unsigned char)c : -1);
 #endif
 }
