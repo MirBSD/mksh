@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.57 2025/04/26 22:36:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.58 2025/04/26 22:42:59 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -303,7 +303,7 @@ foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
-$new_env{'ENV'} = '/nonexistant';
+$new_env{'ENV'} = '/nonexisting';
 $new_env{'LANG'} = 'C';
 
 $pn = $Config{perlpath};
