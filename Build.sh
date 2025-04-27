@@ -1,6 +1,6 @@
 #!/bin/sh
 # -*- mode: sh -*-
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.859 2025/04/25 23:14:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.860 2025/04/27 21:51:34 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1095,6 +1095,7 @@ OS/2)
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}"
+	: "${HAVE_SELECT=0}"
 	# cf. https://github.com/komh/pdksh-os2/commit/590f2b19b0ff92a9a373295bce914654f9f5bf22
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
