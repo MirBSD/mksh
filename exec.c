@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.251 2025/04/26 03:51:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.252 2025/04/27 21:49:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -917,6 +917,9 @@ scriptexec(struct op *tp, const char **ap)
 		unsigned char *cp;
 		unsigned short m;
 		ssize_t n;
+#ifdef __OS2__
+		const char *str;
+#endif
 
 		/* read first couple of octets from file */
 		n = read(fd, buf, sizeof(buf) - 1);
@@ -931,7 +934,7 @@ scriptexec(struct op *tp, const char **ap)
 		if (ord(buf[0]) == ORD('#') && ord(buf[1]) == ORD('!'))
 			n = 2;
 #ifdef __OS2__
-		else if (n > 8 && !strncmp(buf, Textproc, 7) &&
+		else if (n > 8 && !strncmp((char *)buf, Textproc, 7) &&
 		    ctype(buf[7], C_BLANK))
 			n = 8;
 #endif
@@ -982,9 +985,9 @@ scriptexec(struct op *tp, const char **ap)
 		 * search to find it.
 		 */
 		if (mksh_vdirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
-			cp = search_path(_getname(sh), path, X_OK, NULL);
-			if (cp)
-				sh = cp;
+			str = search_path(_getname(sh), path, X_OK, NULL);
+			if (str)
+				sh = str;
 		}
 #endif
 		goto nomagic;
@@ -1022,13 +1025,13 @@ scriptexec(struct op *tp, const char **ap)
 			    KWF_NOERRNO, "%s: not executable: magic %04X",
 			    tp->str, m);
 #ifdef __OS2__
-		cp = _getext(tp->str);
-		if (cp && (!stricmp(cp, ".cmd") || !stricmp(cp, ".bat"))) {
+		str = _getext(tp->str);
+		if (str && (!stricmp(str, ".cmd") || !stricmp(str, ".bat"))) {
 			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
 			sh = str_val(global("OS2_SHELL"));
 			*tp->args-- = "/c";
 			/* convert slahes to backslashes */
-			for (cp = tp->str; *cp; cp++) {
+			for (cp = (unsigned char *)tp->str; *cp; cp++) {
 				if (*cp == '/')
 					*cp = '\\';
 			}

@@ -20,6 +20,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+#define OS2EMX_PLAIN_CHAR
 #define INCL_KBD
 #define INCL_DOS
 #include <os2.h>
@@ -29,7 +30,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.26 2025/04/27 21:48:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.27 2025/04/27 21:49:19 tg Exp $");
 
 struct a_s_arg {
 	union {
