@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2015, 2017, 2020
  *	KO Myung-Hun <komh@chollian.net>
- * Copyright (c) 2017, 2020, 2022
+ * Copyright (c) 2017, 2020, 2022, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,18 +29,22 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.24 2025/04/25 23:14:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.25 2025/04/27 21:41:12 tg Exp $");
 
 struct a_s_arg {
 	union {
 		int (*i)(const char *, int);
-		int (*p)(const char *, void *);
+		int (*s)(const char *, struct stat *);
+		int (*r)(const char *, char **);
 	} fn;
 	union {
 		int i;
-		void *p;
+		struct stat *s;
+		char **r;
 	} arg;
-	Wahr isint;
+	enum {
+		A_S_INT, A_S_STAT, A_S_RETNAME
+	} type;
 };
 
 static void remove_trailing_dots(char *, size_t);
@@ -307,8 +311,17 @@ access_stat_ex(const char *name, struct a_s_arg *action)
 		strlcpy(x_name, name, x_namelen);
 		strlcat(x_name, *x_suffix, x_namelen);
 
-		rc = action->isint ? action->fn.i(x_name, action->arg.i) :
-		    action->fn.p(x_name, action->arg.p);
+		switch (action->type) {
+		case A_S_INT:
+			rc = action->fn.i(x_name, action->arg.i);
+			break;
+		case A_S_STAT:
+			rc = action->fn.s(x_name, action->arg.s);
+			break;
+		case A_S_RETNAME:
+			rc = action->fn.r(x_name, action->arg.r);
+			break;
+		}
 	}
 
 	afree(x_name, ATEMP);
@@ -324,7 +337,7 @@ access_ex(int (*fn)(const char *, int), const char *name, int mode)
 
 	arg.fn.i = fn;
 	arg.arg.i = mode;
-	arg.isint = Ja;
+	arg.type = A_S_INT;
 	return (access_stat_ex(name, &arg));
 }
 
@@ -335,14 +348,14 @@ stat_ex(int (*fn)(const char *, struct stat *),
 {
 	struct a_s_arg arg;
 
-	arg.fn.p = fn;
-	arg.arg.p = buffer;
-	arg.isint = Nee;
+	arg.fn.s = fn;
+	arg.arg.s = buffer;
+	arg.type = A_S_STAT;
 	return (access_stat_ex(name, &arg));
 }
 
 static int
-test_exec_exist(const char *name, void *arg)
+test_exec_exist(const char *name, char **arg)
 {
 	struct stat sb;
 	char *real_name;
@@ -352,7 +365,7 @@ test_exec_exist(const char *name, void *arg)
 
 	/*XXX memory leak */
 	strdupx(real_name, name, ATEMP);
-	*((char **)arg) = real_name;
+	*arg = real_name;
 	return (0);
 }
 
@@ -362,9 +375,9 @@ real_exec_name(const char *name)
 	struct a_s_arg arg;
 	char *real_name;
 
-	arg.fn.p = &test_exec_exist;
-	arg.arg.p = (void *)(&real_name);
-	arg.isint = Nee;
+	arg.fn.r = &test_exec_exist;
+	arg.arg.r = &real_name;
+	arg.type = A_S_RETNAME;
 	return (access_stat_ex(name, &arg) ? name : real_name);
 }
 
