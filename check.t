@@ -1,9 +1,9 @@
 # -*- mode: sh -*-
-# $MirOS: src/bin/mksh/check.t,v 1.922 2025/04/26 22:40:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.923 2025/04/27 01:58:13 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#		2019, 2020, 2021, 2022, 2023, 2024
+#		2019, 2020, 2021, 2022, 2023, 2024, 2025
 #	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -9120,7 +9120,7 @@ stdin:
 	./t4
 	echo .
 expected-stdout:
-	1 a=/nonexistant{FOO}
+	1 a=/nonexisting{FOO}
 	3 a=BAR
 	.
 expected-stderr-pattern:
