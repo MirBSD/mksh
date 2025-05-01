@@ -30,7 +30,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.27 2025/04/27 21:49:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.28 2025/05/01 00:58:35 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -50,7 +50,7 @@ struct a_s_arg {
 
 static void remove_trailing_dots(char *, size_t);
 static int access_stat_ex(const char *, struct a_s_arg *);
-static int test_exec_exist(const char *, void *);
+static int test_exec_exist(const char *, char **);
 static void response(int *, const char ***);
 static char *make_response_file(char * const *);
 static void add_temp(const char *);
