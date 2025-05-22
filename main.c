@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.442 2025/05/22 15:52:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.443 2025/05/22 15:53:54 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -1025,12 +1025,10 @@ shell(Source * volatile s, volatile int level)
 		} else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
 			t->u.evalflags |= DOTCOMEXEC;
 #ifdef DEBUG
-		if ((debug_mode & D_M_UNPARSE)) {
+		if ((debug_mode & D_M_UNPARSE))
 			dumptree(shl_out, t);
-			exstat = 0;
-		} else
 #endif
-		  if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
+		if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
 			exstat = execute(t, 0, NULL) & 0xFF;
 
 		if (t->type != TEOF && interactive && really_exit)
