@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.441 2025/04/26 22:35:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.442 2025/05/22 15:52:40 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -61,6 +61,9 @@ static void x_sigwinch(int);
 #endif
 
 #ifdef DEBUG
+#define D_M_UNPARSE	0x0001U
+static unsigned int debug_mode;
+
 static void reclim_trace(void);
 #else
 #define reclim_trace() /* nothing */
@@ -298,6 +301,13 @@ main_init(int argc, const char *argv[], Source **sp)
 		argc = 1;
 	}
 	kshname = argv[0];
+
+#ifdef DEBUG
+	if (!strcmp(kshname, "--unparse")) {
+		debug_mode |= D_M_UNPARSE;
+		kshname = argv[0] = empty_argv[0];
+	}
+#endif
 
 	/* initialise permanent Area */
 	ainit(&aperm);
@@ -1014,7 +1024,13 @@ shell(Source * volatile s, volatile int level)
 			}
 		} else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
 			t->u.evalflags |= DOTCOMEXEC;
-		if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
+#ifdef DEBUG
+		if ((debug_mode & D_M_UNPARSE)) {
+			dumptree(shl_out, t);
+			exstat = 0;
+		} else
+#endif
+		  if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
 			exstat = execute(t, 0, NULL) & 0xFF;
 
 		if (t->type != TEOF && interactive && really_exit)
@@ -1224,8 +1240,10 @@ cleanup_proc_env(void)
 {
 	struct env *ep;
 
-	for (ep = e; ep; ep = ep->oenv)
+	for (ep = e; ep; ep = ep->oenv) {
 		remove_temps(ep->temps);
+		ep->temps = NULL;
+	}
 }
 
 /* remove temp files and free ATEMP Area */
