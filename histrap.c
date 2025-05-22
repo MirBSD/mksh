@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019,
- *		 2021, 2022, 2023
+ *		 2021, 2022, 2023, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.191 2025/04/25 23:14:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.192 2025/05/22 17:07:46 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1437,9 +1437,44 @@ restoresigs(void)
 	int i = ksh_NSIG + 1;
 
 	do {
+		p->touched = 0;
 		if (p->flags & (TF_EXEC_IGN|TF_EXEC_DFL))
 			setsig(p, (p->flags & TF_EXEC_IGN) ? SIG_IGN : SIG_DFL,
 			    SS_RESTORE_CURR|SS_FORCE);
+		++p;
+	} while (--i);
+}
+
+/* un-restore signals after a failed exec(2) for interactive shells */
+void
+unrestoresigs(void)
+{
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
+
+	do {
+#if defined(ESTALE)
+		errno = ESTALE;
+#elif defined(EDEADLK)
+		errno = EDEADLK;
+#else
+		errno = 0;
+#endif
+		switch (p->touched) {
+		case 0:
+			break;
+		case 1:
+			p->flags = p->oflags;
+			p->shtrap = p->oshtrap;
+			if (!ksh_sigrestore(p->signal, &(p->prev))) {
+				p->cursig = ksh_sighandler(&(p->prev));
+				break;
+			}
+			/* FALLTHROUGH */
+		default:
+			kwarnf0(KWF_PREFIX, Tsigerr, Trestore, p->name);
+			break;
+		}
 		++p;
 	} while (--i);
 }
@@ -1515,20 +1550,33 @@ restore_pipe(void)
 int
 setsig(Trap *p, sig_t f, int flags)
 {
+	ksh_sigsaved *old;
+	Wahr warned = Nee;
+
 	if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR)
 		return (1);
+
+	/* craziness sponsored by 2024 POSIX */
+	p->oflags = p->flags;
+	p->oshtrap = p->shtrap;
+	old = &(p->prev);
 
 	/*
 	 * First time setting this signal? If so, get and note the current
 	 * setting.
 	 */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
-		ksh_sigsaved ohandler;
-
-		ksh_sigset(p->signal, SIG_IGN, &ohandler);
-		p->flags |= ksh_sighandler(ohandler) == SIG_IGN ?
+		if (ksh_sigset(p->signal, SIG_IGN, old)) {
+			if (errno != EINVAL) {
+				kwarnf0(KWF_PREFIX, Tsigerr, Tset, p->name);
+				warned = Ja;
+			}
+		} else
+			++p->touched;
+		p->flags |= ksh_sighandler(old) == SIG_IGN ?
 		    TF_ORIG_IGN : TF_ORIG_DFL;
 		p->cursig = SIG_IGN;
+		old = NULL;
 	}
 
 	/*-
@@ -1557,7 +1605,11 @@ setsig(Trap *p, sig_t f, int flags)
 
 	if (p->cursig != f) {
 		p->cursig = f;
-		ksh_sigset(p->signal, f, NULL);
+		if (ksh_sigset(p->signal, f, old)) {
+			if (!warned && errno != EINVAL)
+				kwarnf0(KWF_PREFIX, Tsigerr, Tset, p->name);
+		} else if (old != NULL)
+			++p->touched;
 	}
 
 	return (1);
@@ -1654,60 +1706,101 @@ mksh_unlkfd(int fd)
  * - EINVAL: on invalid signal number; operating on uncatchable
  *   respectively unignorable signals (SIGKILL, SIGSTOP)
  *
- * The signal number is already verified in higher-up code. We
- * deliberately do not error nor even warn for SIGKILL or SIGSTOP
- * because startx on Debian for example attempts that (POSIX says
- * undefined); therefore silently ignoring invalid signal numbers
- * that otherwise pass muster is acceptable.
+ * The signal number is already verified in higher-up code.
+ * POSIX documents attempts to trap SIGKILL/SIGSTOP as undefined;
+ * e.g. startx on Debian does it; we could warn, but GNU/Linux also
+ * throws EINVAL for signals 32 and 33, and “trap -p” must work,
+ * so EINVAL does not emit diagnostics :/
  */
 
 #if HAVE_SIGACTION
-#ifndef SIG_ERR
-static void
+#ifdef NEED_KSH_SIGERR
+void
 ksh_sigerr(int sig MKSH_A_UNUSED)
 {
 }
-#define SIG_ERR (&ksh_sigerr)
 #endif
 
+sig_t
+ksh_sigget(int sig)
+{
+	struct sigaction sa;
+
+	if (sigaction(sig, NULL, &sa))
+		return (SIG_ERR);
+	return (sa.sa_handler);
+}
+
 /* masks the signal, does not (may) restart, not oneshot */
-void
+int
 ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
 {
 	int rv;
 
-	if (act != SIG_ERR) {
+	if (act == SIG_ERR) {
+		errno = EOVERFLOW;
+		rv = -1;
+	} else {
 		struct sigaction sa;
 
 		memset(&sa, '\0', sizeof(sa));
 		sigemptyset(&sa.sa_mask);
 		sa.sa_handler = act;
 		rv = sigaction(sig, &sa, old);
-	} else if (!old)
-		return;
-	else
-		rv = sigaction(sig, NULL, old);
-	if (rv && old) {
-		memset(old, '\0', sizeof(*old));
-		old->sa_handler = SIG_ERR;
 	}
+	if (rv && old) {
+		/* no memset: retain errno */
+		old->sa_handler = SIG_ERR;
+		old->sa_flags = 0;
+	}
+	return (rv);
 }
 
-void
+int
 ksh_sigrestore(int sig, ksh_sigsaved *savedp)
 {
-	if (savedp->sa_handler != SIG_ERR)
-		sigaction(sig, savedp, NULL);
+	if (ksh_sighandler(savedp) == SIG_ERR) {
+		errno = EOVERFLOW;
+		return (1);
+	}
+	return (sigaction(sig, savedp, NULL));
 }
 #elif defined(MKSH_USABLE_SIGNALFUNC)
 /* masks the signal, may (probably will, not always) restart, not oneshot */
-void
+int
 ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
 {
 	sig_t res;
 
-	res = act == SIG_ERR ? SIG_ERR : MKSH_USABLE_SIGNALFUNC(sig, act);
+	if (act == SIG_ERR) {
+		errno = EOVERFLOW;
+		res = SIG_ERR;
+	} else
+		res = MKSH_USABLE_SIGNALFUNC(sig, act);
 	if (old)
 		*old = res;
+	return (res == SIG_ERR ? -1 : 0);
+}
+
+int
+ksh_sigrestore(int sig, ksh_sigsaved *savedp)
+{
+	if (ksh_sighandler(savedp) == SIG_ERR) {
+		errno = EOVERFLOW;
+		return (1);
+	}
+	return (MKSH_USABLE_SIGNALFUNC(sig, *savedp) == SIG_ERR ? -1 : 0);
+}
+
+sig_t
+ksh_sigget(int sig)
+{
+	sig_t ohandler;
+
+	if ((ohandler = MKSH_USABLE_SIGNALFUNC(sig, SIG_DFL)) != SIG_ERR &&
+	    MKSH_USABLE_SIGNALFUNC(sig, ohandler) == SIG_ERR)
+		kwarnf0(KWF_INTERNAL | KWF_PREFIX, Tsigerr, Trestore,
+		    sigtraps[sig].name);
+	return (ohandler);
 }
 #endif

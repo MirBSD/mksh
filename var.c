@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.284 2025/04/25 23:15:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.285 2025/05/22 17:07:51 tg Exp $");
 
 /*-
  * Variables
@@ -909,7 +909,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
  nameref_empty:
 			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
 			    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
-			    var, "empty nameref target"));
+			    var, Tnameref_empty));
 		}
 		len = (ord(*ccp) == ORD('[')) ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {

@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.163 2025/04/25 23:14:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.164 2025/05/22 17:07:46 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -265,11 +265,13 @@ j_suspend(void)
 	}
 
 	/* Suspend the shell. */
-	ksh_sigset(SIGTSTP, SIG_DFL, &ohandler);
+	if (ksh_sigset(SIGTSTP, SIG_DFL, &ohandler))
+		kwarnf0(KWF_PREFIX, Tsigerr, Tset, "TSTP");
 	kill(0, SIGTSTP);
 
 	/* Back from suspend, reset signals, pgrp and tty. */
-	ksh_sigrestore(SIGTSTP, &ohandler);
+	if (ksh_sigrestore(SIGTSTP, &ohandler))
+		kwarnf0(KWF_PREFIX, Tsigerr, Trestore, "TSTP");
 	if (ttypgrp_ok) {
 		if (restore_ttypgrp >= 0) {
 			if (setpgid(0, kshpid) < 0) {

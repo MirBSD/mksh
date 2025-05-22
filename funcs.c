@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.417 2025/04/26 03:51:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.418 2025/05/22 17:07:45 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2079,30 +2079,62 @@ do_evalcmd(const char **wp)
 	return (rv);
 }
 
+static void
+print_trap(Trap *p)
+{
+	shf_puts("trap -- ", shl_stdout);
+	if (p->trap)
+		print_value_quoted(shl_stdout, p->trap);
+	else {
+		Wahr isIGN;
+
+		if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR)
+			isIGN = Nee;
+		else if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
+			sig_t ohandler;
+
+			if ((ohandler = ksh_sigget(p->signal)) == SIG_ERR &&
+			    errno != EINVAL /* signals 32, 33 on GNU/Linux again */)
+				kwarnf0(KWF_PREFIX, Tsigerr, Tget, p->name);
+			isIGN = isWahr(ohandler == SIG_IGN);
+		} else
+			isIGN = isWahr(p->flags & TF_ORIG_IGN);
+		shf_puts(isIGN ? "-" : "''", shl_stdout);
+	}
+	shprintf(Tf__sN, p->name);
+}
+
 int
 c_trap(const char **wp)
 {
 	Trap *p = sigtraps;
 	int i = ksh_NSIG;
-	const char *s;
+	const char *s = NULL;
+	Wahr dashp = Nee;
+	int optc;
 
-	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
+	while ((optc = ksh_getopt(wp, &builtin_opt, "p")) != -1)
+		switch (optc) {
+		case 'p':
+			dashp = Ja;
+			break;
+		case '?':
+			return (1);
+		}
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL) {
 		do {
-			if (p->trap) {
-				shf_puts("trap -- ", shl_stdout);
-				print_value_quoted(shl_stdout, p->trap);
-				shprintf(Tf__sN, p->name);
-			}
+			if (p->trap || dashp)
+				print_trap(p);
 			++p;
 		} while (i--);
 		return (0);
 	}
 
-	if (getn(*wp, &i)) {
+	if (dashp) {
+		/* print */
+	} else if (getn(*wp, &i)) {
 		/* first argument is a signal number, reset them all */
 		s = NULL;
 	} else {
@@ -2120,7 +2152,9 @@ c_trap(const char **wp)
 			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_BUILTIN |
 			    KWF_TWOMSG | KWF_NOERRNO, Tbad_sig, wp[-1]);
 			i = 1;
-		} else
+		} else if (dashp)
+			print_trap(p);
+		else
 			settrap(p, s);
 	return (i);
 }
@@ -2502,7 +2536,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 			if (i > 2 && !(e->savedfd[i] & FDICLMASK) &&
 			    fcntl(i, F_SETFD, FD_CLOEXEC) == -1)
 				kwarnf0(KWF_INTERNAL | KWF_WARNING,
-				    Tcloexec_failed, "set", i);
+				    Tcloexec_failed, Tset, i);
 		}
 	} else {
 		/* … but not for POSIX or legacy/kludge sh */

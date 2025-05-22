@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.443 2025/05/22 15:53:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.444 2025/05/22 17:07:47 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -1473,7 +1473,7 @@ savefd(int fd)
 		    Ttoo_many_files, fd, nfd);
 	if (fcntl(nfd, F_SETFD, FD_CLOEXEC) == -1)
 		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed,
-		    "set", nfd);
+		    Tset, nfd);
 	return (nfd);
 }
 

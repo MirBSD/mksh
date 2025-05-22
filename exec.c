@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.252 2025/04/27 21:49:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.253 2025/05/22 17:07:44 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -32,7 +32,7 @@ __RCSID("$MirOS: src/bin/mksh/exec.c,v 1.252 2025/04/27 21:49:18 tg Exp $");
 
 static int comexec(struct op *, struct tbl * volatile, const char **,
     int volatile, volatile int *);
-static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
+static int scriptexec(struct op *, const char **);
 static int call_builtin(struct tbl *, const char **, const char *, Wahr);
 static int iosetup(struct ioword *, struct tbl *);
 static const char *do_selectargs(const char **, Wahr);
@@ -463,10 +463,27 @@ execute(struct op * volatile t,
 			rv = errno;
 		}
 		if (rv == ENOEXEC)
-			scriptexec(t, (const char **)up);
+			rv = scriptexec(t, (const char **)up);
 		else
-			kerrf(KWF_VERRNO | KWF_ERR(126) | KWF_PREFIX |
+			kwarnf(KWF_VERRNO | KWF_ERR(126) | KWF_PREFIX |
 			    KWF_FILELINE | KWF_ONEMSG, rv, t->str);
+		unrestoresigs();
+		switch (rv) {
+		case ENOENT:
+#ifdef ELOOP
+		case ELOOP:
+#endif
+#ifdef ENAMETOOLONG
+		case ENAMETOOLONG:
+#endif
+			exstat = 127;
+			break;
+		default:
+			exstat = 126;
+			break;
+		}
+		errno = rv;
+		unwind(Flag(FPOSIX) ? LSHELL : LEXIT);
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -889,12 +906,12 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
  Leave:
 	if (flags & XEXEC) {
 		exstat = rv & 0xFF;
-		unwind(LEXIT);
+		unwind(Flag(FPOSIX) ? LSHELL : LEXIT);
 	}
 	return (rv);
 }
 
-static void
+static int
 scriptexec(struct op *tp, const char **ap)
 {
 	const char *sh;
@@ -903,6 +920,7 @@ scriptexec(struct op *tp, const char **ap)
 	unsigned char buf[68];
 #endif
 	union mksh_ccphack args, cap;
+	int eno;
 
 	sh = str_val(global(TEXECSHELL));
 	if (sh && *sh)
@@ -945,10 +963,12 @@ scriptexec(struct op *tp, const char **ap)
 		while (!ctype(*cp, C_NL | C_NUL))
 			++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
-		if (!*cp)
-			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
+		if (!*cp) {
+			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: shebang too long",
 			    tp->str);
+			return (ENOEXEC);
+		}
 		/* replace newline by NUL */
 		*cp = '\0';
 
@@ -994,10 +1014,12 @@ scriptexec(struct op *tp, const char **ap)
  noshebang:
 		m = ord(rtt2asc(buf[0])) << 8 | ord(rtt2asc(buf[1]));
 		if (m == 0x7F45 && ord(buf[2]) == ORD('L') &&
-		    ord(buf[3]) == ORD('F'))
-			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
+		    ord(buf[3]) == ORD('F')) {
+			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: %u-bit ELF file",
 			    tp->str, 32U * buf[4]);
+			return (ENOEXEC);
+		}
 		if ((m == /* OMAGIC */ 0407) ||
 		    (m == /* NMAGIC */ 0410) ||
 		    (m == /* ZMAGIC */ 0413) ||
@@ -1020,10 +1042,12 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* UTF-8 BOM */ 0xEFBB &&
 		     ord(rtt2asc(buf[2])) == 0xBFU) ||
 		    (m == /* UCS-4, may also be general binary */ 0x0000) ||
-		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
-			kerrf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
+		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF)) {
+			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: magic %04X",
 			    tp->str, m);
+			return (ENOEXEC);
+		}
 #ifdef __OS2__
 		str = _getext(tp->str);
 		if (str && (!stricmp(str, ".cmd") || !stricmp(str, ".bat"))) {
@@ -1046,9 +1070,11 @@ scriptexec(struct op *tp, const char **ap)
 
 	cap.ro = ap;
 	execve(args.rw[0], args.rw, cap.rw);
+	eno = errno;
 
 	/* report both the program that was run and the bogus interpreter */
-	kerrf(KWF_ERR(127) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
+	kwarnf(KWF_ERR(127) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
+	return (eno);
 }
 
 /* actual 'builtin' built-in utility call is handled in comexec() */

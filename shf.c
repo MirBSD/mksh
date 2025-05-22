@@ -28,7 +28,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.135 2025/04/25 23:15:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.136 2025/05/22 17:07:51 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -162,7 +162,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 	shf->errnosv = 0;
 	shf->bsize = bsize;
 	if ((sflags & SHF_CLEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, "set", fd);
+		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, Tset, fd);
 	return (shf);
 }
 
@@ -189,7 +189,7 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 	shf->flags = (shf->flags & (SHF_ALLOCS | SHF_ALLOCB)) | sflags;
 	shf->errnosv = 0;
 	if ((sflags & SHF_CLEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, "set", fd);
+		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, Tset, fd);
 	return (shf);
 }
 

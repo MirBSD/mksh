@@ -1,5 +1,5 @@
 # -*- mode: sh -*-
-# $MirOS: src/bin/mksh/check.t,v 1.923 2025/04/27 01:58:13 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.924 2025/05/22 17:07:41 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
@@ -34,7 +34,7 @@
 
 info-pre: testing begins
 expected-stdout:
-	KSH R59 2025/04/26
+	KSH R59 2025/05/22
 description:
 	Check base version of full shell
 stdin:
@@ -7269,6 +7269,24 @@ expected-stderr-pattern:
 	/X+.*: bla: (?:inaccessible or )?not found\n/
 expected-exit: 127
 ---
+name: exec-execs-not-in-posix
+description:
+	Ensure that exec returns in POSIX mode
+need-ctty: yes
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!-o!posix!
+stdin:
+	oldPATH=$PATH
+	PATH=$PWD
+	exec bla; echo fail=$?
+	echo ok=$?
+expected-stdout:
+	ok=127
+expected-stderr-pattern:
+	/X+.*: bla: (?:inaccessible or )?not found\n/
+---
 name: exec-modern
 description:
 	Check that exec can execute any command that makes it
@@ -9095,36 +9113,6 @@ expected-stdout:
 	ohne
 	=
 	﻿: mit
----
-name: utf8bom-2
-description:
-	Check that we cannot any more execute BOM-shebangs (failures not fatal)
-	XXX if the OS can already execute them, we lose
-	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
-	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
-	note: A/UX perl5 returns 6400 (exit-code 25), passes #1-3
-	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
-need-pass: no
-info-pre: this test is deprecated, will go away with R60
-category: !os:aux,!os:cygwin,!os:midipix,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
-env-setup: !FOO=BAR!
-stdin:
-	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
-	print '﻿#!'"$__progname"'\nprint "2 a=$ENV{FOO}";' >t2
-	print '#!'"$__perlname"'\nprint "3 a=$ENV{FOO}\n";' >t3
-	print '﻿#!'"$__perlname"'\nprint "4 a=$ENV{FOO}\n";' >t4
-	chmod +x t?
-	./t1
-	./t2
-	./t3
-	./t4
-	echo .
-expected-stdout:
-	1 a=/nonexisting{FOO}
-	3 a=BAR
-	.
-expected-stderr-pattern:
-	/t2: not executable: magic EFBB.*\n.*t4: not executable: magic EFBB/
 ---
 name: utf8opt-1
 description:

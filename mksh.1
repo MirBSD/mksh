@@ -1,9 +1,9 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.544 2025/04/25 22:06:13 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.545 2025/05/22 17:07:48 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-.\"		2018, 2019, 2020, 2021, 2022, 2023, 2024
+.\"		2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 .\"	mirabilos <m$(date +%Y)@mirbsd.de>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -57,7 +57,7 @@
 .\" .Dd must come before most everything, because when called
 .\" with -mandoc it loads -mdoc via .so in .Dd (first macro).
 .\"
-.Dd $Mdocdate: April 25 2025 $
+.Dd $Mdocdate: May 22 2025 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -273,6 +273,9 @@ or if
 .Va argv[0]
 is set correspondingly;
 this does not make sense for, or works properly with, all built-in utilities though.
+Debug builds can also be invoked as
+.Nm \-\-unparse
+to display the parse tree of each command before running it.
 .Pp
 The options are as follows:
 .Bl -tag -width 2n
@@ -3799,6 +3802,15 @@ clears the environment before executing the child process, except for the
 .Ev _
 parameter and direct assignments.
 .Pp
+In
+.Sx POSIX mode ,
+a failed
+.Ic exec
+.Em does
+return to an interactive shell prompt.
+Note that the execution environment may still contain traces of
+the attempt to pass control and is not fully restored.
+.Pp
 If no command is given except for I/O redirection, the I/O redirection is
 permanent and the shell is
 not replaced.
@@ -5231,7 +5243,7 @@ as
 .Ar handler ,
 followed by the arguments (interpreted as signals).
 .Pp
-.It Ic trap Op Ar handler signal ...
+.It Ic trap Ar handler signal ...
 .Pq keeps assignments , special
 Sets a trap handler that is to be executed when any of the specified
 .Ar signal Ns s
@@ -5284,14 +5296,41 @@ in functions are not yet implemented.
 Note that, for non-interactive shells, the trap handler cannot be changed
 for signals that were ignored when the shell started.
 .Pp
+.It Xo
+.Ic trap
+.Op Fl p Op Ar signal ...
+.Xc
 With no arguments, the current state of the traps that have been set since
 the shell started is shown as a series of
 .Ic trap
 commands.
+With
+.Fl p ,
+the state of all traps
+.Pq or all listed traps
+is shown, not just modified traps; this is useful to save and later
+restore the current state of traps.
+.Pp
 Note that the output of
 .Ic trap
-cannot be usefully captured or piped to another process (an artifact
+cannot be easily captured or piped to another process (an artifact
 of the fact that traps are cleared when subprocesses are created).
+Using
+.Nm ksh93 Ns -style
+funsubs works:
+.Bd -literal -offset indent
+save_traps=${ trap \-p;}
+# ...
+eval "$save_traps"
+.Ed
+.Pp
+.Dv SIGKILL , SIGSTOP
+and some OS-specific signals
+.Pq such as 32 and 33 on GNU/Linux
+cannot be trapped.
+Attempts are normally silently ignored; the output of
+.Ic trap Fl p
+does not necessarily reflect this.
 .Pp
 .It Ic true
 .Pq regular
@@ -6005,6 +6044,8 @@ does not accept options with a leading
 skips builtins, functions and other commands and uses a
 .Ev PATH
 search to determine the utility to execute.
+Interactive shells do not exit on failure
+.Pq note: the execution environment may be tainted .
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that

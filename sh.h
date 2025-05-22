@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1035 2025/04/26 22:40:50 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1036 2025/05/22 17:07:50 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -242,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2025/04/26"
+#define MKSH_VERSION "R59 2025/05/22"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -503,12 +503,10 @@ extern int ksh_getrusage(int, struct rusage *);
 
 #if HAVE_SIGACTION
 typedef struct sigaction ksh_sigsaved;
-#define ksh_sighandler(saved) (saved.sa_handler)
-void ksh_sigrestore(int, ksh_sigsaved *);
+#define ksh_sighandler(saved) ((saved)->sa_handler)
 #else
 typedef sig_t ksh_sigsaved;
-#define ksh_sighandler(saved) (saved)
-#define ksh_sigrestore(s,svp) ksh_sigset((s), *(svp), NULL)
+#define ksh_sighandler(saved) (*(saved))
 #endif
 
 #if HAVE_SIGDESCR_NP
@@ -526,7 +524,15 @@ extern const char * const sys_siglist[];
 #define ksh_sigmessf(mess) (!(mess) || !*(mess))
 
 /* contract: masks the signal, may restart, not oneshot */
-void ksh_sigset(int, sig_t, ksh_sigsaved *);
+int ksh_sigset(int, sig_t, ksh_sigsaved *);
+int ksh_sigrestore(int, ksh_sigsaved *);
+sig_t ksh_sigget(int);
+
+#if HAVE_SIGACTION && !defined(SIG_ERR)
+void ksh_sigerr(int);
+#define SIG_ERR (&ksh_sigerr)
+#define NEED_KSH_SIGERR
+#endif
 
 /* OS-dependent additions (functions, variables, by OS) */
 
@@ -1148,6 +1154,7 @@ EXTERN const char TFPATH[] E_INIT("FPATH");
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction (T_function + 1)
 EXTERN const char T_funny_command[] E_INIT("funny $()-command");
+#define Tget (Tnameref_empty + 17)
 EXTERN const char Tgetopts[] E_INIT("getopts");
 #define Tgetrusage (Ttime_getrusage + 6)
 EXTERN const char Ttime_getrusage[] E_INIT("time: getrusage");
@@ -1158,6 +1165,7 @@ EXTERN const char Tjobs[] E_INIT("jobs");
 EXTERN const char Tjob_not_started[] E_INIT("job not started");
 EXTERN const char Tmksh[] E_INIT("mksh");
 #define Tname (Tinvname + 15)
+EXTERN const char Tnameref_empty[] E_INIT("empty nameref target");
 EXTERN const char Tnil[] E_INIT("(null)");
 EXTERN const char Tno_args[] E_INIT("missing argument");
 EXTERN const char Tno_OLDPWD[] E_INIT("no OLDPWD");
@@ -1188,6 +1196,7 @@ EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 EXTERN const char Treal_sp2[] E_INIT(" real ");
 EXTERN const char TREPLY[] E_INIT("REPLY");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
+EXTERN const char Trestore[] E_INIT("restore");
 EXTERN const char Tselect[] E_INIT("select");
 #define Tset (Tf_parm + 14)
 #define Tset_po (T_set_po + 1)
@@ -1198,6 +1207,7 @@ EXTERN const char Tsghset[] E_INIT("*=#set");
 EXTERN const char Tshell[] E_INIT("shell");
 EXTERN const char Tshf_read[] E_INIT("shf_read");
 EXTERN const char Tshf_write[] E_INIT("shf_write");
+EXTERN const char Tsigerr[] E_INIT("could not %s SIG%s");
 EXTERN const char Tgsource[] E_INIT("=source");
 #define Tsource (Tgsource + 1)
 EXTERN const char Tj_suspend[] E_INIT("j_suspend");
@@ -1302,6 +1312,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define T_function " function"
 #define Tfunction "function"
 #define T_funny_command "funny $()-command"
+#define Tget "get"
 #define Tgetopts "getopts"
 #define Tgetrusage "getrusage"
 #define Ttime_getrusage "time: getrusage"
@@ -1312,6 +1323,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tjob_not_started "job not started"
 #define Tmksh "mksh"
 #define Tname "name"
+#define Tnameref_empty "empty nameref target"
 #define Tnil "(null)"
 #define Tno_args "missing argument"
 #define Tno_OLDPWD "no OLDPWD"
@@ -1342,6 +1354,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Treal_sp2 " real "
 #define TREPLY "REPLY"
 #define Treq_arg "requires an argument"
+#define Trestore "restore"
 #define Tselect "select"
 #define Tset "set"
 #define Tset_po "set +o"
@@ -1352,6 +1365,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tshell "shell"
 #define Tshf_read "shf_read"
 #define Tshf_write "shf_write"
+#define Tsigerr "could not %s SIG%s"
 #define Tgsource "=source"
 #define Tsource "source"
 #define Tj_suspend "j_suspend"
@@ -1454,9 +1468,13 @@ typedef struct trap {
 	char *trap;		/* trap command */
 	sig_t cursig;		/* current handler (valid if TF_ORIG_* set) */
 	sig_t shtrap;		/* shell signal handler */
+	sig_t oshtrap;		/* for unrestoresigs() */
+	ksh_sigsaved prev;	/* for unrestoresigs() */
 	int signal;		/* signal number */
 	int flags;		/* TF_* */
+	int oflags;		/* for unrestoresigs() */
 	volatile sig_atomic_t set; /* trap pending */
+	kby touched;		/* for unrestoresigs() */
 } Trap;
 
 /* values for Trap.flags */
@@ -2677,6 +2695,7 @@ void runtraps(int intr);
 void runtrap(Trap *, Wahr);
 void cleartraps(void);
 void restoresigs(void);
+void unrestoresigs(void);
 void settrap(Trap *, const char *);
 Wahr block_pipe(void);
 void restore_pipe(void);
