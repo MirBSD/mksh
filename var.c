@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.285 2025/05/22 17:07:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.286 2025/06/01 01:10:32 tg Exp $");
 
 /*-
  * Variables
@@ -471,7 +471,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		kwarnf((error_ok ? KWF_WARNING : KWF_ERR(2)) | KWF_PREFIX |
 		    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
-		    Tread_only, vq->name);
+		    vq->name, Tread_only);
 		if (!error_ok)
 			unwind(LERROR);
 		return (0);
@@ -981,7 +981,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~(EXPORT | RDONLY))))
 		merrf(NULL, (ep, KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
-		    KWF_TWOMSG | KWF_NOERRNO, Tread_only, tvar));
+		    KWF_TWOMSG | KWF_NOERRNO, tvar, Tread_only));
 	if (tvar != tvarbuf)
 		afree(tvar, ATEMP);
 
@@ -1160,6 +1160,15 @@ skip_varname(const char *s, Wahr aok)
 			s += alen;
 	}
 	return (s);
+}
+
+/* Check if plain string s is a variable name */
+int
+not_varname(const char *s, Wahr aok)
+{
+	const char *p = skip_varname(s, aok);
+
+	return (p == s || p[0] != '\0');
 }
 
 /* Return a pointer to the first character past any legal variable name */
@@ -1737,7 +1746,7 @@ set_array(const char *var, Wahr reset, const char **vals)
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
 		kerrf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
-		    KWF_NOERRNO, Tread_only, ccp);
+		    KWF_NOERRNO, ccp, Tread_only);
 	/* This code is quite non-optimal */
 	if (reset) {
 		/* trash existing values and attributes */

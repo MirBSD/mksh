@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.444 2025/05/22 17:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.445 2025/06/01 01:10:30 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -1997,7 +1997,7 @@ init_environ(void)
  read_envfile:
 	errno = 0;
 	if ((dent = readdir(dirp)) != NULL) {
-		if (skip_varname(dent->d_name, Ja)[0] == '\0') {
+		if (!not_varname(dent->d_name, Ja)) {
 			strpathx(xp, MKSH_ENVDIR, dent->d_name, 1);
 			if (!(shf = shf_open(xp, O_RDONLY, 0, 0))) {
 				kwarnf(KWF_PREFIX | KWF_THREEMSG, MKSH_ENVDIR,

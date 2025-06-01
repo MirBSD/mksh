@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.418 2025/05/22 17:07:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.419 2025/06/01 01:10:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1213,7 +1213,7 @@ c_getopts(const char **wp)
 		bi_errorf(Tf_sD_s, Tname, Tno_args);
 		return (1);
 	}
-	if (!*var || *skip_varname(var, Ja)) {
+	if (not_varname(var, Ja)) {
 		bi_errorf(Tf_sD_s, var, Tnot_ident);
 		return (1);
 	}
@@ -1629,7 +1629,9 @@ c_read(const char **wp)
 		break;
 	case 'p':
 		if ((fd = coproc_getfd(R_OK, &ccp)) < 0) {
-			bi_errorf("%s: %s", Tdp, ccp);
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_TWOMSG | KWF_NOERRNO,
+			    Tdp, ccp);
 			return (2);
 		}
 		break;
@@ -1642,8 +1644,9 @@ c_read(const char **wp)
 #if HAVE_SELECT
 	case 't':
 		if (parse_usec(builtin_opt.optarg, &tv)) {
-			bi_errorf(Tf_sD_s_qs, Tsynerr, cstrerror(errno),
-			    builtin_opt.optarg);
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_THREEMSG,
+			    builtin_opt.optarg, Tsynerr);
 			return (2);
 		}
 		hastimeout = Ja;
@@ -1654,7 +1657,7 @@ c_read(const char **wp)
 			fd = 0;
 		else if ((fd = check_fd(builtin_opt.optarg, R_OK, &ccp)) < 0) {
 			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
-			    KWF_BUILTIN | KWF_BIUNWIND | KWF_THREEMSG,
+			    KWF_BUILTIN | KWF_THREEMSG,
 			    Tdu, builtin_opt.optarg, ccp);
 			return (2);
 		}
@@ -1667,7 +1670,9 @@ c_read(const char **wp)
 		*--wp = TREPLY;
 
 	if (intoarray && wp[1] != NULL) {
-		bi_errorf(Ttoo_many_args);
+		kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_BUILTIN | KWF_ONEMSG | KWF_NOERRNO,
+		    Ttoo_many_args);
 		return (2);
 	}
 
@@ -1726,7 +1731,8 @@ c_read(const char **wp)
 			rv = 3;
 			goto c_read_readdone;
 		default:
-			bi_errorf(Tf_sD_s, Tselect, cstrerror(errno));
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_ONEMSG, Tselect);
 			rv = 2;
 			goto c_read_out;
 		}
@@ -1751,7 +1757,8 @@ c_read(const char **wp)
 			/* pretend the read was killed */
 		} else {
 			/* unexpected error */
-			bi_errorf(Tf_s, cstrerror(errno));
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_ONEMSG, Tread);
 		}
 		rv = 2;
 		goto c_read_out;
@@ -1851,12 +1858,20 @@ c_read(const char **wp)
 	expanding = Nee;
 	XinitN(xs, 128, ATEMP);
 	if (intoarray) {
+		if (not_varname(*wp, Nee)) {
+ c_read_badvar:
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_TWOMSG | KWF_NOERRNO,
+			    *wp, Tnot_ident);
+			goto c_read_spliterr;
+		}
 		vp = global(*wp);
 		subarray = last_lookup_was_array;
 		if (vp->flag & RDONLY) {
  c_read_splitro:
-			kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
-			    Tread_only, *wp);
+			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_BUILTIN | KWF_TWOMSG | KWF_NOERRNO,
+			    *wp, Tread_only);
  c_read_spliterr:
 			rv = 2;
 			afree(cp, ATEMP);
@@ -1976,7 +1991,9 @@ c_read(const char **wp)
 		if (subarray) {
 			/* array element passed, accept first read */
 			if (vq) {
-				bi_errorf("nested arrays not yet supported");
+				kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+				    KWF_BUILTIN | KWF_ONEMSG | KWF_NOERRNO,
+				    "nested arrays not yet supported");
 				goto c_read_spliterr;
 			}
 			vq = vp;
@@ -1988,6 +2005,8 @@ c_read(const char **wp)
 			idx = mbiMO(k32, K32_FM, idx, +, 1U);
 		}
 	} else {
+		if (not_varname(*wp, Nee))
+			goto c_read_badvar;
 		vq = global(*wp);
 		/* must be checked before exporting */
 		if (vq->flag & RDONLY)
@@ -2350,7 +2369,7 @@ c_unset(const char **wp)
 
 			if ((vp->flag&RDONLY)) {
 				kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
-				    KWF_NOERRNO, Tread_only, vp->name);
+				    KWF_NOERRNO, vp->name, Tread_only);
 				rv = 1;
 			} else
 				unset(vp, optc);
