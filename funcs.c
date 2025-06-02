@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.419 2025/06/01 01:10:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.420 2025/06/02 19:17:16 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2427,9 +2427,10 @@ p_time_ksh(struct timeval *tv, const char *suffix)
 int
 timex(struct op *t, int f, volatile int *xerrok)
 {
-#define TF_NOARGS	BIT(0)
-#define TF_NOREAL	BIT(1)		/* don't report real time */
-#define TF_POSIX	BIT(2)		/* report in POSIX format */
+#define TMX_NOARGS	BIT(0)
+#define TMX_NOREAL	BIT(1)		/* don't report real time */
+#define TMX_POSIX	BIT(2)		/* report in POSIX format */
+#define TMX_FAILED	BIT(3)		/* user syntax error or so */
 	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
@@ -2454,7 +2455,9 @@ timex(struct op *t, int f, volatile int *xerrok)
 		timerclear(&j_systime);
 		rv = execute(t->left, f | XTIME, xerrok);
 		if (t->left->type == TCOM)
-			tf |= t->left->str[0];
+			tf |= t->left->op_flag;
+		if (tf & TMX_FAILED)
+			return (rv);
 		mksh_TIME(tv1);
 		if (ksh_getrusage(RUSAGE_SELF, &ru1) ||
 		    ksh_getrusage(RUSAGE_CHILDREN, &cru1)) {
@@ -2463,11 +2466,11 @@ timex(struct op *t, int f, volatile int *xerrok)
 			return (rv);
 		}
 	} else
-		tf = TF_NOARGS;
+		tf = TMX_NOARGS;
 
-	if (tf & TF_NOARGS) {
+	if (tf & TMX_NOARGS) {
 		/* ksh93 - report shell times (shell+kids) */
-		tf |= TF_NOREAL;
+		tf |= TMX_NOREAL;
 		timeradd(&ru0.ru_utime, &cru0.ru_utime, &usrtime);
 		timeradd(&ru0.ru_stime, &cru0.ru_stime, &systime);
 	} else {
@@ -2477,15 +2480,15 @@ timex(struct op *t, int f, volatile int *xerrok)
 		timeradd(&systime, &j_systime, &systime);
 	}
 
-	if (tf & TF_POSIX) {
-		if (!(tf & TF_NOREAL)) {
+	if (tf & TMX_POSIX) {
+		if (!(tf & TMX_NOREAL)) {
 			timersub(&tv1, &tv0, &tv1);
 			p_time_psx(&tv1, Treal_sp1);
 		}
 		p_time_psx(&usrtime, Tuser_sp1);
 		p_time_psx(&systime, "sys ");
 	} else {
-		if (!(tf & TF_NOREAL)) {
+		if (!(tf & TMX_NOREAL)) {
 			timersub(&tv1, &tv0, &tv1);
 			p_time_ksh(&tv1, Treal_sp2);
 		}
@@ -2497,8 +2500,9 @@ timex(struct op *t, int f, volatile int *xerrok)
 	return (rv);
 }
 
-void
-timex_hook(struct op *t, char **volatile *app)
+/* option parsing for the time statement/builtin */
+int
+time_hook(struct op *t, char ** volatile *app)
 {
 	char **wp = *app;
 	int optc, i, j;
@@ -2510,16 +2514,18 @@ timex_hook(struct op *t, char **volatile *app)
 	while ((optc = ksh_getopt((const char **)wp, &opt, ":p")) != -1)
 		switch (optc) {
 		case 'p':
-			t->str[0] |= TF_POSIX;
+			t->op_flag |= TMX_POSIX;
 			break;
 		case '?':
 			ksh_getopt_opterr(opt.optarg[0], Ttime,
 			    Tunknown_option);
-			unwind(LERROR);
+			t->op_flag |= TMX_FAILED;
+			return (1);
 		case ':':
 			ksh_getopt_opterr(opt.optarg[0], Ttime,
 			    Treq_arg);
-			unwind(LERROR);
+			t->op_flag |= TMX_FAILED;
+			return (1);
 		}
 	/* Copy command words down over options. */
 	if (opt.optind != 0) {
@@ -2529,8 +2535,9 @@ timex_hook(struct op *t, char **volatile *app)
 			;
 	}
 	if (!wp[0])
-		t->str[0] |= TF_NOARGS;
+		t->op_flag |= TMX_NOARGS;
 	*app = wp;
+	return (0);
 }
 
 /* exec with no args - args case is taken care of in comexec() */

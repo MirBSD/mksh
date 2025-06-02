@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1037 2025/06/01 01:10:30 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1038 2025/06/02 19:17:17 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -242,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2025/05/31"
+#define MKSH_VERSION "R59 2025/06/02"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -2090,19 +2090,23 @@ struct op {
 	char **vars;			/* variable assignments */
 	struct ioword **ioact;		/* IO actions (eg, < > >>) */
 	struct op *left, *right;	/* descendents */
-	char *str;			/* word for case; identifier for for,
-					 * select, and functions;
-					 * path to execute for TEXEC;
-					 * time hook for TCOM.
-					 */
-	int lineno;			/* TCOM/TFUNC: LINENO for this */
+	union {
+		/* TCASE: word */
+		/* TEXEC: path to execute */
+		/* TFOR, TSELECT, TFUNCT: identifier */
+		char *str;
+		/* TCOM: TMX_* between timex and time_hook */
+		int flag;
+	} opstr_u;
+#define op_str opstr_u.str
+#define op_flag opstr_u.flag
+	int lineno;			/* TCOM/TFUNCT: LINENO for this */
 	short type;			/* operation type, see below */
-	/* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
+	/* note: newtp() uses evalflags = 0; to clear union */
 	union {
 		/* TCOM: arg expansion eval() flags */
 		short evalflags;
-		/* TFUNC: function x (vs x()) */
-		short ksh_func;
+		/* TFUNCT: function x (vs. x()) */
 		/* TPAT: termination character */
 		char charflag;
 	} u;
@@ -2655,7 +2659,7 @@ int c_unset(const char **);
 int c_ulimit(const char **);
 int c_times(const char **);
 int timex(struct op *, int, volatile int *);
-void timex_hook(struct op *, char ** volatile *);
+int time_hook(struct op *, char ** volatile *);
 int c_exec(const char **);
 int c_test(const char **);
 #if HAVE_MKNOD
@@ -2996,7 +3000,7 @@ void uescmbT(unsigned char *, const char **)
 int uwidthmbT(char *, char **);
 #endif
 const char *uprntmbs(const char *, Wahr, struct shf *);
-void fpFUNCTf(struct shf *, int, Wahr, const char *, struct op *);
+void fpFUNCTf(const char *, struct op *, struct shf *, int, Wahr);
 /* var.c */
 void newblock(void);
 void popblock(void);

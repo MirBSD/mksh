@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.253 2025/05/22 17:07:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.254 2025/06/02 19:17:15 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -133,7 +133,8 @@ execute(struct op * volatile t,
 		up = eval(t->args, t->u.evalflags | DOBLANK | DOGLOB | DOTILDE);
 		if (flags & XTIME)
 			/* Allow option parsing (bizarre, but POSIX) */
-			timex_hook(t, &up);
+			if ((rv = time_hook(t, &up)))
+				goto Break;
 		ap = (const char **)up;
 		if (ap[0])
 			tp = findcom(ap[0], FC_BI | FC_FUNC);
@@ -352,14 +353,14 @@ execute(struct op * volatile t,
 		rv = 0;
 		if (t->type == TFOR) {
 			while (*ap != NULL) {
-				setstr(global(t->str), *ap++, KSH_UNWIND_ERROR);
+				setstr(global(t->op_str), *ap++, KSH_UNWIND_ERROR);
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
 		} else {
  do_TSELECT:
 			if ((ccp = do_selectargs(ap, is_first))) {
 				is_first = Nee;
-				setstr(global(t->str), ccp, KSH_UNWIND_ERROR);
+				setstr(global(t->op_str), ccp, KSH_UNWIND_ERROR);
 				execute(t->left, flags & XERROK, xerrok);
 				goto do_TSELECT;
 			}
@@ -399,7 +400,7 @@ execute(struct op * volatile t,
 
 	case TCASE:
 		i = 0;
-		ccp = evalstr(t->str, DOTILDE | DOSCALAR);
+		ccp = evalstr(t->op_str, DOTILDE | DOSCALAR);
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
@@ -430,7 +431,7 @@ execute(struct op * volatile t,
 		break;
 
 	case TFUNCT:
-		rv = define(t->str, t);
+		rv = define(t->op_str, t);
 		break;
 
 	case TTIME:
@@ -459,14 +460,14 @@ execute(struct op * volatile t,
 			union mksh_ccphack cargs;
 
 			cargs.ro = t->args;
-			execve(t->str, cargs.rw, up);
+			execve(t->op_str, cargs.rw, up);
 			rv = errno;
 		}
 		if (rv == ENOEXEC)
 			rv = scriptexec(t, (const char **)up);
 		else
 			kwarnf(KWF_VERRNO | KWF_ERR(126) | KWF_PREFIX |
-			    KWF_FILELINE | KWF_ONEMSG, rv, t->str);
+			    KWF_FILELINE | KWF_ONEMSG, rv, t->op_str);
 		unrestoresigs();
 		switch (rv) {
 		case ENOENT:
@@ -890,7 +891,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		texec.type = TEXEC;
 		/* for vistree/dumptree */
 		texec.left = t;
-		texec.str = tp->val.s;
+		texec.op_str = tp->val.s;
 		texec.args = ap;
 
 		/* in this case we do not fork, of course */
@@ -928,10 +929,10 @@ scriptexec(struct op *tp, const char **ap)
 	if (!sh || !*sh)
 		sh = MKSH_DEFAULT_EXECSHELL;
 
-	*tp->args-- = tp->str;
+	*tp->args-- = tp->op_str;
 
 #ifndef MKSH_SMALL
-	if ((fd = binopen2(tp->str, O_RDONLY | O_MAYEXEC)) >= 0) {
+	if ((fd = binopen2(tp->op_str, O_RDONLY | O_MAYEXEC)) >= 0) {
 		unsigned char *cp;
 		unsigned short m;
 		ssize_t n;
@@ -966,7 +967,7 @@ scriptexec(struct op *tp, const char **ap)
 		if (!*cp) {
 			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: shebang too long",
-			    tp->str);
+			    tp->op_str);
 			return (ENOEXEC);
 		}
 		/* replace newline by NUL */
@@ -1017,7 +1018,7 @@ scriptexec(struct op *tp, const char **ap)
 		    ord(buf[3]) == ORD('F')) {
 			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: %u-bit ELF file",
-			    tp->str, 32U * buf[4]);
+			    tp->op_str, 32U * buf[4]);
 			return (ENOEXEC);
 		}
 		if ((m == /* OMAGIC */ 0407) ||
@@ -1045,7 +1046,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF)) {
 			kwarnf0(KWF_ERR(126) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_NOERRNO, "%s: not executable: magic %04X",
-			    tp->str, m);
+			    tp->op_str, m);
 			return (ENOEXEC);
 		}
 #ifdef __OS2__
@@ -1073,7 +1074,8 @@ scriptexec(struct op *tp, const char **ap)
 	eno = errno;
 
 	/* report both the program that was run and the bogus interpreter */
-	kwarnf(KWF_ERR(127) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, tp->str, sh);
+	kwarnf(KWF_ERR(127) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG,
+	    tp->op_str, sh);
 	return (eno);
 }
 
@@ -1159,7 +1161,7 @@ define(const char *name, struct op *t)
 
 	tp->val.t = tcopy(t->left, tp->areap);
 	tp->flag |= (ISSET|ALLOC);
-	if (t->u.ksh_func)
+	if (t->u.charflag)
 		tp->flag |= FKSH;
 
 	return (0);

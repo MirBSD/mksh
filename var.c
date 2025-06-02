@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.286 2025/06/01 01:10:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.287 2025/06/02 19:17:19 tg Exp $");
 
 /*-
  * Variables
@@ -2247,9 +2247,9 @@ c_typeset(const char **wp)
 					f->flag |= fset;
 					f->flag &= ~fclr;
 				} else {
-					fpFUNCTf(shl_stdout, 0,
-					    isWahr(f->flag & FKSH),
-					    wp[i], f->val.t);
+					fpFUNCTf(wp[i], f->val.t,
+					    shl_stdout, 0,
+					    isWahr(f->flag & FKSH));
 					shf_putc('\n', shl_stdout);
 				}
 			} else if (!vtypeset(&x, wp[i], fset, fclr,
@@ -2274,9 +2274,9 @@ c_typeset(const char **wp)
 				if (flag && (vp->flag & flag) == 0)
 					continue;
 				if (thing == '-')
-					fpFUNCTf(shl_stdout, 0,
-					    isWahr(vp->flag & FKSH),
-					    vp->name, vp->val.t);
+					fpFUNCTf(vp->name, vp->val.t,
+					    shl_stdout, 0,
+					    isWahr(vp->flag & FKSH));
 				else
 					shf_puts(vp->name, shl_stdout);
 				shf_putc('\n', shl_stdout);

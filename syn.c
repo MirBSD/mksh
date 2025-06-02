@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2018, 2020, 2021, 2023, 2024
+ *		 2018, 2020, 2021, 2023, 2024, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.155 2025/04/26 22:37:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.156 2025/06/02 19:17:18 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -447,7 +447,7 @@ get_command(int cf, int sALIAS)
 		if (!is_wdvarname(yylval.cp, Ja))
 			yyerror("%s: bad identifier",
 			    c == FOR ? "for" : Tselect);
-		strdupx(t->str, ident, ATEMP);
+		strdupx(t->op_str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist(sALIAS);
 		t->left = dogroup(sALIAS);
@@ -472,7 +472,7 @@ get_command(int cf, int sALIAS)
 	case CASE:
 		t = newtp(TCASE);
 		musthave(LWORD, 0);
-		t->str = yylval.cp;
+		t->op_str = yylval.cp;
 		nesting_push(&old_nesting, c);
 		t->left = caselist(sALIAS);
 		nesting_pop(&old_nesting);
@@ -498,12 +498,6 @@ get_command(int cf, int sALIAS)
 	case TIME:
 		syniocf &= ~(KEYWORD|sALIAS);
 		t = pipeline(0, sALIAS);
-		if (t && t->type == TCOM) {
-			t->str = alloc(2, ATEMP);
-			/* TF_* flags */
-			t->str[0] = '\0';
-			t->str[1] = '\0';
-		}
 		t = block(TTIME, t, NULL);
 		break;
 
@@ -730,8 +724,8 @@ function_body(char *name, int sALIAS,
 	}
 
 	t = newtp(TFUNCT);
-	t->str = sname;
-	t->u.ksh_func = isWahr(ksh_func);
+	t->op_str = sname;
+	t->u.charflag = ksh_func ? 1 : 0;
 	t->lineno = source->line;
 
 	if ((t->left = get_command(CONTIN, sALIAS)) == NULL) {
@@ -926,13 +920,17 @@ newtp(int type)
 	struct op *t;
 
 	t = alloc(sizeof(struct op), ATEMP);
-	t->type = type;
-	t->u.evalflags = 0;
 	t->args = NULL;
 	t->vars = NULL;
 	t->ioact = NULL;
 	t->left = t->right = NULL;
-	t->str = NULL;
+	if (type == TCOM)
+		t->op_flag = 0;
+	else
+		t->op_str = NULL;
+	t->lineno = 0;
+	t->type = type;
+	t->u.evalflags = 0;
 	return (t);
 }
 

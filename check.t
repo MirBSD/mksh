@@ -1,5 +1,5 @@
 # -*- mode: sh -*-
-# $MirOS: src/bin/mksh/check.t,v 1.925 2025/06/01 01:10:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.926 2025/06/02 19:17:13 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
@@ -34,7 +34,7 @@
 
 info-pre: testing begins
 expected-stdout:
-	KSH R59 2025/05/31
+	KSH R59 2025/06/02
 description:
 	Check base version of full shell
 stdin:
@@ -14372,6 +14372,24 @@ stdin:
 expected-stdout:
 	1 142 <>
 	2 0 <foo>
+---
+name: time-stayalive
+description:
+	check time syntax element or builtin do not exit the shell on error
+stdin:
+	set -e
+	ln -s "$__progname" time 2>/dev/null || cp "$__progname" time
+	if time -f true; then echo 3 meh $? .; else echo 3 ok $? .; fi
+	if command time -f true; then echo 4 meh $? .; else echo 4 ok $? .; fi
+	if ./time -f true; then echo 5 meh $? .; else echo 5 ok $? .; fi
+	echo 6 out .; echo >&2 6 err .
+	time true
+expected-stdout:
+	3 ok 1 .
+	4 ok 1 .
+	5 ok 1 .
+	6 out .
+expected-stderr-pattern: /^(?:.*unknown option.*\n){3}6 err \.\n.*s real.*system$/
 ---
 name: optional-printf-builtin
 description:

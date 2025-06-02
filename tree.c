@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2015, 2016, 2017, 2021
+ *		 2011, 2012, 2013, 2015, 2016, 2017, 2021, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.115 2025/04/25 23:15:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.116 2025/06/02 19:17:19 tg Exp $");
 
 #define INDENT	8
 
@@ -157,7 +157,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TSELECT:
 	case TFOR:
 		fptreef(shf, indent, "%s %s ",
-		    (t->type == TFOR) ? "for" : Tselect, t->str);
+		    (t->type == TFOR) ? "for" : Tselect, t->op_str);
 		if (t->vars != NULL) {
 			shf_puts("in ", shf);
 			w = (const char **)t->vars;
@@ -169,7 +169,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "%;done ");
 		break;
 	case TCASE:
-		fptreef(shf, indent, "case %S in", t->str);
+		fptreef(shf, indent, "case %S in", t->op_str);
 		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
 			fptreef(shf, indent, "%N(");
 			w = (const char **)t1->vars;
@@ -235,7 +235,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		prevent_semicolon = Ja;
 		break;
 	case TFUNCT:
-		fpFUNCTf(shf, indent, isWahr(t->u.ksh_func), t->str, t->left);
+		fpFUNCTf(t->op_str, t->left, shf, indent, isWahr(t->u.charflag));
 		break;
 	case TTIME:
 		fptreef(shf, indent, Tf_s_T, Ttime, t->left);
@@ -560,13 +560,19 @@ tcopy(struct op *t, Area *ap)
 
 	r = alloc(sizeof(struct op), ap);
 
-	r->type = t->type;
-	r->u.evalflags = t->u.evalflags;
-
-	if (t->type == TCASE)
-		r->str = wdcopy(t->str, ap);
-	else
-		strdupx(r->str, t->str, ap);
+	if (t->args == NULL)
+		r->args = NULL;
+	else {
+		tw = t->args;
+		while (*tw)
+			++tw;
+		r->args = (const char **)(rw = alloc2(tw - t->args + 1,
+		    sizeof(*tw), ap));
+		tw = t->args;
+		while (*tw)
+			*rw++ = wdcopy(*tw++, ap);
+		*rw = NULL;
+	}
 
 	if (t->vars == NULL)
 		r->vars = NULL;
@@ -582,25 +588,34 @@ tcopy(struct op *t, Area *ap)
 		*rw = NULL;
 	}
 
-	if (t->args == NULL)
-		r->args = NULL;
-	else {
-		tw = t->args;
-		while (*tw)
-			++tw;
-		r->args = (const char **)(rw = alloc2(tw - t->args + 1,
-		    sizeof(*tw), ap));
-		tw = t->args;
-		while (*tw)
-			*rw++ = wdcopy(*tw++, ap);
-		*rw = NULL;
-	}
-
 	r->ioact = (t->ioact == NULL) ? NULL : iocopy(t->ioact, ap);
-
 	r->left = tcopy(t->left, ap);
 	r->right = tcopy(t->right, ap);
+
+	switch (t->type) {
+	case TCOM:
+		r->op_flag = t->op_flag;
+		break;
+	case TCASE:
+		r->op_str = wdcopy(t->op_str, ap);
+		break;
+	default:
+		strdupx(r->op_str, t->op_str, ap);
+		break;
+	}
+
 	r->lineno = t->lineno;
+	r->type = t->type;
+
+	switch (t->type) {
+	case TFUNCT:
+	case TPAT:
+		r->u.charflag = t->u.charflag;
+		break;
+	default:
+		r->u.evalflags = t->u.evalflags;
+		break;
+	}
 
 	return (r);
 }
@@ -732,7 +747,8 @@ tfree(struct op *t, Area *ap)
 	if (t == NULL)
 		return;
 
-	afree(t->str, ap);
+	if (t->type != TCOM)
+		afree(t->op_str, ap);
 
 	if (t->vars != NULL) {
 		for (w = t->vars; *w != NULL; w++)
@@ -776,7 +792,7 @@ iofree(struct ioword **iow, Area *ap)
 }
 
 void
-fpFUNCTf(struct shf *shf, int i, Wahr isksh, const char *k, struct op *v)
+fpFUNCTf(const char *k, struct op *v, struct shf *shf, int i, Wahr isksh)
 {
 	if (isksh)
 		fptreef(shf, i, "%s %s %T", Tfunction, k, v);
@@ -1326,7 +1342,7 @@ dumptree(struct shf *shf, struct op *t)
 		break;
 	OPEN(TFOR)
  dumpfor:
-		shf_fprintf(shf, " str<%s>", t->str);
+		shf_fprintf(shf, " str<%s>", t->op_str);
 		if (t->vars != NULL) {
 			i = 0;
 			w = (const char **)t->vars;
@@ -1343,7 +1359,7 @@ dumptree(struct shf *shf, struct op *t)
 	OPEN(TSELECT)
 		goto dumpfor;
 	OPEN(TCASE)
-		shf_fprintf(shf, " str<%s>", t->str);
+		shf_fprintf(shf, " str<%s>", t->op_str);
 		i = 0;
 		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
 			shf_putc('\n', shf);
@@ -1375,8 +1391,8 @@ dumptree(struct shf *shf, struct op *t)
 	OPEN(TASYNC)
 		goto dumpleftandout;
 	OPEN(TFUNCT)
-		shf_fprintf(shf, " str<%s> ksh<%s>", t->str,
-		    t->u.ksh_func ? Ttrue : Tfalse);
+		shf_fprintf(shf, " str<%s> ksh<%s>", t->op_str,
+		    t->u.charflag ? Ttrue : Tfalse);
 		goto dumpleftandout;
 	OPEN(TTIME)
 		goto dumpleftandout;
