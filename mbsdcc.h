@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.11 2025/02/11 03:56:07 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.12 2025/06/06 21:59:48 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -26,7 +26,7 @@
 #include <sys/stddef.h>
 #endif
 
-/* mbccABEND should be provided by the user, called by mbsd*.h only */
+/* mbccABEND is called by mbsd*.h and should be provided by the user */
 #ifndef mbccABEND
 #define mbccABEND(reasonstr) abort()
 #endif
@@ -241,5 +241,16 @@ template<> struct mbccCEX_sa<false,true> { typedef int Type; };
 #else
 #define SHIKATANAI		(void)
 #endif
+
+/* macros to cast to unsigned {int,long,long long} with ingress type check */
+
+/* …from signed integers */
+#define mbitou(x)		((unsigned)((x)|0))
+#define mbitolu(x)		((unsigned long)((x)|0))
+#define mbitollu(x)		((unsigned long long)((x)|0))
+/* …from floats or signed integers */
+#define mbftou(x)		((unsigned)+(x))
+#define mbftolu(x)		((unsigned long)+(x))
+#define mbftollu(x)		((unsigned long long)+(x))
 
 #endif /* !SYSKERN_MBSDCC_H */
