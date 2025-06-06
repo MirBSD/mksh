@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.12 2025/06/06 21:59:48 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.14 2025/06/06 22:00:08 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -28,7 +28,7 @@
 
 /* mbccABEND is called by mbsd*.h and should be provided by the user */
 #ifndef mbccABEND
-#define mbccABEND(reasonstr) abort()
+#define mbccABEND(reasonstr)	abort()
 #endif
 
 /* monkey-patch known-bad offsetof versions */
