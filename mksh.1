@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.545 2025/05/22 17:07:48 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.546 2025/06/20 12:59:46 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -21,7 +21,7 @@
 .\" damage or existence of a defect, except proven that it results out
 .\" of said person’s immediate fault when using the work as intended.
 .\"-
-.\" $miros: contrib/samples/portmdoc,v 1.24 2025/04/25 20:48:03 tg Exp $
+.\" $miros: contrib/samples/portmdoc,v 1.25 2025/06/20 12:50:21 tg Exp $
 .\"-
 .\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020, 2023
 .\"	mirabilos <m$(date +%Y)@mirbsd.de>
@@ -37,7 +37,7 @@
 .\" * ~ is size-reduced and placed atop in groff, so use \*(TI
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
 .\" * \(en does not work in nroff, so use \*(en for a solo en dash
-.\" *   and \*(EM for a correctly spaced em dash
+.\" *   and \*(EM for a correctly spaced em dash (omit space around!)
 .\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
 .\" Also make sure to use \& *before* a punctuation char that is to not
 .\" be interpreted as punctuation, and especially with two-letter words
@@ -57,7 +57,7 @@
 .\" .Dd must come before most everything, because when called
 .\" with -mandoc it loads -mdoc via .so in .Dd (first macro).
 .\"
-.Dd $Mdocdate: May 22 2025 $
+.Dd $Mdocdate: June 20 2025 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -97,7 +97,7 @@
 .	ds EM \ \(em\ \&
 .\}
 .el \{\
-.	ds EM \f(TR\^\(em\^\fP
+.	ds EM \f(TR\|\(em\|\fP\&
 .\}
 .\"
 .\" Add UCB mdoc compatibility to GNU mdoc
