@@ -1,11 +1,11 @@
 #!/bin/sh
 # -*- mode: sh -*-
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.860 2025/04/27 21:51:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.861 2025/07/27 23:02:38 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020, 2021, 2022, 2023, 2024
+#		2020, 2021, 2022, 2023, 2024, 2025
 #	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -602,6 +602,10 @@ x)
 	exit 1
 	;;
 esac
+test -d "$srcdir" || {
+	echo >&2 Source directory must exist.
+	exit 1
+}
 srcdisp=`cd "$srcdir" && pwd` || srcdisp=
 test_n "$srcdisp" || srcdisp=$srcdir
 if test x"$srcdisp" = x"$curdir"; then
@@ -725,7 +729,8 @@ fi
 test x"$use_ach" = x"1" || use_ach=0
 cpp_define MKSH_BUILDSH 1
 rmf a.exe* a.out* conftest.* *core core.* ${tfn}* *.bc *.dbg *.ll *.o *.cat? \
-    *.gen Rebuild.sh Makefrag.inc lft no signames.inc test.sh x vv.out *.htm
+    *.gen signames.inc test.sh *.htm \
+    Rebuild.sh Makefrag.inc lft no x vv.out
 
 SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -781,6 +786,7 @@ if test_z "$TARGET_OS"; then
 fi
 osnote=
 oswarn=
+oswerr=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
@@ -908,7 +914,7 @@ BeOS)
 	# BeOS has no real tty either
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
-	# BeOS doesn't have different UIDs and GIDs
+	# BeOS does not have different UIDs and GIDs
 	cpp_define MKSH__NO_SETEUGID 1
 	: "${HAVE_SETRESUGID=0}"
 	;;
@@ -1317,9 +1323,9 @@ scosysv|SCO_SV|UnixWare|UNIX_SV|XENIX)
 	vv '|' "uname -a >&2"
 	;;
 esac
-test_z "$oswarn" || echo >&2 "
+test_z "$oswarn$oswerr" || echo >&2 "
 Warning: $whatshort has not yet been ported to or tested on your
-operating system '$TARGET_OS'$oswarn."
+operating system '$TARGET_OS'$oswarn$oswerr."
 test_z "$osnote" || echo >&2 "
 Note: $whatshort is not fully ported to or tested yet on your
 operating system '$TARGET_OS'$osnote."
@@ -1329,6 +1335,7 @@ may improve; please drop us a success or failure notice or
 even send patches for the remaining issues, or, at the very
 least, complete logs (Build.sh + test.sh) will help.
 "
+test_z "$osnote$oswarn$oswerr" || sleep 3
 $e "$bi$me: Building $whatlong$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
 
 #
@@ -1392,7 +1399,7 @@ ct="tcc"
 ct="clang"
 #elif defined(__NWCC__)
 ct="nwcc"
-#elif defined(__GNUC__) && (__GNUC__ < 2)
+#elif defined(__GNUC__) && ((__GNUC__) < 2)
 ct="gcc1"
 #elif defined(__GNUC__)
 ct="gcc"
@@ -2879,6 +2886,7 @@ $e ... done.
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories="$check_categories $oldish_ed"
+
 rmf x vv.out
 
 if test 0 = $HAVE_SOME_SIGNAME; then
@@ -2980,11 +2988,11 @@ else
 	USE_PRINTF_BUILTIN=0
 fi
 
+test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
+
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 addsrcs '!' MKSH_UNLIMITED ulimit.c
-
-test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 cpp_define MKSH_BUILD_R 599
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
@@ -3454,8 +3462,9 @@ USE_REALLOC_MALLOC		define as 0 to not use realloc as malloc
 
 Set CC and possibly CFLAGS, CPPFLAGS, LDFLAGS, LIBS. If cross-compiling,
 also set TARGET_OS. To disable tests, set e.g. HAVE_STRLCPY=0; to enable
-them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
-MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
+them, set to a value other than 0 or 1 (e.g. to x).
+Ensure /bin/ed is installed.
+For MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
 
 Normally, the following command is what you want to run, then:
 $ (sh Build.sh -r && ./test.sh) 2>&1 | tee log
