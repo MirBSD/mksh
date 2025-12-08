@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.14 2025/06/06 22:00:08 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.15 2025/12/08 01:25:11 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -244,11 +244,13 @@ template<> struct mbccCEX_sa<false,true> { typedef int Type; };
 
 /* macros to cast to unsigned {int,long,long long} with ingress type check */
 
-/* …from signed integers */
+/* …from (un)signed integers */
+#define mbito(x)		((x)|0)	/* only does integer promotions */
 #define mbitou(x)		((unsigned)((x)|0))
 #define mbitolu(x)		((unsigned long)((x)|0))
 #define mbitollu(x)		((unsigned long long)((x)|0))
-/* …from floats or signed integers */
+/* …from floats or integers */
+#define mbfto(x)		(+(x))
 #define mbftou(x)		((unsigned)+(x))
 #define mbftolu(x)		((unsigned long)+(x))
 #define mbftollu(x)		((unsigned long long)+(x))

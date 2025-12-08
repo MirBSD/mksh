@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.61 2024/07/25 02:29:43 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.62 2025/12/08 01:25:11 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -120,7 +120,7 @@
 #define mbiTYPE_UBITS(type)	mbiMASK_BITS(mbiTYPE_UMAX(type))
 /* calculation by Hallvard B Furuseth (via comp.lang.c), ≤ 2039 bit */
 #define mbiMASK__lh(maxv)	((maxv) / ((maxv) % 255 + 1) / 255 % 255 * 8)
-#define mbiMASK__rh(maxv)	(7 - 86 / ((maxv) % 255 + 12))
+#define mbiMASK__rh(maxv)	(7 - 86 / (mbito(maxv) % 255 + 12))
 /* mbiMASK_BITS everywhere except #if uses (castless) mbiMASK__BITS */
 #define mbiMASK__BITS(maxv)	(mbiMASK__lh(maxv) + mbiMASK__rh(maxv))
 #define mbiMASK__type(maxv)	(mbiMASK__lh(maxv) + (int)mbiMASK__rh(maxv))
@@ -342,7 +342,7 @@ mbCTA_BEG(mbsdint_h);
 	sizeof(unsigned char) == 1 &&
 	mbiTYPE_UBITS(unsigned char) >= 8 && (SCHAR_MIN) < 0 &&
 	((SCHAR_MIN) == -(SCHAR_MAX) || (SCHAR_MIN)+1 == -(SCHAR_MAX)) &&
-	mbiTYPE_UBITS(unsigned char) == (unsigned int)(CHAR_BIT));
+	mbiTYPE_UBITS(unsigned char) == mbitou(CHAR_BIT));
 #ifndef mbiSAFECOMPLEMENT
  mbCTA(basic_char_complement, /* fail */ 0);
 #endif
