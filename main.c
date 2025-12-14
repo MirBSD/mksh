@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.445 2025/06/01 01:10:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.446 2025/12/14 06:50:00 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -2096,7 +2096,7 @@ recheck_ctype(void)
 #if HAVE_POSIX_UTF8_LOCALE
 	errno = EINVAL;
 	if (!setlocale(LC_CTYPE, ccp)) {
-		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, "setlocale");
+		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, "could not set locale");
 		return;
 	}
 	ccp = nl_langinfo(CODESET);
