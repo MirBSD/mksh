@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.403 2025/09/10 21:16:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.404 2025/12/23 21:01:16 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1872,10 +1872,12 @@ x_newline(int c MKSH_A_UNUSED)
 }
 
 static int
-x_end_of_text(int c MKSH_A_UNUSED)
+x_end_of_text(int c)
 {
 	unsigned char tmp[2], *cp = tmp;
 
+	if (cur_prompt == PS2)
+		x_intr(0, c);
 	*tmp = isedchar(edchars.eof) ? (unsigned char)edchars.eof :
 	    (unsigned char)CTRL_D;
 	tmp[1] = '\0';
@@ -2410,8 +2412,13 @@ x_intr(int signo, int c)
 	xlp_valid = Ja;
 	*xcp = 0;
 	x_modified();
+	if (!signo) {
+		x_putc('\r');
+		x_putc('\n');
+	}
 	x_flush();
-	trapsig(signo);
+	if (signo)
+		trapsig(signo);
 	x_mode(Nee);
 	unwind(LSHELL);
 }
