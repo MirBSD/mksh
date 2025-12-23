@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.45 2025/04/25 23:14:17 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.46 2025/12/23 22:06:36 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -54,6 +54,16 @@ Title: I’m an OS/2 user, what else do I need to know?
  Factory on eComStation Korea, which uses “textmode”, though. Most OS/2
  users will want to use “textmode” unless they need absolute compatibility
  with Unix mksh and other Unix shells and tools.</p>
+----
+ToC: pass
+Title: Your CVSweb and gitweb links don’t work!
+
+This is because LLM scrapers not only thieve websites, they also do so
+in a manner that overloads the servers. Putting such highly dynamic CGIs
+behind HTTP Basic Auth is the only measure that helps. The credentials
+are both rather obvious and documented in the realm (the info that recent
+browsers unfortunately stopped showing in the password popups) and on the
+error page that is shown when you abort the popup dialogue. Try it!
 ----
 ToC: kornshell
 Title: How does this relate to ksh or the Korn Shell?
@@ -562,6 +572,33 @@ editor command together with <tt>quote-region</tt> and shell functions to
 implement a programmable completion engine. Multiple people have
 been considering doing so in our IRC channel; we’ll hyperlink to
 these engines when they are available.
+----
+ToC: complete-pathword
+Title: But other shells can complete paths more nicely!
+
+<p class="boxhead">You could put something like…</p><div class="boxtext">
+ <pre>
+	function _complete_pathword {
+		local p=${1//'/'/'*/'}
+		[[ $1 != /* ]] || p=${p#?}
+		[[ $1 = */ ]] || p+=*
+		print -nr -- "$p"
+	}
+	# set-mark-command, backward-bigword, "_complete_pathword ",
+	# quote-region, exchange-point-and-mark, (19)backward-char,
+	# evaluate-region, complete-list
+	bind -m '^[OS=^[ ^[B_complete_pathword ^[Q^X^X^[19^B^[^E^I'
+</pre>
+</div><p class="boxfoot">… in your <tt>~/.mkshrc</tt>; this will map
+ the F4 key (in common terminals) to an operation sequence that will
+ expand, for example, <tt>/u/l//val</tt> via <tt>/u*/l*/*/val*</tt>
+ to the complete path, if it’s sufficiently unique (this will complete
+ to <tt>/usr/lib/x86_64-linux-gnu/valgrind/</tt> on Debian, or to
+ <tt>/usr/libdata/perl5/validate.pl</tt> on MirBSD). If you place the
+ cursor in the middle of the current bigword, not its end, completion
+ can become interesting, for example you could require an extension to
+ match (<tt>/u///valh</tt> then Cur← (^B) and F4, for example, can become
+ <tt>/usr/include/valgrind/valgrind.h</tt> via <tt>/u*/*/*/val*h</tt>).</p>
 ----
 ToC: posix-mode
 Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
