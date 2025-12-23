@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1038 2025/06/02 19:17:17 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1039 2025/12/23 19:26:17 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -242,7 +242,7 @@
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
-#define MKSH_VERSION "R59 2025/06/02"
+#define MKSH_VERSION "R59 2025/12/23"
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
@@ -308,17 +308,9 @@ typedef unsigned long mksh_uari_t;
  * integer wraparound, even across division and modulo, for
  * any shell code using them, is guaranteed.
  */
-#if HAVE_CAN_INTTYPES
-typedef int32_t mksh_ari_t;
-typedef uint32_t mksh_uari_t;
-#else
 /* relies on compile-time asserts and CFLAGS to validate that */
 typedef signed int mksh_ari_t;
 typedef unsigned int mksh_uari_t;
-#define INT32_MIN INT_MIN
-#define INT32_MAX INT_MAX
-#define UINT32_MAX UINT_MAX
-#endif
 #endif
 
 /* new arithmetics in preparation */

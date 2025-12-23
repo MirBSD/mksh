@@ -28,7 +28,7 @@
 #define EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.446 2025/12/14 06:50:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.447 2025/12/23 19:26:16 tg Exp $");
 __IDSTRING(mbsdcc_h_rcsid, SYSKERN_MBSDCC_H);
 __IDSTRING(mbsdint_h_rcsid, SYSKERN_MBSDINT_H);
 __IDSTRING(sh_h_rcsid, MKSH_SH_H_ID);
@@ -134,18 +134,17 @@ mbCTA_BEG(main_c);
  mbCTA(int_is_4_char, sizeof(int) == 4);
 
 #ifndef MKSH_LEGACY_MODE
+ /* using (u)int as exactly-32-bit-wide type */
  mbiCTA_TYPE_MBIT(sari, mksh_ari_t);
  mbiCTA_TYPE_MBIT(uari, mksh_uari_t);
- mbCTA(basic_int32_smask, mbiMASK_CHK(INT32_MAX));
- mbCTA(basic_int32_umask, mbiMASK_CHK(UINT32_MAX));
  mbCTA(basic_int32_ari,
-    mbiTYPE_UMAX(mksh_uari_t) == (UINT32_MAX) &&
+    mbiTYPE_UMAX(mksh_uari_t) == (UINT_MAX) &&
     /* require two’s complement */
-    ((INT32_MIN)+1 == -(INT32_MAX)));
+    ((INT_MIN)+1 == -(INT_MAX)));
  /* the next assertion is probably not really needed */
  mbCTA(ari_is_4_char, sizeof(mksh_ari_t) == 4);
  /* but this is */
- mbCTA(ari_has_31_bit, mbiMASK_BITS(INT32_MAX) == 31);
+ mbCTA(ari_has_31_bit, mbiMASK_BITS(INT_MAX) == 31);
  /* the next assertion is probably not really needed */
  mbCTA(uari_is_4_char, sizeof(mksh_uari_t) == 4);
  mbCTA(uari_is_32_bit, mbiTYPE_UBITS(mksh_uari_t) == 32);

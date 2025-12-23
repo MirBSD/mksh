@@ -1,6 +1,6 @@
 #!/bin/sh
 # -*- mode: sh -*-
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.861 2025/07/27 23:02:38 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.862 2025/12/23 19:26:14 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -853,13 +853,6 @@ BeOS|HP-UX|QNX|SCO_SV)
 	;;
 esac
 
-# SVR4 (some) workaround
-int_as_ssizet() {
-	cpp_define SSIZE_MIN INT_MIN
-	cpp_define SSIZE_MAX INT_MAX
-	cpp_define ssize_t int
-}
-
 cmplrflgs=
 
 # Configuration depending on OS name
@@ -1193,7 +1186,6 @@ scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	cpp_define MKSH__NO_SETEUGID 1
 	: "${HAVE_SETRESUGID=0}"
-	int_as_ssizet
 	cpp_define MKSH_UNEMPLOYED 1
 	: "${HAVE_POSIX_UTF8_LOCALE=0}${HAVE_TERMIOS_H=0}"
 	;;
@@ -1237,7 +1229,6 @@ syllable)
 	;;
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
-	int_as_ssizet
 	: "${HAVE_POSIX_UTF8_LOCALE=0}"
 	;;
 UnixWare|UNIX_SV)
@@ -1262,7 +1253,6 @@ XENIX)
 	cpp_define _setjmp setjmp
 	cpp_define _longjmp longjmp
 	cpp_define USE_REALLOC_MALLOC 0
-	int_as_ssizet
 	# per http://www.polarhome.com/service/man/?qf=signal&of=Xenix
 	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	cpp_define MKSH_UNEMPLOYED 1
@@ -1278,7 +1268,6 @@ _svr4)
 	oswarn='; it may or may not work'
 	: "${CC=cc -Xa}"
 	cmplrflgs=-DMKSH_MAYBE_SCDE
-	int_as_ssizet #XXX maybe not for *all* _svr4? here for Dell UNIX
 	;;
 *)
 	oswarn='; it may or may not work'
@@ -2035,6 +2024,11 @@ test $ct = pcc && phase=u
 #
 : "${HAVE_ATTRIBUTE_EXTENSION=1}" # not a separate test but a dependency
 ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__))' <<-'EOF'
+	#ifdef __has_attribute
+	# if !__has_attribute(__bounded__)
+	#  error nope
+	# endif
+	#endif
 	#include <string.h>
 	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
@@ -2050,6 +2044,11 @@ ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__)
 	}
 EOF
 ac_test attribute_format attribute_extension 0 'for __attribute__((__format__))' <<-'EOF'
+	#ifdef __has_attribute
+	# if !__has_attribute(__format__)
+	#  error nope
+	# endif
+	#endif
 	#define fprintf printfoo
 	#include <stdio.h>
 	#undef __attribute__
@@ -2059,6 +2058,11 @@ ac_test attribute_format attribute_extension 0 'for __attribute__((__format__))'
 	int main(int ac, char *av[]) { return (fprintf(stderr, "%s%d", *av, ac)); }
 EOF
 ac_test attribute_noreturn attribute_extension 0 'for __attribute__((__noreturn__))' <<-'EOF'
+	#ifdef __has_attribute
+	# if !__has_attribute(__noreturn__)
+	#  error nope
+	# endif
+	#endif
 	#include <stdlib.h>
 	#undef __attribute__
 	void fnord(void) __attribute__((__noreturn__));
@@ -2066,12 +2070,22 @@ ac_test attribute_noreturn attribute_extension 0 'for __attribute__((__noreturn_
 	void fnord(void) { exit(0); }
 EOF
 ac_test attribute_unused attribute_extension 0 'for __attribute__((__unused__))' <<-'EOF'
+	#ifdef __has_attribute
+	# if !__has_attribute(__unused__)
+	#  error nope
+	# endif
+	#endif
 	#include <unistd.h>
 	#undef __attribute__
 	int main(int ac __attribute__((__unused__)), char *av[]
 	    __attribute__((__unused__))) { return (isatty(0)); }
 EOF
 ac_test attribute_used attribute_extension 0 'for __attribute__((__used__))' <<-'EOF'
+	#ifdef __has_attribute
+	# if !__has_attribute(__used__)
+	#  error nope
+	# endif
+	#endif
 	#include <unistd.h>
 	#undef __attribute__
 	static const char fnord[] __attribute__((__used__)) = "42";
@@ -2200,19 +2214,34 @@ ac_testn mbi_ctas '' 'if integer types are sane enough' <<-'EOF'
 EOF
 test 1 = $HAVE_MBI_CTAS || exit 1
 
-ac_test can_inttypes '' "for standard 32-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	#include <limits.h>
-	#include <stddef.h>
-	#if HAVE_STDINT_H
-	#include <stdarg.h>
-	#include <stdint.h>
-	#endif
+ac_testn ssize_t <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#define MKSH_DO_MBI_CTAS
+	#include "sh.h"
 	int main(int ac, char *av[]) {
-		return ((int)((uint32_t)(size_t)*av +
-		    ((int32_t)ac - INT32_MAX)));
+		return (ac + (int)(ssize_t)*av);
 	}
 EOF
+
+if test 0 = $HAVE_SSIZE_T; then
+	# SCO, Ultrix, Xenix and the likes
+	cpp_define SSIZE_MIN INT_MIN
+	cpp_define SSIZE_MAX INT_MAX
+	cpp_define ssize_t int
+	unset HAVE_SSIZE_T
+	ac_testn ssize_t '' 'whether int can be used as ssize_t' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#define MKSH_DO_MBI_CTAS
+		#include "sh.h"
+		int main(int ac, char *av[]) {
+			ssize_t s = ac > 1 ? SSIZE_MAX : SSIZE_MIN;
+			size_t z = ac > 2 ? SIZE_MAX : 0U;
+			return (printf("%" mbiSIZE_P(d) ",%" mbiSIZE_P(u),
+			    (mbiSIZE_S)s, mbiSIZE_PV(z)));
+		}
+	EOF
+	test 1 = $HAVE_SSIZE_T || exit 1
+fi
 
 # only testn: added later below
 ac_testn sig_t <<-'EOF'
