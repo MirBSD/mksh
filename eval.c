@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023
+ *		 2019, 2020, 2021, 2022, 2023, 2025
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.263 2025/04/25 23:14:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.264 2025/12/23 20:26:00 tg Exp $");
 
 /*
  * string expansion
@@ -1577,9 +1577,14 @@ comsub(Expand *xp, const char *cp, int fn)
 	if (t->type == TCOM &&
 	    *t->args == NULL && *t->vars == NULL && t->ioact != NULL) {
 		/* $(<file) */
-		struct ioword *io = *t->ioact;
+		struct ioword *io;
 		char *name;
 
+		if (t->ioact[1] != NULL) {
+			io = t->ioact[1];
+			goto funny;
+		}
+		io = *t->ioact;
 		switch (io->ioflag & IOTYPE) {
 		case IOREAD:
 			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
@@ -1602,9 +1607,10 @@ comsub(Expand *xp, const char *cp, int fn)
 			shf = NULL;
 			break;
 		default:
+ funny:
 			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
 			    KWF_TWOMSG | KWF_NOERRNO, T_funny_command,
-			    snptreef(NULL, 32, Tft_R, io));
+			    stripioact(io));
 		}
 	} else if (fn == FUNSUB) {
 		int ofd1;

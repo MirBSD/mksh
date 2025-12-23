@@ -23,12 +23,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.116 2025/06/02 19:17:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.117 2025/12/23 20:26:04 tg Exp $");
 
 #define INDENT	8
 
 static void ptree(struct op *, int, struct shf *);
-static void pioact(struct shf *, struct ioword *);
 static const char *wdvarput(struct shf *, const char *, int, int);
 static void vfptreef(struct shf *, int, const char *, va_list);
 static struct ioword **iocopy(struct ioword **, Area *);
@@ -246,11 +245,23 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	}
 	if ((ioact = t->ioact) != NULL)
-		while (*ioact != NULL)
+		while (*ioact != NULL) {
 			pioact(shf, *ioact++);
+			shf_putc(' ', shf);
+		}
 }
 
-static void
+char *
+stripioact(struct ioword *iop)
+{
+	struct shf shf;
+
+	shf_sopen(NULL, 32, SHF_WR | SHF_DYNAMIC, &shf);
+	pioact(&shf, iop);
+	return (shf_sclose(&shf));
+}
+
+void
 pioact(struct shf *shf, struct ioword *iop)
 {
 	unsigned short flag = iop->ioflag;
@@ -316,7 +327,6 @@ pioact(struct shf *shf, struct ioword *iop)
 		else
 			wdvarput(shf, iop->ioname, 0, WDS_TPUTS);
 	}
-	shf_putc(' ', shf);
 	prevent_semicolon = Nee;
 }
 
@@ -525,6 +535,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 			case ORD('R'):
 				/* I/O redirection */
 				pioact(shf, va_arg(va, struct ioword *));
+				shf_putc(' ', shf);
 				break;
 			case ORD('c'):
 				/* character (octet, probably) */

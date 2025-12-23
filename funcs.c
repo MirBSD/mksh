@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.420 2025/06/02 19:17:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.421 2025/12/23 20:26:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1657,8 +1657,8 @@ c_read(const char **wp)
 			fd = 0;
 		else if ((fd = check_fd(builtin_opt.optarg, R_OK, &ccp)) < 0) {
 			kwarnf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
-			    KWF_BUILTIN | KWF_THREEMSG,
-			    Tdu, builtin_opt.optarg, ccp);
+			    KWF_BUILTIN | KWF_NOERRNO, "-u%s: %s",
+			    builtin_opt.optarg, ccp);
 			return (2);
 		}
 		break;

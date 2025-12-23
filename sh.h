@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1039 2025/12/23 19:26:17 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1040 2025/12/23 20:26:03 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -1245,8 +1245,6 @@ EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
 #define Tf_s (Tf_temp + 24)
 EXTERN const char Tft_end[] E_INIT("%;");
-#define Tft_R (Tft_s_R + 3)
-EXTERN const char Tft_s_R[] E_INIT("%s %R");
 #define Tf_d (Tcloexec_failed + 39)
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
 EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s");
@@ -1403,8 +1401,6 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sd "%s %d"
 #define Tf_s "%s"
 #define Tft_end "%;"
-#define Tft_R "%R"
-#define Tft_s_R "%s %R"
 #define Tf_d "%d"
 #define Tf_sD_s_qs "%s: %s '%s'"
 #define Tf_temp "can't %s temporary file %s"
@@ -2993,6 +2989,8 @@ int uwidthmbT(char *, char **);
 #endif
 const char *uprntmbs(const char *, Wahr, struct shf *);
 void fpFUNCTf(const char *, struct op *, struct shf *, int, Wahr);
+void pioact(struct shf *, struct ioword *);
+char *stripioact(struct ioword *);
 /* var.c */
 void newblock(void);
 void popblock(void);

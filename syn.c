@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.156 2025/06/02 19:17:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.157 2025/12/23 20:26:04 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -850,8 +850,6 @@ initkeywords(void)
 static void
 syntaxerr(const char *what)
 {
-	/* 23<<- is the longest redirection, I think */
-	char redir[8];
 	const char *s;
 	struct tokeninfo const *tt;
 	int c;
@@ -878,7 +876,7 @@ syntaxerr(const char *what)
 		break;
 
 	case REDIR:
-		s = snptreef(redir, sizeof(redir), Tft_R, yylval.iop);
+		s = stripioact(yylval.iop);
 		break;
 
 	default:
@@ -887,15 +885,10 @@ syntaxerr(const char *what)
 			    break;
 		if (tt->name)
 			s = tt->name;
-		else {
-			if (c > 0 && c < 256) {
-				redir[0] = c;
-				redir[1] = '\0';
-			} else
-				shf_snprintf(redir, sizeof(redir),
-					"?%d", c);
-			s = redir;
-		}
+		else if (c > 0 && c < 256)
+			s = shf_smprintf("%c", c);
+		else
+			s = shf_smprintf("?%d", c);
 	}
 	yyerror(Tf_sD_s_qs, Tsynerr, what, s);
 }

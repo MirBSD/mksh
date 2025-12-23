@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.254 2025/06/02 19:17:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.255 2025/12/23 20:26:01 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1492,7 +1492,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (Flag(FXTRACE)) {
 		change_xtrace(2, Nee);
-		fptreef(shl_xtrace, 0, Tft_R, &iotmp);
+		pioact(shl_xtrace, &iotmp);
 		change_xtrace(1, Nee);
 	}
 
@@ -1551,12 +1551,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		} else if ((u = check_fd(cp,
 		    X_OK | ((iop->ioflag & IORDUP) ? R_OK : W_OK),
 		    &emsg)) < 0) {
-			char *sp;
-
-			sp = snptreef(NULL, 32, Tft_R, &iotmp);
 			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
-			    KWF_NOERRNO, sp, emsg);
-			afree(sp, ATEMP);
+			    KWF_NOERRNO, stripioact(&iotmp), emsg);
 			return (-1);
 		}
 		if (u == (int)iop->unit) {
@@ -1614,14 +1610,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	} else if (u != (int)iop->unit) {
 		if (ksh_dup2(u, iop->unit, Ja) < 0) {
 			int eno;
-			char *sp;
 
 			eno = errno;
-			sp = snptreef(NULL, 32, Tft_s_R, Tredirection_dup,
-			    &iotmp);
 			kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
-			    KWF_ONEMSG, eno, sp);
-			afree(sp, ATEMP);
+			    KWF_TWOMSG, eno,
+			    stripioact(&iotmp), Tredirection_dup);
 			if (iotype != IODUP)
 				close(u);
 			return (-1);
