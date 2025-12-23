@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.404 2025/12/23 21:01:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.405 2025/12/23 21:49:51 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1401,6 +1401,9 @@ x_emacs(char *buf)
 		}
 		/* ad-hoc hack for fixing the cursor position */
 		x_goto(xcp);
+		/* and mark position */
+		if (xmp && xmp > xep)
+			xmp = xep;
 	}
 }
 
@@ -1481,6 +1484,8 @@ x_do_ins(const char *cp, size_t len)
 	}
 	memmove(xcp + len, xcp, xep - xcp + 1);
 	memmove(xcp, cp, len);
+	if (xmp && xmp > xcp)
+		xmp += len;
 	xcp += len;
 	xep += len;
 	x_modified();
@@ -2368,7 +2373,6 @@ x_yank(int c MKSH_A_UNUSED)
 		x_redraw('\n');
 		return (KSTD);
 	}
-	xmp = xcp;
 	x_ins(killstack[killtp]);
 	return (KSTD);
 }
@@ -2949,7 +2953,15 @@ do_complete(
 	}
 	if (completed) {
 		/* expand on the command line */
-		xmp = xcp = xbuf + start;
+		xcp = xbuf + start;
+		if (xmp && xmp > xcp) {
+			if (xcp + olen > xmp) {
+				/* sods, within the completion prefix */
+				/* for at least some cases we could do better */
+				xmp = xcp;
+			} else
+				xmp -= olen;
+		}
 		xep -= olen;
 		memmove(xcp, xcp + olen, xep - xcp + 1);
 		x_escape(words[0], nlen, x_do_ins);
