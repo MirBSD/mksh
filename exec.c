@@ -24,16 +24,17 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.255 2025/12/23 20:26:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.256 2025/12/24 04:51:51 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
 #endif
 
 static int comexec(struct op *, struct tbl * volatile, const char **,
-    int volatile, volatile int *);
+    int volatile, int *);
 static int scriptexec(struct op *, const char **);
 static int call_builtin(struct tbl *, const char **, const char *, Wahr);
+static void doexfunc(struct op *);
 static int iosetup(struct ioword *, struct tbl *);
 static const char *do_selectargs(const char **, Wahr);
 static Test_op dbteste_isa(Test_env *, Test_meta);
@@ -50,16 +51,17 @@ int
 execute(struct op * volatile t,
     /* if XEXEC don't fork */
     volatile int flags,
-    volatile int * volatile xerrok)
+    int * volatile xerrok)
 {
 	int i;
-	volatile int rv = 0, dummy = 0;
+	volatile int rv = 0;
 	int pv[2];
 	const char ** volatile ap = NULL;
-	char ** volatile up;
+	char **up;
 	const char *s, *ccp;
 	struct ioword **iowp;
 	struct tbl *tp = NULL;
+	int dummy = 0;
 
 	if (t == NULL)
 		return (0);
@@ -169,6 +171,7 @@ execute(struct op * volatile t,
 			}
 		}
 
+ reentry:
 	switch (t->type) {
 	case TCOM:
 		rv = comexec(t, tp, (const char **)ap, flags, xerrok);
@@ -434,6 +437,22 @@ execute(struct op * volatile t,
 		rv = define(t->op_str, t);
 		break;
 
+	case TEXFUNC:
+#ifndef MKSH_SMALL
+		/* these make reentry not safe, should not happen */
+		i = 0;
+		if (!t->left) i |= 1;
+		if (t->left->type != TBRACE) i |= 2;
+		if (t->ioact != NULL) i |= 4;
+		if (t->left->ioact != NULL) i |= 8;
+		if (i)
+			kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+			    Tunexpected_type, Tfunction, "TEXFUNC", i);
+#endif
+		doexfunc(t);
+		t = t->left;
+		goto reentry;
+
 	case TTIME:
 		/*
 		 * Clear XEXEC so nested execute() call doesn't exit
@@ -512,10 +531,9 @@ execute(struct op * volatile t,
 /*
  * execute simple command
  */
-
 static int
 comexec(struct op *t, struct tbl * volatile tp, const char **ap,
-    volatile int flags, volatile int *xerrok)
+    volatile int flags, int *xerrok)
 {
 	int i;
 	volatile int rv = 0;
@@ -1468,6 +1486,77 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, Wahr resetspec)
 	return (rv);
 }
 
+static void
+doexfunc(struct op *t)
+{
+	const char **ap = t->args;
+	const char *s, *p;
+	char *u;
+	struct tbl *vp;
+	struct block *l = e->loc;
+	size_t n;
+	unsigned int S = 0;
+
+	subst_exstat = 0;
+	current_lineno = t->lineno;
+
+	if (!*ap)
+		return;
+
+	if (Flag(FXTRACE)) {
+		change_xtrace(2, Nee);
+		shf_puts("local ", shl_xtrace);
+	}
+	while ((s = *ap++)) {
+		p = skip_wdvarname(s, Nee);
+		if (*p == EOS) {
+			/* mandatory argument */
+			s = wdstrip(s, 0);
+			if (l->argc < 1)
+				kerrf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+				    KWF_TWOMSG | KWF_NOERRNO,
+				    "missing argument", s);
+ take_first:
+			p = l->argv[1];
+			/* shift */
+			l->argv[1] = l->argv[0];
+			++l->argv;
+			--l->argc;
+			++S;
+		} else if (l->argc > 0) {
+			/* optional argument, present */
+			n = p + 1 - s;
+			u = memcpy(alloc(n, ATEMP), s, n);
+			u[n - 1U] = EOS;
+			s = wdstrip(u, 0);
+			goto take_first;
+		} else {
+			/* optional argument, absent */
+			u = evalstr(s, DOASNTILDE | DOSCALAR);
+			s = u;
+			u = ucstrchr(u, '=');
+			*u++ = '\0';
+			p = u;
+		}
+		if (varnamecheck(s))
+			kerrf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_TWOMSG | KWF_NOERRNO, s, "restricted");
+		if (Flag(FXTRACE)) {
+			shf_puts(s, shl_xtrace);
+			shf_putc('=', shl_xtrace);
+			print_value_quoted(shl_xtrace, p);
+			shf_putc(' ', shl_xtrace);
+		}
+		vp = local(s, Nee);
+		setstr(vp, p, KSH_UNWIND_ERROR);
+	}
+	if (Flag(FXTRACE)) {
+		if (S)
+			shf_fprintf(shl_xtrace, "; shift %u", S);
+		change_xtrace(1, Nee);
+	}
+}
+
 /*
  * set up redirection, saving old fds in e->savedfd
  */
@@ -1648,7 +1737,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 static int
 hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 {
-	const char * volatile ccp = iop->heredoc;
+	const char *ccp;
 	struct source *s, *osource;
 
 	osource = source;
@@ -1659,6 +1748,7 @@ hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
+	ccp = iop->heredoc;
 	if (iop->ioflag & IOHERESTR) {
 		ccp = evalstr(iop->delim, DOHERESTR | DOSCALAR);
 	} else if (sub) {
@@ -1957,4 +2047,15 @@ cpyargv(int *i, const char **src, Area *ap)
 		strdupx(*wp++, *src++, ap);
 	*wp = NULL;
 	return (dst);
+}
+
+int
+varnamecheck(const char *var)
+{
+	if (!Flag(FRESTRICTED))
+		return (0);
+	if (!strcmp(var, TENV) || !strcmp(var, "HISTFILE") ||
+	    !strcmp(var, TPATH) || !strcmp(var, TSHELL))
+		return (1);
+	return (0);
 }

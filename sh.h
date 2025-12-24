@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1040 2025/12/23 20:26:03 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1041 2025/12/24 04:51:54 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -2124,6 +2124,7 @@ struct op {
 #define TTIME		20	/* time pipeline */
 #define TEXEC		21	/* fork/exec eval'd TCOM */
 #define TCOPROC		22	/* coprocess |& */
+#define TEXFUNC		23	/* extended function */
 
 /*
  * prefix codes for words in command tree
@@ -2570,7 +2571,7 @@ void expand(const char *, XPtrV *, int);
 int glob_str(char *, XPtrV *, Wahr);
 char *do_tilde(char *);
 /* exec.c */
-int execute(struct op * volatile, volatile int, volatile int * volatile);
+int execute(struct op * volatile, volatile int, int *);
 int c_builtin(const char **);
 struct tbl *get_builtin(const char *);
 struct tbl *findfunc(const char *, k32, Wahr);
@@ -2584,9 +2585,10 @@ void pr_menu(const char * const *);
 void pr_list(struct columnise_opts *, char * const *);
 int herein(struct ioword *, char **);
 const char **cpyargv(int *, const char **, Area *);
+int varnamecheck(const char *);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, Wahr);
-int v_evaluate(struct tbl *, const char *, volatile int, Wahr);
+int v_evaluate(struct tbl *, const char *, int, Wahr);
 /* UTF-8 stuff */
 char *ez_bs(char *, char *);
 size_t utf_mbtowc(unsigned int *, const char *);
@@ -2646,8 +2648,8 @@ int c_set(const char **);
 int c_unset(const char **);
 int c_ulimit(const char **);
 int c_times(const char **);
-int timex(struct op *, int, volatile int *);
-int time_hook(struct op *, char ** volatile *);
+int timex(struct op *, int, int *);
+int time_hook(struct op *, char ***);
 int c_exec(const char **);
 int c_test(const char **);
 #if HAVE_MKNOD
@@ -2703,7 +2705,7 @@ void j_exit(void);
 #ifndef MKSH_UNEMPLOYED
 void j_change(void);
 #endif
-int exchild(struct op *, int, volatile int *, int);
+int exchild(struct op *, int, int *, int);
 void startlast(void);
 int waitlast(void);
 int waitfor(const char *, int *);

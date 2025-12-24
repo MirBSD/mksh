@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.157 2025/12/23 20:26:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.158 2025/12/24 04:51:56 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -54,7 +54,7 @@ static struct op *thenpart(int);
 static struct op *elsepart(int);
 static struct op *caselist(int);
 static struct op *casepart(int, int);
-static struct op *function_body(char *, int, Wahr);
+static struct op *function_body(char *, int, int);
 static char **wordlist(int);
 static struct op *block(int, struct op *, struct op *);
 static struct op *newtp(int);
@@ -383,7 +383,7 @@ get_command(int cf, int sALIAS)
 				syntaxerr(NULL);
 			ACCEPT;
 			musthave(/*(*/ ')', 0);
-			t = function_body(XPptrv(args)[0], sALIAS, Nee);
+			t = function_body(XPptrv(args)[0], sALIAS, 0);
 			break;
 		}
 		break;
@@ -502,8 +502,25 @@ get_command(int cf, int sALIAS)
 		break;
 
 	case FUNCTION:
+		XPsize(args) = 0;
+		if (tpeek(0) == '(') {
+			const char *p;
+
+			ACCEPT;
+			while (tpeek(CONTIN) != ')') {
+				musthave(LWORD, CONTIN);
+				p = skip_wdvarname(yylval.cp, Nee);
+				if (p == yylval.cp || (*p != EOS &&
+				    (*p != CHAR || p[1] != '=')))
+					syntaxerr("expected parameter, not");
+				ACCEPT;
+				XPput(args, yylval.cp);
+			}
+			ACCEPT;
+			XPput(args, NULL);
+		}
 		musthave(LWORD, 0);
-		t = function_body(yylval.cp, sALIAS, Ja);
+		t = function_body(yylval.cp, sALIAS, XPsize(args) > 0 ? 2 : 1);
 		break;
 	}
 
@@ -526,6 +543,15 @@ get_command(int cf, int sALIAS)
 		t->args = (const char **)XPclose(args);
 		XPput(vars, NULL);
 		t->vars = (char **)XPclose(vars);
+	} else if (t->type == TFUNCT && t->u.charflag && XPsize(args) > 0) {
+		struct op *xt;
+
+		xt = newtp(TEXFUNC);
+		xt->args = (const char **)XPclose(args);
+		XPfree(vars);
+		xt->left = t->left;
+		xt->lineno = t->lineno;
+		t->left = xt;
 	} else {
 		XPfree(args);
 		XPfree(vars);
@@ -686,8 +712,8 @@ casepart(int endtok, int sALIAS)
 
 static struct op *
 function_body(char *name, int sALIAS,
-    /* function foo { ... } vs foo() { .. } */
-    Wahr ksh_func)
+    /* 0=foo() { … }; 1=function foo { … }; 2=function () foo { … } */
+    int ksh_func)
 {
 	char *sname, *p;
 	struct op *t;
@@ -711,7 +737,8 @@ function_body(char *name, int sALIAS,
 	 * shouldn't break anything. However, for function foo, AT&T ksh
 	 * only accepts an open-brace.
 	 */
-	if (ksh_func) {
+	switch (ksh_func) {
+	case 1:
 		if ((unsigned int)tpeek(CONTIN|KEYWORD|sALIAS) == ORD('(' /*)*/)) {
 			/* function foo () { //}*/
 			ACCEPT;
@@ -719,8 +746,11 @@ function_body(char *name, int sALIAS,
 			/* degrade to POSIX function */
 			ksh_func = Nee;
 		}
+		/* FALLTHROUGH */
+	case 2:
 		musthave(ORD('{' /*}*/), CONTIN|KEYWORD|sALIAS);
 		REJECT;
+		break;
 	}
 
 	t = newtp(TFUNCT);

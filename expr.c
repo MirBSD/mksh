@@ -25,7 +25,7 @@
 #define MKSH_DO_MBI_CTAS
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.128 2025/04/25 23:14:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.129 2025/12/24 04:51:52 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -120,8 +120,7 @@ evaluate(const char *expr, mksh_ari_t *rval, int error_ok, Wahr arith)
  * parse and evaluate expression, storing result in vp.
  */
 int
-v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
-    Wahr arith)
+v_evaluate(struct tbl *vp, const char *expr, int error_ok, Wahr arith)
 {
 	struct tbl *v;
 	Expr_state curstate;

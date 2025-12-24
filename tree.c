@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.117 2025/12/23 20:26:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.118 2025/12/24 04:51:56 tg Exp $");
 
 #define INDENT	8
 
@@ -805,7 +805,19 @@ iofree(struct ioword **iow, Area *ap)
 void
 fpFUNCTf(const char *k, struct op *v, struct shf *shf, int i, Wahr isksh)
 {
-	if (isksh)
+	if (v->type == TEXFUNC && v->args) {
+		const char **arg = v->args;
+
+		shf_puts(Tfunction, shf);
+		shf_putc(' ', shf);
+		shf_putc('(', shf); /*)*/
+		while (*arg) {
+			if (arg != v->args)
+				shf_putc(' ', shf);
+			wdvarput(shf, *arg++, 0, WDS_TPUTS);
+		}
+		fptreef(shf, i, /*(*/") %s %T", k, v->left);
+	} else if (isksh)
 		fptreef(shf, i, "%s %s %T", Tfunction, k, v);
 	else if (ktsearch(&keywords, k, hash(k)))
 		fptreef(shf, i, "%s %s() %T", Tfunction, k, v);
@@ -1404,6 +1416,20 @@ dumptree(struct shf *shf, struct op *t)
 	OPEN(TFUNCT)
 		shf_fprintf(shf, " str<%s> ksh<%s>", t->op_str,
 		    t->u.charflag ? Ttrue : Tfalse);
+		if (t->left && t->left->type == TEXFUNC)
+			t = t->left;
+		if (t->args) {
+			i = 0;
+			w = t->args;
+			while (*w) {
+				shf_putc('\n', shf);
+				for (j = 0; j < nesting; ++j)
+					shf_putc('\t', shf);
+				shf_fprintf(shf, " arg%d<", i++);
+				dumpwdvar(shf, *w++);
+				shf_putc('>', shf);
+			}
+		}
 		goto dumpleftandout;
 	OPEN(TTIME)
 		goto dumpleftandout;

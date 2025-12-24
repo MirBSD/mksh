@@ -25,7 +25,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.287 2025/06/02 19:17:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.288 2025/12/24 04:51:57 tg Exp $");
 
 /*-
  * Variables
@@ -937,8 +937,7 @@ vtypeset(int *ep, const char *var, kui set, kui clr,
 	}
 
 	/* prevent typeset from creating a local PATH/ENV/SHELL */
-	if (Flag(FRESTRICTED) && (strcmp(tvar, TPATH) == 0 ||
-	    strcmp(tvar, TENV) == 0 || strcmp(tvar, TSHELL) == 0))
+	if (varnamecheck(tvar))
 		merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
 		    KWF_TWOMSG | KWF_NOERRNO, tvar, "restricted"));
 

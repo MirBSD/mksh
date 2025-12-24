@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.269 2025/04/26 03:51:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.270 2025/12/24 04:51:54 tg Exp $");
 
 /*
  * states while lexing word
@@ -1448,6 +1448,28 @@ getsc_line(Source *s)
 		set_prompt(PS2, NULL);
 }
 
+static void
+sjsetprompt(Area *saved_atemp, char *ps1, int saved_lineno)
+{
+	char *cp;
+
+	if (kshsetjmp(e->jbuf)) {
+		prompt = safe_prompt;
+		/*
+		 * Don't print an error - assume it has already been
+		 * printed. Reason is we may have forked to run a
+		 * command and the child may be unwinding its stack
+		 * through this code as it exits.
+		 */
+	} else {
+		cp = substitute(ps1, 0);
+		strdupx(prompt, cp, saved_atemp);
+	}
+	current_lineno = saved_lineno;
+	/* frees everything in post-newenv ATEMP */
+	quitenv(NULL);
+}
+
 void
 set_prompt(int to, Source *s)
 {
@@ -1465,7 +1487,7 @@ set_prompt(int to, Source *s)
 		{
 			char ch;
 			struct shf *shf;
-			char * volatile ps1;
+			char *ps1;
 			Area *saved_atemp;
 			int saved_lineno;
 
@@ -1486,22 +1508,8 @@ set_prompt(int to, Source *s)
 			saved_lineno = current_lineno;
 			if (s)
 				current_lineno = s->line + 1;
-			if (kshsetjmp(e->jbuf)) {
-				prompt = safe_prompt;
-				/*
-				 * Don't print an error - assume it has already
-				 * been printed. Reason is we may have forked
-				 * to run a command and the child may be
-				 * unwinding its stack through this code as it
-				 * exits.
-				 */
-			} else {
-				char *cp = substitute(ps1, 0);
-				strdupx(prompt, cp, saved_atemp);
-			}
-			current_lineno = saved_lineno;
-			/* frees everything in post-newenv ATEMP */
-			quitenv(NULL);
+			sjsetprompt(saved_atemp, ps1, saved_lineno);
+			/* includes quitenv */
 		}
 		break;
 	/* command continuation */

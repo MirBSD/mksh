@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.421 2025/12/23 20:26:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.422 2025/12/24 04:51:52 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2425,7 +2425,7 @@ p_time_ksh(struct timeval *tv, const char *suffix)
  * time pipeline (really a statement, not a built-in command)
  */
 int
-timex(struct op *t, int f, volatile int *xerrok)
+timex(struct op *t, int f, int *xerrok)
 {
 #define TMX_NOARGS	BIT(0)
 #define TMX_NOREAL	BIT(1)		/* don't report real time */
@@ -2502,7 +2502,7 @@ timex(struct op *t, int f, volatile int *xerrok)
 
 /* option parsing for the time statement/builtin */
 int
-time_hook(struct op *t, char ** volatile *app)
+time_hook(struct op *t, char ***app)
 {
 	char **wp = *app;
 	int optc, i, j;

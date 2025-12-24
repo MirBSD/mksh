@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.164 2025/05/22 17:07:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.165 2025/12/24 04:51:53 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -441,7 +441,7 @@ ksh_nice(int ness)
 /* execute tree in child subprocess */
 int
 exchild(struct op *t, int flags,
-    volatile int *xerrok,
+    int *xerrok,
     /* used if XPCLOSE or XCCLOSE */
     int close_fd)
 {

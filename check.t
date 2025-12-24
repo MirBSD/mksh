@@ -1,5 +1,5 @@
 # -*- mode: sh -*-
-# $MirOS: src/bin/mksh/check.t,v 1.926 2025/06/02 19:17:13 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.927 2025/12/24 04:51:49 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
@@ -34,7 +34,7 @@
 
 info-pre: testing begins
 expected-stdout:
-	KSH R59 2025/06/02
+	KSH R59 2025/12/23
 description:
 	Check base version of full shell
 stdin:
@@ -10746,6 +10746,58 @@ expected-stdout:
 	dash: bar='./f-dash'
 	bash: bar='./f-bash'
 ---
+name: extfunc-1
+description:
+	check that extended mksh functions are handled (beta)
+stdin:
+	function () one {
+		echo "one,$#,$*."
+	}
+	# line 4 (next is 5)
+	function (x) two {
+		echo "two($x),$#,$*."
+	}
+	i=7
+	function (
+		a
+		b=$((++i))
+		c=
+	    ) three {
+		echo "three($i|$a,$b,$c),$#,$*."
+	}
+	one
+	one ii
+	# line 18 (next is 19)
+	two 2>tf
+	two ii $?
+	[[ $(<tf) = *'[19]: missing argument'* ]] && echo twopass || echo twofail
+	echo threebefore=$i
+	three eins zwo drei vier
+	echo threemid=$i
+	three allein
+	echo threeafter=$i
+	# line 27 (next is 28)
+	(PS4='<$LINENO>'; set -x; two miau) 2>tf
+	[[ $(<tf) = $'<28>two miau\n<5>local x=miau ; shift 1\n'* ]] && echo lastpass || echo lastfail
+	HOME=/etc
+	function (v=~/fsta* w="~/fsta*") four {
+		echo "four($v)($w),$#,$*."
+	}
+	four
+expected-stdout:
+	one,0,.
+	one,1,ii.
+	two(ii),1,2.
+	twopass
+	threebefore=7
+	three(7|eins,zwo,drei),1,vier.
+	threemid=7
+	three(8|allein,8,),0,.
+	threeafter=8
+	two(miau),0,.
+	lastpass
+	four(/etc/fsta*)(~/fsta*),0,.
+---
 name: integer-base-one-1
 description:
 	check if the use of fake integer base 1 works
@@ -12033,6 +12085,7 @@ stdin:
 	#TFUNCT_TBRACE_TASYNC
 	function  korn  {  echo eins; echo zwei ;  }
 	bourne  ()  {  logger *  &  }
+	function (	a b='x$y\z'$(echo w)$((++i)) c  ) extended { :; }
 	#IOREAD_IOCAT
 	tr  x  u  0<foo  >>bar
 	#IOWRITE_IOCLOB_IOHERE_noIOSKIP
@@ -12306,6 +12359,7 @@ expected-stdout:
 	inline_TFUNCT_TBRACE_TASYNC() {
 		function  korn  {  echo eins; echo zwei ;  }
 		bourne  ()  {  logger *  &  }
+		function (	a b='x$y\z'$(echo w)$((++i)) c  ) extended { :; }
 	}
 	inline_TFUNCT_TBRACE_TASYNC() {
 		function korn {
@@ -12315,20 +12369,25 @@ expected-stdout:
 		bourne() {
 			\logger * & 
 		} 
+		function (a b="x\$y\\z"$(\echo w )$((++i)) c) extended {
+			\: 
+		} 
 	} 
 	function comsub_TFUNCT_TBRACE_TASYNC { x=$(
 		function  korn  {  echo eins; echo zwei ;  }
 		bourne  ()  {  logger *  &  }
+		function (	a b='x$y\z'$(echo w)$((++i)) c  ) extended { :; }
 	); }
 	function comsub_TFUNCT_TBRACE_TASYNC {
-		x=$(function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ) 
+		x=$(function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ; function (a b="x\$y\\z"$(\echo w )$((++i)) c) extended { \: ; } ) 
 	} 
 	function reread_TFUNCT_TBRACE_TASYNC { x=$((
 		function  korn  {  echo eins; echo zwei ;  }
 		bourne  ()  {  logger *  &  }
+		function (	a b='x$y\z'$(echo w)$((++i)) c  ) extended { :; }
 	)|tr u x); }
 	function reread_TFUNCT_TBRACE_TASYNC {
-		x=$( ( function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ) | \tr u x ) 
+		x=$( ( function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ; function (a b="x\$y\\z"$(\echo w )$((++i)) c) extended { \: ; } ) | \tr u x ) 
 	} 
 	inline_IOREAD_IOCAT() {
 		tr  x  u  0<foo  >>bar
