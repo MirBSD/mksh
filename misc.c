@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.360 2025/04/25 23:14:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.361 2026/01/04 01:04:29 tg Exp $");
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, Wahr);
@@ -2643,7 +2643,7 @@ chvt(const Getopt *go)
 				if (WIFSIGNALED(status)) {
 					status = WTERMSIG(status);
 					if (status > 0 && status < ksh_NSIG)
-						dv = ksh_sigmess(status);
+						ksh_getsigmess(dv, status);
 					else
 						dv = NULL;
 					if (ksh_sigmessf(dv))

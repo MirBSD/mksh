@@ -11,7 +11,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020, 2021, 2022, 2023, 2025
+ *		 2019, 2020, 2021, 2022, 2023, 2025, 2026
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1041 2025/12/24 04:51:54 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.1042 2026/01/04 01:04:30 tg Exp $"
 
 #ifdef MKSH_USE_AUTOCONF_H
 /* things that “should” have been on the command line */
@@ -502,16 +502,23 @@ typedef sig_t ksh_sigsaved;
 #endif
 
 #if HAVE_SIGDESCR_NP
-#define ksh_sigmess(nr) sigdescr_np(nr)
+#define ksh_getsigmess(dst,nr) (dst) = sigdescr_np(nr)
 #elif HAVE_SYS_SIGLIST
 #if !HAVE_SYS_SIGLIST_DECL
 extern const char * const sys_siglist[];
 #endif
-#define ksh_sigmess(nr) sys_siglist[nr]
+#define ksh_getsigmess(dst,nr) (dst) = sys_siglist[nr]
 #elif HAVE_STRSIGNAL
-#define ksh_sigmess(nr) strsignal(nr)
+#define ksh_getsigmess(dst,nr) do {				\
+	const char *ksh_getsigmess_p = strsignal(nr);		\
+								\
+	if (ksh_sigmessf(ksh_getsigmess_p))			\
+		ksh_getsigmess_p = NULL;			\
+	strdupx(ksh_getsigmess_p, ksh_getsigmess_p, ATEMP);	\
+	(dst) = ksh_getsigmess_p;				\
+} while (/* CONSTCOND */ 0)
 #else
-#define ksh_sigmess(nr) NULL
+#define ksh_getsigmess(dst,nr) (dst) = NULL
 #endif
 #define ksh_sigmessf(mess) (!(mess) || !*(mess))
 

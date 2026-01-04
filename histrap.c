@@ -26,7 +26,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.192 2025/05/22 17:07:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.193 2026/01/04 01:04:29 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1095,7 +1095,7 @@ inittraps(void)
 		}
 		if (sigtraps[i].name == null)
 			sigtraps[i].name = shf_smprintf(Tf_d, i);
-		sigtraps[i].mess = ksh_sigmess(i);
+		ksh_getsigmess(sigtraps[i].mess, i);
 		if (ksh_sigmessf(sigtraps[i].mess))
 			sigtraps[i].mess = shf_smprintf(Tf_sd,
 			    "Signal", i);
