@@ -1,11 +1,11 @@
 #!/bin/sh
 # -*- mode: sh -*-
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.862 2025/12/23 19:26:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.863 2026/01/04 00:49:32 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020, 2021, 2022, 2023, 2024, 2025
+#		2020, 2021, 2022, 2023, 2024, 2025, 2026
 #	mirabilos <m$(date +%Y)@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -2926,7 +2926,8 @@ if test 0 = $HAVE_SOME_SIGNAME; then
 	fi
 	sigseenone=:
 	sigseentwo=:
-	echo '#include <signal.h>
+	echo '#include <limits.h>
+#include <signal.h>
 #if defined(NSIG_MAX)
 #define cfg_NSIG NSIG_MAX
 #elif defined(NSIG)
