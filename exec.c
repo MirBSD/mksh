@@ -1068,13 +1068,13 @@ scriptexec(struct op *tp, const char **ap)
 			return (ENOEXEC);
 		}
 #ifdef __OS2__
-		str = _getext(tp->str);
+		str = _getext(tp->op_str);
 		if (str && (!stricmp(str, ".cmd") || !stricmp(str, ".bat"))) {
 			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
 			sh = str_val(global("OS2_SHELL"));
 			*tp->args-- = "/c";
 			/* convert slahes to backslashes */
-			for (cp = (unsigned char *)tp->str; *cp; cp++) {
+			for (cp = (unsigned char *)tp->op_str; *cp; cp++) {
 				if (*cp == '/')
 					*cp = '\\';
 			}
