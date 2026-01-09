@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.256 2025/12/24 04:51:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.257 2026/01/09 17:01:48 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1068,13 +1068,13 @@ scriptexec(struct op *tp, const char **ap)
 			return (ENOEXEC);
 		}
 #ifdef __OS2__
-		str = _getext(tp->str);
+		str = _getext(tp->op_str);
 		if (str && (!stricmp(str, ".cmd") || !stricmp(str, ".bat"))) {
 			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
 			sh = str_val(global("OS2_SHELL"));
 			*tp->args-- = "/c";
 			/* convert slahes to backslashes */
-			for (cp = (unsigned char *)tp->str; *cp; cp++) {
+			for (cp = (unsigned char *)tp->op_str; *cp; cp++) {
 				if (*cp == '/')
 					*cp = '\\';
 			}
