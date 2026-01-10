@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.15 2025/12/08 01:25:11 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.16 2026/01/10 05:30:30 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -249,7 +249,7 @@ template<> struct mbccCEX_sa<false,true> { typedef int Type; };
 #define mbitou(x)		((unsigned)((x)|0))
 #define mbitolu(x)		((unsigned long)((x)|0))
 #define mbitollu(x)		((unsigned long long)((x)|0))
-/* …from floats or integers */
+/* …from floats or integers (C only; C++ also allows some pointers) */
 #define mbfto(x)		(+(x))
 #define mbftou(x)		((unsigned)+(x))
 #define mbftolu(x)		((unsigned long)+(x))
