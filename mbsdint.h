@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDINT_H
-#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.62 2025/12/08 01:25:11 tg Exp $"
+#define SYSKERN_MBSDINT_H "$MirOS: src/bin/mksh/mbsdint.h,v 1.63 2026/02/14 17:26:15 tg Exp $"
 
 /*
  * cpp defines to set:
@@ -20,7 +20,8 @@
  * -DMBSDINT_H_MBIPTR_IN_LARGE=0 mbiPTR fits mbiHUGE but no longer mbiLARGE
  * -DMBSDINT_H_WANT_LONG_IN_SIZET=0 don’t ensure long fits in size_t (16-bit)
  *
- * -DMBSDINT_H_WANT_PTR_IN_SIZET (breaks some) ensure pointers fit in size_t
+ * -DMBSDINT_H_WANT_PTR_IN_SIZET (breaks some) ensure pointers fit in size_t;
+ * -DMBSDINT_H_WANT_PTRV_IN_SIZET is the one you want to not break CHERI
  * -DMBSDINT_H_WANT_SIZET_IN_LONG (breaks LLP64) ensure size_t fits in long
  * -DMBSDINT_H_WANT_INT32=1 to ensure unsigned int has at least 32 bit width
  * -DMBSDINT_H_WANT_LRG64=1 to ensure mbiLARGE_U has at least 64 bit width
@@ -63,6 +64,9 @@
 #endif
 #if defined(MBSDINT_H_WANT_PTR_IN_SIZET) && ((MBSDINT_H_WANT_PTR_IN_SIZET) < 1)
 #undef MBSDINT_H_WANT_PTR_IN_SIZET
+#endif
+#if defined(MBSDINT_H_WANT_PTRV_IN_SIZET) && ((MBSDINT_H_WANT_PTRV_IN_SIZET) < 1)
+#undef MBSDINT_H_WANT_PTRV_IN_SIZET
 #endif
 #if defined(MBSDINT_H_WANT_SIZET_IN_LONG) && ((MBSDINT_H_WANT_SIZET_IN_LONG) < 1)
 #undef MBSDINT_H_WANT_SIZET_IN_LONG
@@ -688,7 +692,7 @@ mbCTA_BEG(mbsdint_h);
  mbCTA(sizet_minlong, sizeof(size_t) >= sizeof(long));
 #endif
 #ifdef MBSDINT_H_WANT_SIZET_IN_LONG
- /* with MBSDINT_H_WANT_PTR_IN_SIZET breaks LLP64 (e.g. Windows/amd64) */
+ /* with MBSDINT_H_WANT_PTRV_IN_SIZET breaks LLP64 (e.g. Windows/amd64) */
  mbCTA(sizet_inulong, sizeof(size_t) <= sizeof(long));
 #endif
  /* this is as documented above */
@@ -727,10 +731,20 @@ mbCTA_BEG(mbsdint_h);
  /* true as of C23 and POSIX unless INT_MIN == -INT_MAX */
  mbCTA(user_safec, mbiSAFECOMPLEMENT == 1);
 #endif
-#ifdef MBSDINT_H_WANT_PTR_IN_SIZET
  /* require pointers and size_t to take up the same amount of space */
+#if defined(MBSDINT_H_WANT_PTR_IN_SIZET) || \
+    defined(MBSDINT_H_WANT_PTRV_IN_SIZET)
+ /* only their values, mbiPTR_U is ptraddr_t (CHERI), uintptr_t (otherwise) */
+ mbCTA(sizet_mbiPTRu, sizeof(size_t) == sizeof(mbiPTR_U) &&
+    mbiTYPE_UMAX(size_t) == mbiPTR_U_MAX);
+#endif
+#if defined(MBSDINT_H_WANT_PTR_IN_SIZET) || \
+    (defined(MBSDINT_H_WANT_PTRV_IN_SIZET) && !defined(__CHERI__))
+ /* the actual pointers; breaks fat pointers */
  mbCTA(sizet_voidptr, sizeof(size_t) == sizeof(void *));
+ mbCTA(sizet_charptr, sizeof(size_t) == sizeof(char *));
  mbCTA(sizet_sintptr, sizeof(size_t) == sizeof(int *));
+ mbCTA(sizet_larrptr, sizeof(size_t) == sizeof(long **));
  mbCTA(sizet_funcptr, sizeof(size_t) == sizeof(void (*)(void)));
 #endif
  /* C23 §5.2.4.2.1 */
