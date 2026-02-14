@@ -5,7 +5,7 @@
  */
 
 #ifndef SYSKERN_MBSDCC_H
-#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.16 2026/01/10 05:30:30 tg Exp $"
+#define SYSKERN_MBSDCC_H "$MirOS: src/bin/mksh/mbsdcc.h,v 1.17 2026/02/14 18:01:58 tg Exp $"
 
 /*
  * Note: this header uses the SIZE_MAX (or similar) definitions
@@ -94,7 +94,7 @@ template<> struct mbccChkExpr_sa<true> { typedef int Type; };
 #define mbccChkExpr(test)	(static_cast<mbccChkExpr_sa<!!(0+(test))>::Type>(0))
 #else
 #define mbccChkExpr(test)	mbmscWs(4116) \
-				(sizeof(struct { unsigned int (mbccChkExpr):((0+(test)) ? 1 : -1); }) * 0)
+				(sizeof(struct { unsigned int mbccChkExpr_:((0+(test)) ? 1 : -1); }) * 0)
 #endif
 
 /* ensure value x is a constant expression */
@@ -105,7 +105,7 @@ template<> struct mbccCEX_sa<false,true> { typedef int Type; };
 #define mbccCEX(x)		(static_cast<mbccCEX_sa<!!(0+(x)), !(0+(x))>::Type>(0) + (x))
 #else
 #define mbccCEX(x)		mbmscWs(4116) \
-				(sizeof(struct { unsigned int (mbccCEX):(((0+(x)) && 1) + 1); }) * 0 + (x))
+				(sizeof(struct { unsigned int mbccCEX_:(((0+(x)) && 1) + 1); }) * 0 + (x))
 #endif
 
 /* flexible array member */
