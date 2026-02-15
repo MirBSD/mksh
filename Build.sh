@@ -1,6 +1,6 @@
 #!/bin/sh
 # -*- mode: sh -*-
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.863 2026/01/04 00:49:32 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.864 2026/02/15 18:17:22 tg Exp $'
 set +evx
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2964,7 +2964,8 @@ mksh_cfg= cfg_NSIG
 	sigs="$sigs STOP TSTP TTIN TTOU USR1 USR2 POLL PROF SYS TRAP URG VTALRM"
 	sigs="$sigs XCPU XFSZ INFO WINCH EMT IO DIL LOST PWR SAK CLD IOT STKFLT"
 	sigs="$sigs ABND DCE DUMP IOERR TRACE DANGER THCONT THSTOP RESV UNUSED"
-	sigs="$sigs PROT"
+	sigs="$sigs PROT MSG MIGRATE PRE VIRT ALRM1 TALRM WAITING SYSERROR"
+	sigs="$sigs RECOVERY RECONFIG CPUFAIL GRANT RETRACT KAP SOUND"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN -dD conftest.c" | \
 	    grep '[	 ]SIG[A-Z0-9][A-Z0-9]*[	 ]' | \
