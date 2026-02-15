@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019,
- *		 2021, 2022, 2023, 2025
+ *		 2021, 2022, 2023, 2025, 2026
  *	mirabilos <m$(date +%Y)@mirbsd.de>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #include "sh.h"
 #include "mirhash.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.193 2026/01/04 01:04:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.194 2026/02/15 18:01:43 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1048,6 +1048,15 @@ inittraps(void)
 	const char *cs;
 #if !HAVE_SIGABBREV_NP && !HAVE_SYS_SIGNAME
 	const struct mksh_sigpair *pair;
+
+	pair = mksh_sigpairs;
+	while (pair->name) {
+		if (pair->nr < 1 || pair->nr >= ksh_NSIG)
+			/* silently skip */;
+		else if (!sigtraps[pair->nr].name)
+			sigtraps[pair->nr].name = pair->name;
+		++pair;
+	}
 #endif
 
 	trap_exstat = -1;
@@ -1060,10 +1069,7 @@ inittraps(void)
 #elif HAVE_SYS_SIGNAME
 		cs = sys_signame[i];
 #else
-		pair = mksh_sigpairs;
-		while ((pair->nr != i) && (pair->name != NULL))
-			++pair;
-		cs = pair->name;
+		cs = sigtraps[i].name;
 #endif
 		if ((cs == NULL) ||
 		    (cs[0] == '\0'))
